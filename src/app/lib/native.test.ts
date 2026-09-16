@@ -31,7 +31,7 @@ describe('the widget bridge', () => {
 
     await publishToWidget({
       token: 'tok',
-      apiBase: 'https://pupluv.vercel.app',
+      apiBase: 'https://www.pupluv.online',
       dogs: [{ id: 'd1', name: 'Oreo', accent: 'amber', emoji: '🍪' }],
       placements: { d1: 'outside' },
     })
