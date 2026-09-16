@@ -7,7 +7,7 @@
 # (Settings → Privacy & Security → Developer Mode, then restart).
 set -euo pipefail
 
-API_URL="${PUBLIC_API_URL:-https://pupluv.vercel.app}"
+API_URL="${PUBLIC_API_URL:-https://www.pupluv.online}"
 BUNDLE_ID="com.pupluv.app"
 DERIVED="${TMPDIR:-/tmp}/pupluv-device"
 APP="$DERIVED/Build/Products/Release-iphoneos/App.app"
@@ -95,6 +95,18 @@ REST="${FOUND#*	}"
 DEVICE_ID="${REST%%	*}"
 DEVICE_NAME="${REST#*	}"
 echo "→ target: ${DEVICE_NAME:-$DEVICE_ID}"
+
+# A redirecting origin bakes a broken API base into the app: a cross-origin POST
+# does not survive a redirect, because the 3xx carries no CORS headers. This is
+# what an apex that forwards to www, or a stray trailing slash, both look like.
+PROBE=$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' "$API_URL/api/dogs" || echo '000 ')
+case "${PROBE%% *}" in
+  30[1278])
+    echo "$API_URL redirects to ${PROBE#* }" >&2
+    echo "Bake in the origin it lands on instead — a cross-origin POST cannot follow a redirect." >&2
+    exit 1
+    ;;
+esac
 
 echo "→ building the web app against $API_URL"
 PUBLIC_API_URL="$API_URL" pnpm build >/dev/null
