@@ -76,6 +76,27 @@ Signing is automatic against team `VRFF4MSHAC`, which is a paid membership — s
 the build lasts until the provisioning profile expires rather than the seven days
 a free personal team gets. There is no App Store involvement and none is planned.
 
+## The home-screen widget
+
+`ios/App/PupluvWidget` is a WidgetKit extension: three place buttons that move
+both dogs without opening the app. Buttons in a widget are App Intents, which is
+why everything targets iOS 17.
+
+It runs in its own process and cannot see this web view's storage, so the two
+sides meet in the App Group `group.com.pupluv.app`:
+
+- **The app publishes** the token, API origin, dogs and current placements after
+  every sync (`src/app/lib/native.ts` → `SharedStorePlugin.swift`). The widget is
+  a reader; it never owns the session.
+- **The widget queues** a tap it could not deliver, and the app adopts that queue
+  on its next sync. Only one outbox ever retries, and it is the app's.
+- `ios/App/Shared/*.swift` compiles into **both** targets. Keep it free of
+  Capacitor imports or the widget will not build.
+
+The Xcode project is scripted, not hand-edited: `scripts/xcode.sh <ruby file>`
+runs against the xcodeproj gem inside Homebrew's CocoaPods, and
+`scripts/add-widget-target.rb` is idempotent.
+
 ## Conventions
 
 - Commits: conventional, lowercase, no period. Branch + PR, never auto-merge.
