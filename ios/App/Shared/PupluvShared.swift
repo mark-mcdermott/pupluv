@@ -54,7 +54,7 @@ public enum PupluvShared {
     }
 
     public static var apiBase: String {
-        get { defaults?.string(forKey: Key.apiBase) ?? "https://pupluv.vercel.app" }
+        get { defaults?.string(forKey: Key.apiBase) ?? "https://www.pupluv.online" }
         set { defaults?.set(newValue, forKey: Key.apiBase) }
     }
 

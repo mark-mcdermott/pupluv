@@ -11,17 +11,17 @@ describe('apiBase', () => {
   })
 
   it('strips trailing slashes that would produce a redirecting //api path', () => {
-    expect(apiBase('https://pupluv.vercel.app/')).toBe('https://pupluv.vercel.app')
-    expect(apiBase('https://pupluv.vercel.app///')).toBe('https://pupluv.vercel.app')
+    expect(apiBase('https://www.pupluv.online/')).toBe('https://www.pupluv.online')
+    expect(apiBase('https://www.pupluv.online///')).toBe('https://www.pupluv.online')
   })
 
   it('leaves a clean origin alone', () => {
-    expect(apiBase('https://pupluv.vercel.app')).toBe('https://pupluv.vercel.app')
+    expect(apiBase('https://www.pupluv.online')).toBe('https://www.pupluv.online')
     expect(apiBase('http://localhost:4321')).toBe('http://localhost:4321')
   })
 
   it('tolerates stray whitespace from a shell variable', () => {
-    expect(apiBase('  https://pupluv.vercel.app/  ')).toBe('https://pupluv.vercel.app')
+    expect(apiBase('  https://www.pupluv.online/  ')).toBe('https://www.pupluv.online')
   })
 })
 
