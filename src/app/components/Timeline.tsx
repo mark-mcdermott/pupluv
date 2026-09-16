@@ -121,9 +121,10 @@ export function Timeline({ dogs, events }: { dogs: Dog[]; events: PupEvent[] }) 
                     {clockLabel(first.occurredAt)}
                   </time>
                   {/* Fixed width: one dog or two, the place glyph after it has
-                      to land on the same vertical line down the whole list. */}
+                      to land on the same vertical line down the whole list. Wider
+                      than two emoji need, so the place is not crowded against them. */}
                   <span
-                    className="w-11 shrink-0 leading-none"
+                    className="w-14 shrink-0 leading-none"
                     style={{ fontSize: DOG_GLYPH_PX }}
                     role="img"
                     aria-label={who.map((dog) => dog.name).join(' and ')}
