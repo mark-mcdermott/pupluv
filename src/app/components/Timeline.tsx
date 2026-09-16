@@ -1,17 +1,15 @@
 import { useState } from 'react'
-import { X } from 'lucide-react'
+import { Pencil, X } from 'lucide-react'
 import {
-  LOCATION_LABELS,
   POTTY_LABELS,
   isAccident,
   isLive,
   type Dog,
-  type Location,
   type PupEvent,
 } from '@/lib/domain'
 import { annotate, undo } from '../lib/sync'
 import { clockLabel, isSameDay, startOfToday } from '../lib/time'
-import { LOCATION_ICONS } from './Deck'
+import { DOG_GLYPH_PX, PlaceGlyph } from './Place'
 
 const MOVED = { pen: 'Moved to the pen', outside: 'Moved outside', inside: 'Moved inside' } as const
 const AT = { pen: 'in the pen', outside: 'outside', inside: 'inside' } as const
@@ -53,30 +51,6 @@ function describe(event: PupEvent): string {
     case 'sleep':
       return 'Crated to sleep'
   }
-}
-
-/**
- * A bare stroke icon beside full-colour emoji reads as a stray glyph — the two
- * are different visual weights. The chip gives it a body so it lands as a
- * deliberate badge, and the colour carries meaning: outside is the goal, the
- * indoor places stay neutral.
- */
-function Place({ location }: { location: Location }) {
-  const Icon = LOCATION_ICONS[location]
-  const outside = location === 'outside'
-  return (
-    <span
-      className="inline-grid size-6 shrink-0 place-items-center rounded-lg"
-      style={{
-        background: outside ? 'var(--color-moss-soft)' : 'var(--color-sunk)',
-        color: outside ? 'var(--color-moss)' : 'var(--color-ink-muted)',
-      }}
-      title={LOCATION_LABELS[location]}
-      aria-hidden
-    >
-      <Icon size={14} strokeWidth={2.2} />
-    </span>
-  )
 }
 
 export function Timeline({ dogs, events }: { dogs: Dog[]; events: PupEvent[] }) {
@@ -131,34 +105,43 @@ export function Timeline({ dogs, events }: { dogs: Dog[]; events: PupEvent[] }) 
 
             return (
               <li key={key} className="py-2">
-                <div className="flex items-baseline gap-3">
+                <div className="flex items-baseline gap-2">
                   <time
-                    className="w-16 shrink-0 text-sm text-ink-faint"
+                    className="w-[4.5rem] shrink-0 whitespace-nowrap text-sm text-ink-faint"
                     dateTime={first.occurredAt}
                   >
                     {clockLabel(first.occurredAt)}
                   </time>
+                  {/* Fixed width: one dog or two, the place glyph after it has
+                      to land on the same vertical line down the whole list. */}
                   <span
-                    className="shrink-0 text-lg leading-none"
+                    className="w-11 shrink-0 leading-none"
+                    style={{ fontSize: DOG_GLYPH_PX }}
                     role="img"
                     aria-label={who.map((dog) => dog.name).join(' and ')}
                   >
                     {who.map((dog) => dog.emoji).join('')}
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => open(key, first.note)}
-                    aria-label={`${first.note ? 'Edit' : 'Add'} note for ${label}`}
-                    className={`flex min-w-0 flex-1 items-center gap-1.5 text-left text-sm ${
+                  <span
+                    className={`flex min-w-0 flex-1 items-center gap-1.5 text-sm ${
                       accident ? 'text-clay' : 'text-ink'
                     }`}
                   >
-                    {place ? <Place location={place} /> : null}
+                    {place ? <PlaceGlyph location={place} /> : null}
                     {first.type === 'potty' ? (
                       <span className="truncate font-medium">{POTTY_LABELS[first.pottyKind]}</span>
                     ) : first.type !== 'location' ? (
                       <span className="truncate">{describe(first)}</span>
                     ) : null}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => open(key, first.note)}
+                    aria-label={`${first.note ? 'Edit' : 'Add'} note for ${label}`}
+                    title={first.note ? 'Edit note' : 'Add note'}
+                    className="press grid size-7 shrink-0 place-items-center rounded-full text-ink-faint hover:bg-sunk hover:text-ink"
+                  >
+                    <Pencil size={13} />
                   </button>
                   <button
                     type="button"
@@ -184,10 +167,10 @@ export function Timeline({ dogs, events }: { dogs: Dog[]; events: PupEvent[] }) 
                     maxLength={500}
                     placeholder="Add a note…"
                     aria-label={`Note for ${label}`}
-                    className="mt-1.5 ml-[4.75rem] w-[calc(100%-4.75rem)] resize-none rounded-xl border border-line bg-surface px-2 py-1.5 text-sm outline-none placeholder:text-ink-faint focus-visible:border-ink"
+                    className="mt-1.5 ml-20 w-[calc(100%-5rem)] resize-none rounded-xl border border-line bg-surface px-2 py-1.5 text-sm outline-none placeholder:text-ink-faint focus-visible:border-ink"
                   />
                 ) : first.note ? (
-                  <p className="ml-[4.75rem] mt-0.5 text-xs leading-snug text-ink-muted">
+                  <p className="ml-20 mt-0.5 text-xs leading-snug text-ink-muted">
                     {first.note}
                   </p>
                 ) : null}

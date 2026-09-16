@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronDown, ChevronUp, Fence, House, Plus, Trees, type LucideIcon } from 'lucide-react'
+import { ChevronDown, ChevronUp, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   DEFAULT_LOCATION,
@@ -16,15 +16,10 @@ import {
 import { accentColor } from '../lib/accent'
 import { tapped } from '../lib/feedback'
 import { log, undo } from '../lib/sync'
+import { PlaceGlyph } from './Place'
 
 /** Sentinel selection: apply the entry to every dog at once. */
 export const BOTH = 'both'
-
-export const LOCATION_ICONS: Record<Location, LucideIcon> = {
-  pen: Fence,
-  outside: Trees,
-  inside: House,
-}
 
 type Props = {
   dogs: Dog[]
@@ -169,7 +164,6 @@ export function Deck({ dogs, events, selectedId, onSelect }: Props) {
         aria-label={open ? 'Where' : undefined}
       >
         {LOCATIONS.map((option) => {
-          const Icon = LOCATION_ICONS[option]
           const on = option === lit
           return (
             <button
@@ -187,7 +181,7 @@ export function Deck({ dogs, events, selectedId, onSelect }: Props) {
                 color: on ? 'var(--color-on-accent)' : 'var(--color-ink)',
               }}
             >
-              <Icon size={26} strokeWidth={1.8} />
+              <PlaceGlyph location={option} size={26} />
             </button>
           )
         })}
