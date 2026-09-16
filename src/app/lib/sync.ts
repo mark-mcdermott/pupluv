@@ -28,6 +28,13 @@ const API_BASE = apiBase(import.meta.env.PUBLIC_API_URL)
 
 class AuthError extends Error {}
 
+class ApiError extends Error {
+  constructor(readonly status: number) {
+    super(`request failed: ${status}`)
+    this.name = 'ApiError'
+  }
+}
+
 async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = getToken()
   const response = await fetch(`${API_BASE}${path}`, {
@@ -44,7 +51,7 @@ async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
     $authed.set(false)
     throw new AuthError('unauthorized')
   }
-  if (!response.ok) throw new Error(`${path} failed: ${response.status}`)
+  if (!response.ok) throw new ApiError(response.status)
   return response.json() as Promise<T>
 }
 
@@ -121,8 +128,22 @@ async function push(): Promise<void> {
     return
   }
 
-  await api('/api/events', { method: 'POST', body: JSON.stringify(batch) })
   const sent = new Set(batch.map((event) => event.id))
+
+  try {
+    await api('/api/events', { method: 'POST', body: JSON.stringify(batch) })
+  } catch (error) {
+    // A 4xx means the server will never accept this batch — a malformed event,
+    // or one referencing a dog that no longer exists. Leaving it queued wedges
+    // the outbox permanently and every later entry silently stops syncing, so
+    // drop it and let the queue drain. 5xx and network failures are transient
+    // and stay put.
+    if (error instanceof ApiError && error.status >= 400 && error.status < 500) {
+      setOutbox(getOutbox().filter((id) => !sent.has(id)))
+    }
+    throw error
+  }
+
   setOutbox(getOutbox().filter((id) => !sent.has(id)))
 }
 

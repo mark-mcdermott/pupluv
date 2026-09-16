@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro'
-import { asc, gt, sql } from 'drizzle-orm'
+import { asc, gt, inArray, sql } from 'drizzle-orm'
 import { eventBatchSchema } from '@/lib/domain'
 import { isAuthed, unauthorized } from '@/server/auth'
 import { getDb, schema } from '@/server/db'
@@ -42,8 +42,22 @@ export const POST: APIRoute = async ({ request }) => {
     return Response.json({ error: 'invalid events', issues: parsed.error.issues }, { status: 400 })
   }
 
+  // A foreign-key violation would surface as a 500, which the client treats as
+  // transient and retries forever. An unknown dog is the client's mistake, so
+  // say so with a 400 and let it drop the batch.
+  const db = getDb()
+  const dogIds = [...new Set(parsed.data.map((event) => event.dogId))]
+  const known = await db
+    .select({ id: schema.dogs.id })
+    .from(schema.dogs)
+    .where(inArray(schema.dogs.id, dogIds))
+  const missing = dogIds.filter((id) => !known.some((dog) => dog.id === id))
+  if (missing.length) {
+    return Response.json({ error: 'unknown dog', dogIds: missing }, { status: 400 })
+  }
+
   const rows = parsed.data.map(toRow)
-  await getDb()
+  await db
     .insert(schema.events)
     .values(rows)
     // Everything but the tombstone and the note is immutable once logged.
