@@ -97,6 +97,38 @@ The Xcode project is scripted, not hand-edited: `scripts/xcode.sh <ruby file>`
 runs against the xcodeproj gem inside Homebrew's CocoaPods, and
 `scripts/add-widget-target.rb` is idempotent.
 
+## Backups
+
+`backups/pupluv.json` is a full dump of both tables, committed to the repo. A
+scheduled workflow refreshes it every six hours and commits only when the data
+actually changed, so the git history *is* the backup history — each commit is a
+restorable point, and a diff shows exactly what moved.
+
+```bash
+pnpm db:backup                    # dump now, before anything risky
+pnpm db:restore                   # put it back
+pnpm db:restore path/to/file.json # or from a specific dump
+```
+
+Four copies, none depending on the same thing: the live Neon database, the
+committed dump on GitHub, the same dump in every clone of this repo, and a
+90-day workflow artifact held separately from the repository. Neon's own history
+retention is a fifth for recent mistakes.
+
+Two deliberate properties:
+
+- **Restore is upsert-only.** It brings back what was lost and refreshes what
+  changed, but never deletes a row added since the backup — so running it can
+  only recover, never destroy. It cannot undo an unwanted *insert*.
+- **The dump carries no timestamp field.** Git records when it was taken, and a
+  field that changed every run would commit daily even when nothing happened.
+- The backup refuses to write when the database returns no dogs: an empty read
+  is a failure, not news, and must never overwrite a good backup.
+
+JSON rather than `pg_dump` because Neon runs PostgreSQL 18 and an older client on
+a CI runner cannot dump it — and because a two-table dump is more useful
+readable and diffable than as a binary.
+
 ## Conventions
 
 - Commits: conventional, lowercase, no period. Branch + PR, never auto-merge.

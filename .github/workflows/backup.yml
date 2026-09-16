@@ -1,0 +1,54 @@
+name: backup
+
+on:
+  schedule:
+    # Every six hours, so a bad afternoon can never cost more than that.
+    - cron: '17 */6 * * *'
+  workflow_dispatch: # run by hand before anything risky
+
+permissions:
+  contents: write
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Not pnpm db:backup — that wrapper loads .env.local, which is local only.
+      - name: Dump the database
+        run: pnpm exec tsx scripts/backup-db.ts
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      # A second home, held by GitHub separately from the repository itself.
+      - name: Keep a copy outside the repository
+        uses: actions/upload-artifact@v4
+        with:
+          name: pupluv-backup-${{ github.run_id }}
+          path: backups/pupluv.json
+          retention-days: 90
+
+      - name: Commit it when the data changed
+        run: |
+          if git diff --quiet -- backups/; then
+            echo "no change since the last backup"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backups/
+          # [skip ci] so a backup does not re-run verify or redeploy the app.
+          git commit -m "chore: database backup [skip ci]"
+          git push
