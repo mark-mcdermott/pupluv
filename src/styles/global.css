@@ -89,6 +89,13 @@
     overscroll-behavior-y: none;
   }
 
+  /* Tailwind's reset leaves buttons on the default arrow. Every button in this
+     app is a real action, so they all get the hand. */
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']) {
+    cursor: pointer;
+  }
+
   :focus-visible {
     outline: 2px solid var(--color-ink);
     outline-offset: 2px;
