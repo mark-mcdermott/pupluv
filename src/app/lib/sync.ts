@@ -1,0 +1,189 @@
+import { eventSchema, type Dog, type DraftEvent, type PupEvent } from '@/lib/domain'
+import { $authed, $dogs, $events, $ready, $sync } from './state'
+import { loadEvents, saveEvents } from './store'
+import {
+  clearSession,
+  getCursor,
+  getOutbox,
+  getToken,
+  setCursor,
+  setOutbox,
+  setToken,
+} from './session'
+
+// Same-origin on the web. The bundled iOS build is served from
+// capacitor://localhost, so it is given the deployed origin at build time.
+const API_BASE = import.meta.env.PUBLIC_API_URL ?? ''
+
+class AuthError extends Error {}
+
+async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const token = getToken()
+  const response = await fetch(`${API_BASE}${path}`, {
+    ...init,
+    headers: {
+      ...(init.body ? { 'content-type': 'application/json' } : {}),
+      ...(token ? { authorization: `Bearer ${token}` } : {}),
+      ...init.headers,
+    },
+  })
+
+  if (response.status === 401) {
+    clearSession()
+    $authed.set(false)
+    throw new AuthError('unauthorized')
+  }
+  if (!response.ok) throw new Error(`${path} failed: ${response.status}`)
+  return response.json() as Promise<T>
+}
+
+export async function signIn(pin: string): Promise<void> {
+  const { token } = await api<{ token: string }>('/api/auth', {
+    method: 'POST',
+    body: JSON.stringify({ pin }),
+  })
+  setToken(token)
+  $authed.set(true)
+  await sync()
+}
+
+export function signOut(): void {
+  clearSession()
+  $authed.set(false)
+  $events.set([])
+}
+
+/** Local write first, network later — the tap must never wait on a round trip. */
+async function record(event: PupEvent): Promise<PupEvent> {
+  await saveEvents([event])
+  setOutbox([...new Set([...getOutbox(), event.id])])
+
+  const next = [event, ...$events.get().filter((e) => e.id !== event.id)]
+  next.sort((a, b) => b.occurredAt.localeCompare(a.occurredAt))
+  $events.set(next)
+  $sync.setKey('pending', getOutbox().length)
+
+  void sync()
+  return event
+}
+
+export function log(event: DraftEvent): Promise<PupEvent> {
+  return record(eventSchema.parse({ ...event, id: crypto.randomUUID(), deletedAt: null }))
+}
+
+/** Undo is a tombstone so it reaches the other devices too. */
+export async function undo(id: string): Promise<void> {
+  const existing = $events.get().find((event) => event.id === id)
+  if (!existing) return
+  await record({ ...existing, deletedAt: new Date().toISOString() })
+}
+
+async function push(): Promise<void> {
+  const pending = getOutbox()
+  if (!pending.length) return
+
+  const byId = new Map($events.get().map((event) => [event.id, event]))
+  const batch = pending.map((id) => byId.get(id)).filter((e): e is PupEvent => Boolean(e))
+
+  // Ids with no matching event can never be sent; drop them.
+  if (!batch.length) {
+    setOutbox([])
+    return
+  }
+
+  await api('/api/events', { method: 'POST', body: JSON.stringify(batch) })
+  const sent = new Set(batch.map((event) => event.id))
+  setOutbox(getOutbox().filter((id) => !sent.has(id)))
+}
+
+async function pull(): Promise<void> {
+  let cursor = getCursor()
+  let more = true
+
+  while (more) {
+    const query = cursor ? `?since=${encodeURIComponent(cursor)}` : ''
+    const page = await api<{ events: unknown[]; cursor: string | null; more: boolean }>(
+      `/api/events${query}`,
+    )
+
+    const fresh = page.events
+      .map((row) => eventSchema.safeParse(row))
+      .filter((r) => r.success)
+      .map((r) => r.data)
+
+    if (fresh.length) {
+      await saveEvents(fresh)
+      const merged = new Map($events.get().map((event) => [event.id, event]))
+      for (const event of fresh) merged.set(event.id, event)
+      $events.set([...merged.values()].sort((a, b) => b.occurredAt.localeCompare(a.occurredAt)))
+    }
+
+    cursor = page.cursor
+    more = page.more
+    if (cursor) setCursor(cursor)
+  }
+}
+
+let inFlight: Promise<void> | null = null
+
+export function sync(): Promise<void> {
+  if (inFlight) return inFlight
+  if (!getToken()) return Promise.resolve()
+
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    $sync.set({ ...$sync.get(), status: 'offline', pending: getOutbox().length })
+    return Promise.resolve()
+  }
+
+  $sync.setKey('status', 'syncing')
+  inFlight = (async () => {
+    try {
+      await push()
+      await pull()
+      const { dogs } = await api<{ dogs: Dog[] }>('/api/dogs')
+      $dogs.set(dogs)
+      $sync.set({ status: 'idle', pending: getOutbox().length, lastSyncedAt: new Date().toISOString() })
+    } catch (error) {
+      if (!(error instanceof AuthError)) {
+        $sync.set({ ...$sync.get(), status: 'error', pending: getOutbox().length })
+      }
+    } finally {
+      inFlight = null
+    }
+  })()
+
+  return inFlight
+}
+
+export async function renameDog(id: string, name: string): Promise<void> {
+  const { dog } = await api<{ dog: Dog }>('/api/dogs', {
+    method: 'PATCH',
+    body: JSON.stringify({ id, name }),
+  })
+  $dogs.set($dogs.get().map((d) => (d.id === dog.id ? dog : d)))
+}
+
+const SYNC_INTERVAL_MS = 30_000
+
+/** Show local data immediately, then reconcile with the server in the background. */
+export async function start(): Promise<() => void> {
+  $events.set(await loadEvents())
+  $sync.setKey('pending', getOutbox().length)
+  $authed.set(Boolean(getToken()))
+  $ready.set(true)
+
+  void sync()
+
+  const onOnline = () => void sync()
+  const onVisible = () => document.visibilityState === 'visible' && void sync()
+  const timer = setInterval(() => void sync(), SYNC_INTERVAL_MS)
+
+  window.addEventListener('online', onOnline)
+  document.addEventListener('visibilitychange', onVisible)
+
+  return () => {
+    clearInterval(timer)
+    window.removeEventListener('online', onOnline)
+    document.removeEventListener('visibilitychange', onVisible)
+  }
+}

@@ -1,17 +1,24 @@
 ---
-
+import '@/styles/global.css'
+import App from '@/app/App'
 ---
 
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#edf0ee" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#101613" media="(prefers-color-scheme: dark)" />
+    <meta name="description" content="Track where the dogs are and how house-training is going." />
+    <title>pupluv</title>
+    <script is:inline>
+      // Set before first paint so a 3am launch never flashes white.
+      const saved = localStorage.getItem('pupluv:theme')
+      const dark = saved ? saved === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches
+      document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+    </script>
+  </head>
+  <body>
+    <App client:only="react" />
+  </body>
 </html>

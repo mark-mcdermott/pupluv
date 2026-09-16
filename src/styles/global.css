@@ -1,0 +1,181 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/bricolage-grotesque';
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/*
+ * One family, worked across its weight range — the warmth comes from the
+ * typeface, not from decoration. Ground is a cool weathered-fence bone rather
+ * than cream; ink is a green-black so the neutrals sit in the same world as the
+ * yard the app is used in.
+ *
+ * Contrast: every solid accent below clears 4.5:1 against its paired
+ * foreground, so button labels pass AA at normal size, not just large.
+ */
+@theme {
+  --font-sans: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
+
+  --color-ground: #edf0ee;
+  --color-surface: #ffffff;
+  --color-sunk: #e2e7e3;
+  --color-ink: #17211c;
+  --color-ink-muted: #56665e;
+  --color-ink-faint: #8b9992;
+  --color-line: #d2d9d4;
+
+  --color-amber: #a0651a;
+  --color-teal: #14716d;
+  --color-clay: #9b4530;
+  --color-moss: #3d6b32;
+  --color-on-accent: #ffffff;
+
+  --radius-deck: 1.75rem;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  /* 3am potty runs are a real use case — a blinding white screen is a bug. */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      color-scheme: dark;
+      --color-ground: #101613;
+      --color-surface: #19221e;
+      --color-sunk: #0b100e;
+      --color-ink: #e5eae7;
+      --color-ink-muted: #93a19a;
+      --color-ink-faint: #64736c;
+      --color-line: #27332d;
+      --color-amber: #e3a155;
+      --color-teal: #45b5ae;
+      --color-clay: #d8775e;
+      --color-moss: #77ad64;
+      --color-on-accent: #101613;
+    }
+  }
+
+  :root[data-theme='dark'] {
+    color-scheme: dark;
+    --color-ground: #101613;
+    --color-surface: #19221e;
+    --color-sunk: #0b100e;
+    --color-ink: #e5eae7;
+    --color-ink-muted: #93a19a;
+    --color-ink-faint: #64736c;
+    --color-line: #27332d;
+    --color-amber: #e3a155;
+    --color-teal: #45b5ae;
+    --color-clay: #d8775e;
+    --color-moss: #77ad64;
+    --color-on-accent: #101613;
+  }
+
+  html {
+    background: var(--color-ground);
+    -webkit-tap-highlight-color: transparent;
+    @apply font-sans;
+  }
+
+  body {
+    background: var(--color-ground);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-variant-numeric: tabular-nums;
+    /* The deck sits on the home indicator otherwise. */
+    padding-bottom: env(safe-area-inset-bottom);
+    overscroll-behavior-y: none;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+  * {
+    @apply border-border outline-ring/50;
+  }
+}
+
+@layer utilities {
+  /* Presses should feel physical — this is the only motion in the app that
+     isn't answering a tap. */
+  .press {
+    transition:
+      transform 120ms cubic-bezier(0.2, 0, 0, 1),
+      background-color 120ms ease,
+      border-color 120ms ease;
+  }
+
+  .press:active {
+    transform: scale(0.96);
+  }
+}
+/*
+ ---break---
+ */
+@theme inline {
+  --font-heading: var(--font-sans);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+}
+
+/*
+ * shadcn's semantic tokens resolve to the pupluv palette, so its components
+ * inherit this design rather than importing a second, competing one. The
+ * palette above already flips for dark mode, so there is no parallel dark
+ * block here to keep in sync.
+ */
+:root {
+  --background: var(--color-surface);
+  --foreground: var(--color-ink);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-ink);
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-ink);
+  --primary: var(--color-ink);
+  --primary-foreground: var(--color-ground);
+  --secondary: var(--color-sunk);
+  --secondary-foreground: var(--color-ink);
+  --muted: var(--color-sunk);
+  --muted-foreground: var(--color-ink-muted);
+  --accent: var(--color-sunk);
+  --accent-foreground: var(--color-ink);
+  --destructive: var(--color-clay);
+  --border: var(--color-line);
+  --input: var(--color-line);
+  --ring: var(--color-ink-faint);
+  --radius: 0.875rem;
+}
