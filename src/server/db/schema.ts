@@ -58,10 +58,14 @@ export const events = pgTable(
     /** Meal in cups, water in ounces. */
     amount: numeric('amount', { precision: 6, scale: 2 }),
     note: text('note'),
+    /** Tombstone. Undo must propagate to other devices, so rows are never removed. */
+    deletedAt: timestamp('deleted_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     index('events_dog_occurred_idx').on(t.dogId, t.occurredAt.desc()),
+    /** The sync pull is "everything the server saw after my cursor". */
+    index('events_created_idx').on(t.createdAt),
     check(
       'location_event_has_place',
       sql`${t.type} <> 'location' or ${t.location} is not null`,
