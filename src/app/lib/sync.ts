@@ -12,9 +12,19 @@ import {
   setToken,
 } from './session'
 
+/**
+ * A trailing slash on the configured origin would produce `//api/auth`, which
+ * Vercel answers with a 308. A cross-origin POST does not survive that redirect
+ * — it carries no CORS headers — so the app would report itself unreachable
+ * because of one character in an env var. Normalise instead of trusting it.
+ */
+export function apiBase(configured: string | undefined): string {
+  return (configured ?? '').trim().replace(/\/+$/, '')
+}
+
 // Same-origin on the web. The bundled iOS build is served from
 // capacitor://localhost, so it is given the deployed origin at build time.
-const API_BASE = import.meta.env.PUBLIC_API_URL ?? ''
+const API_BASE = apiBase(import.meta.env.PUBLIC_API_URL)
 
 class AuthError extends Error {}
 
