@@ -1,4 +1,5 @@
 import { eventSchema, type Dog, type DraftEvent, type PupEvent } from '@/lib/domain'
+import { SignInFailed } from './errors'
 import { $authed, $dogs, $events, $ready, $sync } from './state'
 import { loadEvents, saveEvents } from './store'
 import {
@@ -38,10 +39,22 @@ async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
 }
 
 export async function signIn(pin: string): Promise<void> {
-  const { token } = await api<{ token: string }>('/api/auth', {
-    method: 'POST',
-    body: JSON.stringify({ pin }),
-  })
+  let response: Response
+  try {
+    response = await fetch(`${API_BASE}/api/auth`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ pin }),
+    })
+  } catch {
+    // Never reached the server at all — a dead origin, no signal, or CORS.
+    throw new SignInFailed('offline')
+  }
+
+  if (response.status === 400 || response.status === 401) throw new SignInFailed('pin')
+  if (!response.ok) throw new SignInFailed('server')
+
+  const { token } = (await response.json()) as { token: string }
   setToken(token)
   $authed.set(true)
   await sync()

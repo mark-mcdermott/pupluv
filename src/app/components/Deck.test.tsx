@@ -32,7 +32,9 @@ function setup(events: PupEvent[] = []) {
   return render(<Deck dogs={DOGS} events={events} selectedId={DOG_A} onSelect={vi.fn()} />)
 }
 
-beforeEach(() => log.mockClear())
+beforeEach(() => {
+  log.mockClear()
+})
 
 describe('Deck', () => {
   it('files a potty event at the location the dog is currently in', async () => {

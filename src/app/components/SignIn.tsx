@@ -1,5 +1,12 @@
 import { useState } from 'react'
+import { SignInFailed, type SignInReason } from '../lib/errors'
 import { signIn } from '../lib/sync'
+
+const MESSAGES: Record<SignInReason, string> = {
+  pin: 'That PIN does not match. Try again.',
+  offline: 'Cannot reach pupluv. Check your connection, then try again.',
+  server: 'pupluv is having trouble right now. Try again in a moment.',
+}
 
 export function SignIn() {
   const [pin, setPin] = useState('')
@@ -11,9 +18,11 @@ export function SignIn() {
     setError(null)
     try {
       await signIn(pin)
-    } catch {
-      setError('That PIN does not match. Try again.')
-      setPin('')
+    } catch (failure) {
+      const reason = failure instanceof SignInFailed ? failure.reason : 'server'
+      setError(MESSAGES[reason])
+      // Only a genuinely wrong PIN is worth retyping.
+      if (reason === 'pin') setPin('')
     } finally {
       setBusy(false)
     }
