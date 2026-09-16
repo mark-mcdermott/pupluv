@@ -23,6 +23,21 @@ function store(): SharedStore | null {
 
 export const isNative = () => store() !== null
 
+let warned = false
+
+/**
+ * Running inside Capacitor with no plugin means it was never registered — the
+ * widget would sit at "open pupluv to sign in" forever with nothing to say why.
+ */
+function warnIfMisconfigured(): void {
+  if (warned || store()) return
+  const capacitor = (globalThis as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor
+  if (capacitor?.isNativePlatform?.()) {
+    warned = true
+    console.warn('[pupluv] native build but the SharedStore plugin is missing — the widget cannot be fed')
+  }
+}
+
 /** Tells the widget who we are and where the dogs stand. */
 export async function publishToWidget(options: {
   token: string | null
@@ -31,7 +46,7 @@ export async function publishToWidget(options: {
   placements: Record<string, string>
 }): Promise<void> {
   const shared = store()
-  if (!shared) return
+  if (!shared) return warnIfMisconfigured()
   try {
     await shared.publish({
       token: options.token ?? undefined,
