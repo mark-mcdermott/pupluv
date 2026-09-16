@@ -29,6 +29,13 @@ export const POTTY_LABELS: Record<PottyKind, string> = {
   both: 'Pee + Poo',
 }
 
+/** The timeline is glyphs; the words stay on the deck buttons and in a11y names. */
+export const POTTY_GLYPHS: Record<PottyKind, string> = {
+  pee: '💧',
+  poo: '💩',
+  both: '💧💩',
+}
+
 const isoDate = z.iso.datetime({ offset: true })
 const nullableIso = isoDate.nullish().transform((v) => v ?? null)
 

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Pencil, X } from 'lucide-react'
 import {
+  POTTY_GLYPHS,
   POTTY_LABELS,
   isAccident,
   isLive,
@@ -9,7 +10,7 @@ import {
 } from '@/lib/domain'
 import { annotate, undo } from '../lib/sync'
 import { clockLabel, isSameDay, startOfToday } from '../lib/time'
-import { DOG_GLYPH_PX, PlaceGlyph } from './Place'
+import { DOG_GLYPH_PX, Glyph, PlaceGlyph } from './Place'
 
 const MOVED = { pen: 'Moved to the pen', outside: 'Moved outside', inside: 'Moved inside' } as const
 const AT = { pen: 'in the pen', outside: 'outside', inside: 'inside' } as const
@@ -104,7 +105,14 @@ export function Timeline({ dogs, events }: { dogs: Dog[]; events: PupEvent[] }) 
               first.type === 'location' || first.type === 'potty' ? first.location : null
 
             return (
-              <li key={key} className="py-2">
+              <li key={key} className="relative py-2">
+                {accident ? (
+                  <span
+                    className="absolute -left-[1.1875rem] top-4 size-1.5 rounded-full bg-clay"
+                    title="Accident"
+                    aria-hidden
+                  />
+                ) : null}
                 <div className="flex items-baseline gap-2">
                   <time
                     className="w-[4.5rem] shrink-0 whitespace-nowrap text-sm text-ink-faint"
@@ -122,14 +130,13 @@ export function Timeline({ dogs, events }: { dogs: Dog[]; events: PupEvent[] }) 
                   >
                     {who.map((dog) => dog.emoji).join('')}
                   </span>
-                  <span
-                    className={`flex min-w-0 flex-1 items-center gap-1.5 text-sm ${
-                      accident ? 'text-clay' : 'text-ink'
-                    }`}
-                  >
+                  <span className="flex min-w-0 flex-1 items-center gap-1.5 text-sm text-ink">
                     {place ? <PlaceGlyph location={place} /> : null}
                     {first.type === 'potty' ? (
-                      <span className="truncate font-medium">{POTTY_LABELS[first.pottyKind]}</span>
+                      <Glyph
+                        text={POTTY_GLYPHS[first.pottyKind]}
+                        label={POTTY_LABELS[first.pottyKind]}
+                      />
                     ) : first.type !== 'location' ? (
                       <span className="truncate">{describe(first)}</span>
                     ) : null}

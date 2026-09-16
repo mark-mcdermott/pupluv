@@ -154,10 +154,13 @@ export function Deck({ dogs, events, selectedId, onSelect }: Props) {
   ]
 
   return (
+    // Full-bleed background and gradient rule; the controls stay on the same
+    // column grid as the timeline above.
     <div
-      className="sticky bottom-0 z-10 rounded-t-deck border-t bg-surface px-4 pb-5 pt-3 shadow-[0_-12px_32px_-24px_rgba(0,0,0,0.45)]"
+      className="sticky bottom-0 z-10 border-t bg-surface shadow-[0_-12px_32px_-24px_rgba(0,0,0,0.45)]"
       style={{ borderTopWidth: 3, borderImage: `${spread} 1` }}
     >
+      <div className="mx-auto w-full max-w-sm px-4 pb-5 pt-3">
       <div
         className="grid grid-cols-3 gap-2"
         role={open ? 'radiogroup' : undefined}
@@ -286,6 +289,7 @@ export function Deck({ dogs, events, selectedId, onSelect }: Props) {
           </button>
         </div>
       ) : null}
+      </div>
     </div>
   )
 }
