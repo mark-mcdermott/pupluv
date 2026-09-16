@@ -22,7 +22,9 @@
     "cap:sync": "pnpm build && cap sync",
     "cap:ios": "cap open ios",
     "verify": "pnpm check && pnpm lint && pnpm test && pnpm build",
-    "ios:device": "bash scripts/install-ios.sh"
+    "ios:device": "bash scripts/install-ios.sh",
+    "icons": "node scripts/make-icons.mjs",
+    "icons:ico": "node -e \"const s=require(\\\"sharp\\\");(async()=>{for(const n of [16,32,48])await s(\\\"public/favicon.svg\\\",{density:900}).resize(n,n).png().toFile(`/tmp/ico-${n}.png`)})()\" && magick /tmp/ico-16.png /tmp/ico-32.png /tmp/ico-48.png public/favicon.ico"
   },
   "dependencies": {
     "@astrojs/react": "^6.0.5",
@@ -74,6 +76,7 @@
     "drizzle-kit": "^0.31.10",
     "jsdom": "^30.0.1",
     "oxlint": "^1.83.0",
+    "sharp": "^0.35.4",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.13",
     "typescript": "^6.0.3",
