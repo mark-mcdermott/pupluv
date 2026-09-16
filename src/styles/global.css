@@ -29,6 +29,7 @@
   --color-teal: #14716d;
   --color-clay: #9b4530;
   --color-moss: #3d6b32;
+  --color-moss-soft: #dfe8da;
   --color-on-accent: #ffffff;
 
   --radius-deck: 1.75rem;
@@ -54,6 +55,7 @@
       --color-teal: #45b5ae;
       --color-clay: #d8775e;
       --color-moss: #77ad64;
+      --color-moss-soft: #1e2b1a;
       --color-on-accent: #101613;
     }
   }
@@ -71,6 +73,7 @@
     --color-teal: #45b5ae;
     --color-clay: #d8775e;
     --color-moss: #77ad64;
+    --color-moss-soft: #1e2b1a;
     --color-on-accent: #101613;
   }
 

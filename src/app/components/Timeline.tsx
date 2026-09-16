@@ -1,6 +1,14 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
-import { POTTY_LABELS, isAccident, isLive, type Dog, type PupEvent } from '@/lib/domain'
+import {
+  LOCATION_LABELS,
+  POTTY_LABELS,
+  isAccident,
+  isLive,
+  type Dog,
+  type Location,
+  type PupEvent,
+} from '@/lib/domain'
 import { annotate, undo } from '../lib/sync'
 import { clockLabel, isSameDay, startOfToday } from '../lib/time'
 import { LOCATION_ICONS } from './Deck'
@@ -45,6 +53,30 @@ function describe(event: PupEvent): string {
     case 'sleep':
       return 'Crated to sleep'
   }
+}
+
+/**
+ * A bare stroke icon beside full-colour emoji reads as a stray glyph — the two
+ * are different visual weights. The chip gives it a body so it lands as a
+ * deliberate badge, and the colour carries meaning: outside is the goal, the
+ * indoor places stay neutral.
+ */
+function Place({ location }: { location: Location }) {
+  const Icon = LOCATION_ICONS[location]
+  const outside = location === 'outside'
+  return (
+    <span
+      className="inline-grid size-6 shrink-0 place-items-center rounded-lg"
+      style={{
+        background: outside ? 'var(--color-moss-soft)' : 'var(--color-sunk)',
+        color: outside ? 'var(--color-moss)' : 'var(--color-ink-muted)',
+      }}
+      title={LOCATION_LABELS[location]}
+      aria-hidden
+    >
+      <Icon size={14} strokeWidth={2.2} />
+    </span>
+  )
 }
 
 export function Timeline({ dogs, events }: { dogs: Dog[]; events: PupEvent[] }) {
@@ -94,10 +126,8 @@ export function Timeline({ dogs, events }: { dogs: Dog[]; events: PupEvent[] }) 
             const accident = isAccident(first)
             const who = group.map((event) => byId.get(event.dogId)).filter(Boolean) as Dog[]
             const label = `${who.map((dog) => dog.name).join(' and ')}: ${describe(first)}`
-            const Icon =
-              first.type === 'location' || first.type === 'potty'
-                ? LOCATION_ICONS[first.location]
-                : null
+            const place =
+              first.type === 'location' || first.type === 'potty' ? first.location : null
 
             return (
               <li key={key} className="py-2">
@@ -109,7 +139,7 @@ export function Timeline({ dogs, events }: { dogs: Dog[]; events: PupEvent[] }) 
                     {clockLabel(first.occurredAt)}
                   </time>
                   <span
-                    className="shrink-0 text-base leading-none"
+                    className="shrink-0 text-lg leading-none"
                     role="img"
                     aria-label={who.map((dog) => dog.name).join(' and ')}
                   >
@@ -123,12 +153,12 @@ export function Timeline({ dogs, events }: { dogs: Dog[]; events: PupEvent[] }) 
                       accident ? 'text-clay' : 'text-ink'
                     }`}
                   >
+                    {place ? <Place location={place} /> : null}
                     {first.type === 'potty' ? (
-                      <span className="truncate">{POTTY_LABELS[first.pottyKind]}</span>
+                      <span className="truncate font-medium">{POTTY_LABELS[first.pottyKind]}</span>
                     ) : first.type !== 'location' ? (
                       <span className="truncate">{describe(first)}</span>
                     ) : null}
-                    {Icon ? <Icon size={15} strokeWidth={1.9} className="shrink-0" /> : null}
                   </button>
                   <button
                     type="button"
