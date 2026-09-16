@@ -1,0 +1,43 @@
+# pupluv roadmap
+
+Shipped and remaining work, in PR-sized pieces with acceptance criteria.
+
+## Done — v1: potty and location
+
+- Two dogs, tracked separately, renameable in place.
+- Location as a mode (pen / outside / inside); current location is the latest event.
+- One-tap pee / poo / both, filed at the dog's current location.
+- Accidents derived, never stored. Weekly "n of m outside" per dog.
+- Local-first: IndexedDB + outbox, background sync, tombstone undo.
+- Shared-PIN auth, bearer token, 90-day expiry.
+- iOS shell via Capacitor, bundled for offline use.
+- Light/dark, WCAG AA contrast, reduced-motion respected.
+
+## Next
+
+### 1. Deploy and point the app at it
+Run `vercel deploy --prod`, then rebuild the shell with `PUBLIC_API_URL` set to
+the deployed origin and `pnpm cap:sync`.
+**Done when** a fresh install syncs against production, and logging with
+Airplane Mode on still works and reconciles when it comes back.
+
+### 2. Meals, water and sleep
+The schema, the Zod union and the timeline already carry these — this is UI only,
+no migration. A second deck tab, or a long-press on the dog card.
+**Done when** the three types can be logged and appear in the timeline, and the
+CHECK constraints reject a meal with no amount.
+
+### 3. History beyond today
+The timeline shows today only. Add previous days and a simple week view — the
+data is already there and indexed on `(dog_id, occurred_at desc)`.
+**Done when** you can see last week's pattern and the tally matches the timeline.
+
+### 4. Mac
+Tauri, the desktop half of ZENCATS, against the same bundle.
+**Done when** `pnpm tauri:build` produces a Mac app that syncs.
+
+## Deliberately not doing
+
+- **Per-user accounts.** One household, one PIN. Revisit only if it leaves the house.
+- **A separate accidents table.** See CLAUDE.md — accidents are derived.
+- **Push notifications / reminders.** No evidence they're wanted yet.
