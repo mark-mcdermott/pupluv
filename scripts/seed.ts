@@ -4,6 +4,7 @@ import { getDb, schema } from '../src/server/db'
 // Warm/cool pair: tells the two apart at a glance outdoors, and stays
 // distinguishable for the common forms of colour blindness.
 const ACCENTS = ['amber', 'teal'] as const
+const EMOJI = ['🍪', '🍜'] as const
 
 const names = process.argv.slice(2)
 const db = getDb()
@@ -18,7 +19,11 @@ if (existing.length > 0) {
 const seeded = await db
   .insert(schema.dogs)
   .values(
-    ACCENTS.map((accent, i) => ({ name: names[i] ?? `Pup ${i + 1}`, accent })),
+    ACCENTS.map((accent, i) => ({
+      name: names[i] ?? `Pup ${i + 1}`,
+      accent,
+      emoji: EMOJI[i] ?? '🐶',
+    })),
   )
   .returning()
 

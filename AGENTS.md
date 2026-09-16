@@ -30,9 +30,15 @@ successes too is what makes the weekly tally a training signal instead of a
 failure log. Never add an `isAccident` column.
 
 **Location is a mode; potty is an event that inherits it.** The dog's current
-location is just its most recent `location` event. A potty tap files itself at
-that location, which is what makes logging one tap. The deck always displays the
-location it is about to use, so the inheritance is never a hidden guess.
+location is just its most recent `location` event. A potty entry files itself at
+that location, which is what makes the common case one tap. The deck always
+displays the location it is about to use, so the inheritance is never a guess.
+
+**The deck has two states and they behave differently on purpose.** Closed, it is
+three place buttons and a tap is the whole entry, applied to every dog — the lit
+one is where they are now. Open, it is a form: nothing is written, not even a
+place, until `Log it`. Anything that blurs that line will make the deck lie about
+what a tap does, which is the exact confusion this replaced.
 
 ## Architecture
 

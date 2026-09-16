@@ -14,6 +14,13 @@ export const LOCATION_LABELS: Record<Location, string> = {
   inside: 'Inside',
 }
 
+/** Reads as a sentence on the dog card: "In the pen for 2h". */
+export const LOCATION_PHRASES: Record<Location, string> = {
+  pen: 'In the pen',
+  outside: 'Outside',
+  inside: 'Inside',
+}
+
 // Not "Both" — the dog selector directly above owns that word, and two
 // adjacent Both buttons meaning different things is a mis-tap waiting to happen.
 export const POTTY_LABELS: Record<PottyKind, string> = {
@@ -68,6 +75,7 @@ export const dogSchema = z.object({
   id: z.uuid(),
   name: z.string().trim().min(1).max(40),
   accent: z.string().trim().min(1).max(20),
+  emoji: z.string().trim().min(1).max(8),
 })
 
 export type Dog = z.infer<typeof dogSchema>

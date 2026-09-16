@@ -9,7 +9,12 @@ export const prerender = false
 export const GET: APIRoute = async ({ request }) => {
   if (!(await isAuthed(request))) return unauthorized()
   const rows = await getDb()
-    .select({ id: schema.dogs.id, name: schema.dogs.name, accent: schema.dogs.accent })
+    .select({
+      id: schema.dogs.id,
+      name: schema.dogs.name,
+      accent: schema.dogs.accent,
+      emoji: schema.dogs.emoji,
+    })
     .from(schema.dogs)
     .orderBy(asc(schema.dogs.createdAt))
   return Response.json({ dogs: rows })
@@ -26,7 +31,12 @@ export const PATCH: APIRoute = async ({ request }) => {
     .update(schema.dogs)
     .set({ name: parsed.data.name })
     .where(eq(schema.dogs.id, parsed.data.id))
-    .returning({ id: schema.dogs.id, name: schema.dogs.name, accent: schema.dogs.accent })
+    .returning({
+      id: schema.dogs.id,
+      name: schema.dogs.name,
+      accent: schema.dogs.accent,
+      emoji: schema.dogs.emoji,
+    })
 
   if (!dog) return Response.json({ error: 'not found' }, { status: 404 })
   return Response.json({ dog })

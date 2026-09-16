@@ -4,12 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { eventSchema, type Dog, type PupEvent } from '@/lib/domain'
 import { BOTH, Deck } from './Deck'
 
-const { log, undo, toast } = vi.hoisted(() => ({
-  log: vi.fn(),
-  undo: vi.fn(),
-  toast: vi.fn(),
-}))
-
+const { log, undo, toast } = vi.hoisted(() => ({ log: vi.fn(), undo: vi.fn(), toast: vi.fn() }))
 vi.mock('../lib/sync', () => ({ log, undo }))
 vi.mock('sonner', () => ({ toast }))
 
@@ -17,32 +12,30 @@ const DOG_A = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 const DOG_B = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
 
 const DOGS: Dog[] = [
-  { id: DOG_A, name: 'Rex', accent: 'amber' },
-  { id: DOG_B, name: 'Luna', accent: 'teal' },
+  { id: DOG_A, name: 'Oreo', accent: 'amber', emoji: '🍪' },
+  { id: DOG_B, name: 'Ramen', accent: 'teal', emoji: '🍜' },
 ]
 
-const outside: PupEvent = eventSchema.parse({
-  id: '55555555-5555-4555-8555-555555555555',
-  dogId: DOG_A,
-  type: 'location',
-  occurredAt: '2026-09-16T10:00:00.000Z',
-  location: 'outside',
-})
+let uid = 0
+const placed = (dogId: string, location: 'pen' | 'outside' | 'inside'): PupEvent =>
+  eventSchema.parse({
+    id: `55555555-5555-4555-8555-${String(++uid).padStart(12, '0')}`,
+    dogId,
+    type: 'location',
+    occurredAt: '2026-09-16T10:00:00.000Z',
+    location,
+  })
 
-function setup(events: PupEvent[] = [], selectedId: string = DOG_A) {
+const bothOutside = [placed(DOG_A, 'outside'), placed(DOG_B, 'outside')]
+const apart = [placed(DOG_A, 'outside'), placed(DOG_B, 'inside')]
+
+function setup(events: PupEvent[] = [], selectedId: string = BOTH) {
   return render(<Deck dogs={DOGS} events={events} selectedId={selectedId} onSelect={vi.fn()} />)
 }
 
-const inside: PupEvent = eventSchema.parse({
-  id: '66666666-6666-4666-8666-666666666666',
-  dogId: DOG_B,
-  type: 'location',
-  occurredAt: '2026-09-16T10:00:00.000Z',
-  location: 'inside',
-})
+const openDetails = () => userEvent.click(screen.getByRole('button', { name: 'Add details' }))
 
 let minted = 0
-
 beforeEach(() => {
   minted = 0
   log.mockReset()
@@ -55,164 +48,130 @@ beforeEach(() => {
   }))
 })
 
-describe('Deck', () => {
-  it('files a potty event at the location the dog is currently in', async () => {
-    setup([outside])
-    await userEvent.click(screen.getByRole('button', { name: 'Poo' }))
-
-    expect(log).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'potty', pottyKind: 'poo', location: 'outside', dogId: DOG_A }),
-    )
+describe('Deck closed', () => {
+  it('shows only the three places plus the fold', () => {
+    setup(bothOutside)
+    expect(screen.getByRole('button', { name: 'Pen' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Add details' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Log it' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('radio', { name: 'Pee' })).not.toBeInTheDocument()
   })
 
-  it('falls back to inside when the dog has never been placed', async () => {
-    setup()
-    await userEvent.click(screen.getByRole('button', { name: 'Pee' }))
-
-    expect(log).toHaveBeenCalledWith(expect.objectContaining({ location: 'inside' }))
-    // and says so, rather than filing it silently
-    expect(screen.getByRole('radio', { name: 'Inside' })).toBeChecked()
-  })
-
-  it('shows where the dog is so a one-tap log is never a guess', () => {
-    setup([outside])
-    expect(screen.getByRole('radio', { name: 'Outside' })).toBeChecked()
-    expect(screen.getByRole('radio', { name: 'Inside' })).not.toBeChecked()
-  })
-
-  it('does not log a move to the location the dog is already in', async () => {
-    setup([outside])
-    await userEvent.click(screen.getByRole('radio', { name: 'Outside' }))
-    expect(log).not.toHaveBeenCalled()
-  })
-
-  it('records a move to a new location', async () => {
-    setup([outside])
-    await userEvent.click(screen.getByRole('radio', { name: 'Pen' }))
-    expect(log).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'location', location: 'pen', dogId: DOG_A }),
-    )
-  })
-})
-
-describe('Deck with both dogs selected', () => {
-  it('logs one event per dog from a single tap', async () => {
-    setup([outside, inside], BOTH)
-    await userEvent.click(screen.getByRole('button', { name: 'Poo' }))
+  it('logs a move for every dog on a single tap', async () => {
+    setup(bothOutside)
+    await userEvent.click(screen.getByRole('button', { name: 'Pen' }))
 
     expect(log).toHaveBeenCalledTimes(2)
     expect(log.mock.calls.map(([event]) => event.dogId)).toEqual([DOG_A, DOG_B])
-  })
-
-  it('files each dog at its own location when they are apart', async () => {
-    setup([outside, inside], BOTH)
-    await userEvent.click(screen.getByRole('button', { name: 'Pee' }))
-
-    const byDog = Object.fromEntries(
-      log.mock.calls.map(([event]) => [event.dogId, event.location]),
-    )
-    expect(byDog).toEqual({ [DOG_A]: 'outside', [DOG_B]: 'inside' })
-  })
-
-  it('stamps the batch with one timestamp so the entries line up', async () => {
-    setup([outside, inside], BOTH)
-    await userEvent.click(screen.getByRole('button', { name: 'Pee + Poo' }))
-
-    const [first, second] = log.mock.calls.map(([event]) => event.occurredAt)
-    expect(first).toBe(second)
-  })
-
-  it('lights no location while the dogs are in different places', () => {
-    setup([outside, inside], BOTH)
-    for (const name of ['Pen', 'Outside', 'Inside']) {
-      expect(screen.getByRole('radio', { name })).not.toBeChecked()
+    for (const [event] of log.mock.calls) {
+      expect(event).toMatchObject({ type: 'location', location: 'pen' })
     }
   })
 
-  it('lights the shared location once they are together', () => {
-    const bothOutside = eventSchema.parse({
-      id: '77777777-7777-4777-8777-777777777777',
-      dogId: DOG_B,
-      type: 'location',
-      occurredAt: '2026-09-16T10:00:00.000Z',
-      location: 'outside',
-    })
-    setup([outside, bothOutside], BOTH)
-    expect(screen.getByRole('radio', { name: 'Outside' })).toBeChecked()
+  it('applies to both dogs even when one is selected', async () => {
+    setup(bothOutside, DOG_A)
+    await userEvent.click(screen.getByRole('button', { name: 'Inside' }))
+    expect(log).toHaveBeenCalledTimes(2)
   })
 
-  it('only moves the dog that is not already there', async () => {
-    setup([outside, inside], BOTH)
-    await userEvent.click(screen.getByRole('radio', { name: 'Outside' }))
+  it('moves only the dog that is not already there', async () => {
+    setup(apart)
+    await userEvent.click(screen.getByRole('button', { name: 'Outside' }))
 
     expect(log).toHaveBeenCalledTimes(1)
     expect(log.mock.calls[0]![0]).toMatchObject({ dogId: DOG_B, location: 'outside' })
   })
 
-  it('undoes every event the batch created', async () => {
-    setup([outside, inside], BOTH)
-    await userEvent.click(screen.getByRole('button', { name: 'Pee' }))
-
-    const [, options] = toast.mock.calls[0]!
-    options.action.onClick()
-
-    expect(undo).toHaveBeenCalledTimes(2)
-    expect(undo.mock.calls.flat()).toEqual(['event-1', 'event-2'])
+  it('does nothing when they are already there', async () => {
+    setup(bothOutside)
+    await userEvent.click(screen.getByRole('button', { name: 'Outside' }))
+    expect(log).not.toHaveBeenCalled()
   })
 })
 
-describe('Deck notes', () => {
-  async function writeNote(text: string) {
-    await userEvent.click(screen.getByRole('button', { name: /add a note/i }))
-    await userEvent.type(screen.getByLabelText('Note for the next entry'), text)
-  }
-
-  it('stays collapsed so it never pushes the tap targets around', () => {
-    setup([outside])
-    expect(screen.queryByLabelText('Note for the next entry')).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /add a note/i })).toBeInTheDocument()
-  })
-
-  it('attaches the note to the entry it is logged with', async () => {
-    setup([outside])
-    await writeNote('soft stool')
-    await userEvent.click(screen.getByRole('button', { name: 'Poo' }))
-
-    expect(log.mock.calls[0]![0]).toMatchObject({ note: 'soft stool' })
-  })
-
-  it('puts the same note on every dog in a both-dogs entry', async () => {
-    setup([outside, inside], BOTH)
-    await writeNote('after the walk')
-    await userEvent.click(screen.getByRole('button', { name: 'Pee' }))
-
-    expect(log).toHaveBeenCalledTimes(2)
-    for (const [event] of log.mock.calls) expect(event.note).toBe('after the walk')
-  })
-
-  it('clears itself once used, so it cannot leak onto the next entry', async () => {
-    setup([outside])
-    await writeNote('one off')
-    await userEvent.click(screen.getByRole('button', { name: 'Pee' }))
-    await userEvent.click(screen.getByRole('button', { name: 'Poo' }))
-
-    expect(log.mock.calls[0]![0].note).toBe('one off')
-    expect(log.mock.calls[1]![0].note).toBeNull()
-  })
-
-  it('sends null rather than an empty string when left blank', async () => {
-    setup([outside])
-    await userEvent.click(screen.getByRole('button', { name: /add a note/i }))
-    await userEvent.click(screen.getByRole('button', { name: 'Pee' }))
-
-    expect(log.mock.calls[0]![0].note).toBeNull()
-  })
-
-  it('also carries the note on a location change', async () => {
-    setup([outside])
-    await writeNote('back gate open')
+describe('Deck open', () => {
+  it('stops logging on tap once it is a form', async () => {
+    setup(bothOutside)
+    await openDetails()
     await userEvent.click(screen.getByRole('radio', { name: 'Pen' }))
 
-    expect(log.mock.calls[0]![0]).toMatchObject({ type: 'location', note: 'back gate open' })
+    expect(log).not.toHaveBeenCalled()
+    expect(screen.getByRole('radio', { name: 'Pen' })).toBeChecked()
+  })
+
+  it('will not submit with nothing to record', async () => {
+    setup(bothOutside)
+    await openDetails()
+    expect(screen.getByRole('button', { name: 'Log it' })).toBeDisabled()
+  })
+
+  it('keeps the potty choices exclusive', async () => {
+    setup(bothOutside)
+    await openDetails()
+    await userEvent.click(screen.getByRole('radio', { name: 'Pee' }))
+    await userEvent.click(screen.getByRole('radio', { name: 'Pee + Poo' }))
+
+    expect(screen.getByRole('radio', { name: 'Pee + Poo' })).toBeChecked()
+    expect(screen.getByRole('radio', { name: 'Pee' })).not.toBeChecked()
+    expect(screen.getByRole('radio', { name: 'Poo' })).not.toBeChecked()
+  })
+
+  it('writes nothing until Log it is pressed', async () => {
+    setup(bothOutside)
+    await openDetails()
+    await userEvent.click(screen.getByRole('radio', { name: 'Poo' }))
+    expect(log).not.toHaveBeenCalled()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Log it' }))
+    expect(log).toHaveBeenCalledTimes(2)
+    for (const [event] of log.mock.calls) {
+      expect(event).toMatchObject({ type: 'potty', pottyKind: 'poo', location: 'outside' })
+    }
+  })
+
+  it('files each dog at its own place when no place is chosen', async () => {
+    setup(apart)
+    await openDetails()
+    await userEvent.click(screen.getByRole('radio', { name: 'Pee' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Log it' }))
+
+    const byDog = Object.fromEntries(log.mock.calls.map(([e]) => [e.dogId, e.location]))
+    expect(byDog).toEqual({ [DOG_A]: 'outside', [DOG_B]: 'inside' })
+  })
+
+  it('records the move alongside the potty when the place changed', async () => {
+    setup(bothOutside, DOG_A)
+    await openDetails()
+    await userEvent.click(screen.getByRole('radio', { name: 'Pee' }))
+    await userEvent.click(screen.getByRole('radio', { name: 'Inside' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Log it' }))
+
+    const types = log.mock.calls.map(([e]) => e.type)
+    expect(types).toEqual(['potty', 'location'])
+    expect(log.mock.calls[0]![0]).toMatchObject({ dogId: DOG_A, location: 'inside' })
+  })
+
+  it('attaches a note and clears it after submitting', async () => {
+    setup(bothOutside, DOG_A)
+    await openDetails()
+    await userEvent.click(screen.getByRole('radio', { name: 'Poo' }))
+    await userEvent.click(screen.getByRole('button', { name: /add a note/i }))
+    await userEvent.type(screen.getByLabelText('Note for this entry'), 'soft stool')
+    await userEvent.click(screen.getByRole('button', { name: 'Log it' }))
+
+    expect(log.mock.calls[0]![0].note).toBe('soft stool')
+    // Folds back up, so nothing carries into the next entry.
+    expect(screen.queryByRole('button', { name: 'Log it' })).not.toBeInTheDocument()
+  })
+
+  it('undoes everything one submit created', async () => {
+    setup(bothOutside)
+    await openDetails()
+    await userEvent.click(screen.getByRole('radio', { name: 'Pee' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Log it' }))
+
+    const [, options] = toast.mock.calls[0]!
+    options.action.onClick()
+    expect(undo).toHaveBeenCalledTimes(2)
   })
 })

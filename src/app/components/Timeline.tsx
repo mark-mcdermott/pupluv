@@ -1,18 +1,41 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
-import { isAccident, isLive, type Dog, type PupEvent } from '@/lib/domain'
-import { accentColor } from '../lib/accent'
+import { POTTY_LABELS, isAccident, isLive, type Dog, type PupEvent } from '@/lib/domain'
 import { annotate, undo } from '../lib/sync'
 import { clockLabel, isSameDay, startOfToday } from '../lib/time'
+import { LOCATION_ICONS } from './Deck'
 
-const POTTY_VERB = { pee: 'Peed', poo: 'Pooed', both: 'Peed and pooed' } as const
-const POTTY_PLACE = { pen: 'in the pen', outside: 'outside', inside: 'inside' } as const
-const MOVED = { pen: 'Into the pen', outside: 'Out to the yard', inside: 'Back inside' } as const
+const MOVED = { pen: 'Moved to the pen', outside: 'Moved outside', inside: 'Moved inside' } as const
+const AT = { pen: 'in the pen', outside: 'outside', inside: 'inside' } as const
+
+/**
+ * Entries logged together share a timestamp and every other field, so they
+ * collapse into one row carrying both dogs rather than two near-identical lines.
+ */
+function signature(event: PupEvent): string {
+  const parts = [event.occurredAt, event.type, event.note ?? '']
+  switch (event.type) {
+    case 'location':
+      parts.push(event.location)
+      break
+    case 'potty':
+      parts.push(event.location, event.pottyKind)
+      break
+    case 'meal':
+    case 'water':
+      parts.push(String(event.amount))
+      break
+    case 'sleep':
+      parts.push(event.endedAt ?? '')
+      break
+  }
+  return parts.join('|')
+}
 
 function describe(event: PupEvent): string {
   switch (event.type) {
     case 'potty':
-      return `${POTTY_VERB[event.pottyKind]} ${POTTY_PLACE[event.location]}`
+      return `${POTTY_LABELS[event.pottyKind]} ${AT[event.location]}`
     case 'location':
       return MOVED[event.location]
     case 'meal':
@@ -29,61 +52,88 @@ export function Timeline({ dogs, events }: { dogs: Dog[]; events: PupEvent[] }) 
   const [draft, setDraft] = useState('')
 
   const today = startOfToday()
-  const todays = events.filter((event) => isLive(event) && isSameDay(event.occurredAt, today))
   const byId = new Map(dogs.map((dog) => [dog.id, dog]))
 
-  function open(event: PupEvent) {
-    setEditing(event.id)
-    setDraft(event.note ?? '')
+  const grouped: { key: string; events: PupEvent[] }[] = []
+  const index = new Map<string, number>()
+  for (const event of events) {
+    if (!isLive(event) || !isSameDay(event.occurredAt, today)) continue
+    const key = signature(event)
+    const at = index.get(key)
+    if (at === undefined) {
+      index.set(key, grouped.length)
+      grouped.push({ key, events: [event] })
+    } else {
+      grouped[at]!.events.push(event)
+    }
   }
 
-  async function commit(event: PupEvent) {
+  function open(key: string, note: string | null) {
+    setEditing(key)
+    setDraft(note ?? '')
+  }
+
+  async function commit(group: PupEvent[]) {
     setEditing(null)
-    await annotate(event.id, draft.trim() || null)
+    const note = draft.trim() || null
+    await Promise.all(group.map((event) => annotate(event.id, note)))
   }
 
   return (
     <section className="mt-7">
       <h2 className="text-sm font-semibold text-ink-muted">Today</h2>
 
-      {todays.length === 0 ? (
+      {grouped.length === 0 ? (
         <p className="mt-3 rounded-2xl border border-dashed border-line px-4 py-6 text-center text-sm text-ink-faint">
           Nothing logged yet today. Use the buttons below the moment it happens.
         </p>
       ) : (
         <ol className="mt-2 border-l border-line pl-4">
-          {todays.map((event) => {
-            const dog = byId.get(event.dogId)
-            const accident = isAccident(event)
+          {grouped.map(({ key, events: group }) => {
+            const first = group[0]!
+            const accident = isAccident(first)
+            const who = group.map((event) => byId.get(event.dogId)).filter(Boolean) as Dog[]
+            const label = `${who.map((dog) => dog.name).join(' and ')}: ${describe(first)}`
+            const Icon =
+              first.type === 'location' || first.type === 'potty'
+                ? LOCATION_ICONS[first.location]
+                : null
+
             return (
-              <li key={event.id} className="py-2">
+              <li key={key} className="py-2">
                 <div className="flex items-baseline gap-3">
                   <time
                     className="w-16 shrink-0 text-sm text-ink-faint"
-                    dateTime={event.occurredAt}
+                    dateTime={first.occurredAt}
                   >
-                    {clockLabel(event.occurredAt)}
+                    {clockLabel(first.occurredAt)}
                   </time>
                   <span
-                    className="w-20 shrink-0 truncate text-sm font-semibold"
-                    style={{ color: accentColor(dog?.accent ?? '') }}
+                    className="shrink-0 text-base leading-none"
+                    role="img"
+                    aria-label={who.map((dog) => dog.name).join(' and ')}
                   >
-                    {dog?.name ?? 'Unknown'}
+                    {who.map((dog) => dog.emoji).join('')}
                   </span>
                   <button
                     type="button"
-                    onClick={() => open(event)}
-                    aria-label={`${event.note ? 'Edit' : 'Add'} note for ${describe(event)}`}
-                    className={`min-w-0 flex-1 text-left text-sm ${
+                    onClick={() => open(key, first.note)}
+                    aria-label={`${first.note ? 'Edit' : 'Add'} note for ${label}`}
+                    className={`flex min-w-0 flex-1 items-center gap-1.5 text-left text-sm ${
                       accident ? 'text-clay' : 'text-ink'
                     }`}
                   >
-                    {describe(event)}
+                    {first.type === 'potty' ? (
+                      <span className="truncate">{POTTY_LABELS[first.pottyKind]}</span>
+                    ) : first.type !== 'location' ? (
+                      <span className="truncate">{describe(first)}</span>
+                    ) : null}
+                    {Icon ? <Icon size={15} strokeWidth={1.9} className="shrink-0" /> : null}
                   </button>
                   <button
                     type="button"
-                    onClick={() => void undo(event.id)}
-                    aria-label={`Remove: ${describe(event)}`}
+                    onClick={() => group.forEach((event) => void undo(event.id))}
+                    aria-label={`Remove: ${label}`}
                     title="Remove"
                     className="press grid size-7 shrink-0 place-items-center rounded-full text-ink-faint hover:bg-sunk hover:text-ink"
                   >
@@ -91,26 +141,24 @@ export function Timeline({ dogs, events }: { dogs: Dog[]; events: PupEvent[] }) 
                   </button>
                 </div>
 
-                {/* A note gets the full row width — squeezed into the description
-                    column it wrapped after three or four words. */}
-                {editing === event.id ? (
+                {editing === key ? (
                   <textarea
                     autoFocus
                     value={draft}
                     onChange={(change) => setDraft(change.target.value)}
-                    onBlur={() => void commit(event)}
-                    onKeyDown={(key) => {
-                      if (key.key === 'Escape') setEditing(null)
+                    onBlur={() => void commit(group)}
+                    onKeyDown={(pressed) => {
+                      if (pressed.key === 'Escape') setEditing(null)
                     }}
                     rows={2}
                     maxLength={500}
                     placeholder="Add a note…"
-                    aria-label={`Note for ${describe(event)}`}
+                    aria-label={`Note for ${label}`}
                     className="mt-1.5 ml-[4.75rem] w-[calc(100%-4.75rem)] resize-none rounded-xl border border-line bg-surface px-2 py-1.5 text-sm outline-none placeholder:text-ink-faint focus-visible:border-ink"
                   />
-                ) : event.note ? (
+                ) : first.note ? (
                   <p className="ml-[4.75rem] mt-0.5 text-xs leading-snug text-ink-muted">
-                    {event.note}
+                    {first.note}
                   </p>
                 ) : null}
               </li>

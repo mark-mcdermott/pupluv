@@ -28,6 +28,8 @@ export const dogs = pgTable('dogs', {
   name: text('name').notNull(),
   /** Tailwind hue token; the two dogs are told apart by colour everywhere. */
   accent: text('accent').notNull(),
+  /** Stands in for the name in the timeline, where rows must stay scannable. */
+  emoji: text('emoji').notNull().default('🐶'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 

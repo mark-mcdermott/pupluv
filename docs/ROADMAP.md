@@ -17,6 +17,16 @@ Shipped and remaining work, in PR-sized pieces with acceptance criteria.
 - iOS shell via Capacitor, bundled for offline use.
 - Light/dark, WCAG AA contrast, reduced-motion respected.
 
+## Parked
+
+### Per-dog state cards
+The two cards above the timeline (current place, time there, weekly "n of m
+outside") were hidden on request — the deck's place row now carries "where are
+they", since the lit button is where they currently are. `DogCard.tsx` is in git
+history if they come back; `tallyPotty` and `sinceLabel` are still here and
+tested. **Renaming a dog went with them** — the only UI for it was tapping the
+name on the card. `PATCH /api/dogs` still works.
+
 ## Next
 
 ### 1. Deploy and point the app at it

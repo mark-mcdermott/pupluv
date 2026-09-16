@@ -7,22 +7,28 @@ import { Timeline } from './Timeline'
 const { annotate, undo } = vi.hoisted(() => ({ annotate: vi.fn(), undo: vi.fn() }))
 vi.mock('../lib/sync', () => ({ annotate, undo }))
 
-const DOG = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
-const DOGS: Dog[] = [{ id: DOG, name: 'Oreo', accent: 'amber' }]
+const DOG_A = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+const DOG_B = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
 
-function todayAt(hour: number): string {
+const DOGS: Dog[] = [
+  { id: DOG_A, name: 'Oreo', accent: 'amber', emoji: '🍪' },
+  { id: DOG_B, name: 'Ramen', accent: 'teal', emoji: '🍜' },
+]
+
+function todayAt(hour: number, minute = 30): string {
   const date = new Date()
-  date.setHours(hour, 30, 0, 0)
+  date.setHours(hour, minute, 0, 0)
   return date.toISOString()
 }
 
-function potty(note: string | null = null): PupEvent {
+let uid = 0
+function potty(dogId: string, occurredAt: string, note: string | null = null): PupEvent {
   return eventSchema.parse({
-    id: '99999999-9999-4999-8999-999999999999',
-    dogId: DOG,
+    id: `99999999-9999-4999-8999-${String(++uid).padStart(12, '0')}`,
+    dogId,
     type: 'potty',
-    occurredAt: todayAt(9),
-    location: 'inside',
+    occurredAt,
+    location: 'pen',
     pottyKind: 'poo',
     note,
   })
@@ -33,43 +39,62 @@ beforeEach(() => {
   undo.mockReset()
 })
 
-describe('Timeline notes', () => {
-  it('shows a note that was already recorded', () => {
-    render(<Timeline dogs={DOGS} events={[potty('ate grass')]} />)
+describe('Timeline', () => {
+  it('identifies dogs by emoji rather than name', () => {
+    render(<Timeline dogs={DOGS} events={[potty(DOG_A, todayAt(9))]} />)
+    expect(screen.getByRole('img', { name: 'Oreo' })).toHaveTextContent('🍪')
+    expect(screen.queryByText('Oreo')).not.toBeInTheDocument()
+  })
+
+  it('collapses one both-dogs entry into a single row carrying both emoji', () => {
+    const at = todayAt(9)
+    render(<Timeline dogs={DOGS} events={[potty(DOG_A, at), potty(DOG_B, at)]} />)
+
+    expect(screen.getAllByRole('listitem')).toHaveLength(1)
+    expect(screen.getByRole('img', { name: 'Oreo and Ramen' })).toHaveTextContent('🍪🍜')
+  })
+
+  it('keeps entries logged at different times apart', () => {
+    render(
+      <Timeline dogs={DOGS} events={[potty(DOG_A, todayAt(9)), potty(DOG_B, todayAt(11))]} />,
+    )
+    expect(screen.getAllByRole('listitem')).toHaveLength(2)
+  })
+
+  it('removes every event behind a grouped row', async () => {
+    const at = todayAt(9)
+    const group = [potty(DOG_A, at), potty(DOG_B, at)]
+    render(<Timeline dogs={DOGS} events={group} />)
+    await userEvent.click(screen.getByRole('button', { name: /^remove:/i }))
+
+    expect(undo).toHaveBeenCalledTimes(2)
+    expect(undo.mock.calls.flat()).toEqual(group.map((event) => event.id))
+  })
+
+  it('shows a recorded note', () => {
+    render(<Timeline dogs={DOGS} events={[potty(DOG_A, todayAt(9), 'ate grass')]} />)
     expect(screen.getByText('ate grass')).toBeInTheDocument()
   })
 
-  it('lets a note be added to an entry after the fact', async () => {
-    render(<Timeline dogs={DOGS} events={[potty()]} />)
+  it('annotates the whole group at once', async () => {
+    const at = todayAt(9)
+    const group = [potty(DOG_A, at), potty(DOG_B, at)]
+    render(<Timeline dogs={DOGS} events={group} />)
     await userEvent.click(screen.getByRole('button', { name: /add note for/i }))
-    await userEvent.type(screen.getByRole('textbox'), 'third time today')
+    await userEvent.type(screen.getByRole('textbox'), 'both of them')
     await userEvent.tab()
 
-    expect(annotate).toHaveBeenCalledWith(potty().id, 'third time today')
+    expect(annotate).toHaveBeenCalledTimes(2)
+    for (const [, note] of annotate.mock.calls) expect(note).toBe('both of them')
   })
 
-  it('clears a note back to null rather than an empty string', async () => {
-    render(<Timeline dogs={DOGS} events={[potty('wrong')]} />)
-    await userEvent.click(screen.getByRole('button', { name: /edit note for/i }))
-    await userEvent.clear(screen.getByRole('textbox'))
-    await userEvent.tab()
-
-    expect(annotate).toHaveBeenCalledWith(potty().id, null)
-  })
-
-  it('abandons the edit on escape without writing', async () => {
-    render(<Timeline dogs={DOGS} events={[potty('keep me')]} />)
+  it('abandons an edit on escape without writing', async () => {
+    render(<Timeline dogs={DOGS} events={[potty(DOG_A, todayAt(9), 'keep me')]} />)
     await userEvent.click(screen.getByRole('button', { name: /edit note for/i }))
     await userEvent.type(screen.getByRole('textbox'), ' changed')
     await userEvent.keyboard('{Escape}')
 
     expect(annotate).not.toHaveBeenCalled()
     expect(screen.getByText('keep me')).toBeInTheDocument()
-  })
-
-  it('still offers removal alongside the note affordance', async () => {
-    render(<Timeline dogs={DOGS} events={[potty()]} />)
-    await userEvent.click(screen.getByRole('button', { name: /^remove:/i }))
-    expect(undo).toHaveBeenCalledWith(potty().id)
   })
 })
