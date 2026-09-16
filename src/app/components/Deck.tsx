@@ -61,6 +61,15 @@ export function Deck({ dogs, events, selectedId, onSelect }: Props) {
   const spread = `linear-gradient(135deg, ${accents.join(', ')})`
   const fill = open && !everyone ? accentColor(targets[0]!.accent) : spread
 
+  // The place buttons hold emoji, not text, so their background carries no
+  // contrast requirement and can be softened. Everything else here is a label
+  // on a solid, and stays full strength.
+  const soften = (colour: string) => `color-mix(in oklab, ${colour} 50%, white)`
+  const placeFill =
+    open && !everyone
+      ? soften(accentColor(targets[0]!.accent))
+      : `linear-gradient(135deg, ${accents.map(soften).join(', ')})`
+
   function reset() {
     setPendingLocation(null)
     setPottyKind(null)
@@ -180,8 +189,7 @@ export function Deck({ dogs, events, selectedId, onSelect }: Props) {
               className="press grid h-16 place-items-center rounded-2xl border"
               style={{
                 borderColor: on ? 'transparent' : 'var(--color-line)',
-                background: on ? fill : 'transparent',
-                color: on ? 'var(--color-on-accent)' : 'var(--color-ink)',
+                background: on ? placeFill : 'transparent',
               }}
             >
               <PlaceGlyph location={option} size={26} />
