@@ -1,6 +1,13 @@
 ---
 import '@/styles/global.css'
+import Analytics from '@vercel/analytics/astro'
 import App from '@/app/App'
+
+// Analytics is served from /_vercel/insights on the deployed site. The iOS
+// build bundles this same HTML and serves it from capacitor://localhost, where
+// that path does not exist — so it would 404 on every launch and report nothing.
+// PUBLIC_API_URL is only set for native builds, which makes it the signal.
+const isNativeBuild = Boolean(import.meta.env.PUBLIC_API_URL)
 ---
 
 <html lang="en">
@@ -23,5 +30,6 @@ import App from '@/app/App'
   </head>
   <body>
     <App client:only="react" />
+    {isNativeBuild ? null : <Analytics />}
   </body>
 </html>
