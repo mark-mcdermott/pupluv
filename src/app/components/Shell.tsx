@@ -1,6 +1,6 @@
 import type { Dog, PupEvent } from '@/lib/domain'
 import { DogCard } from './DogCard'
-import { Deck } from './Deck'
+import { BOTH, Deck } from './Deck'
 import { SyncDot } from './SyncDot'
 import { ThemeToggle } from './ThemeToggle'
 import { Timeline } from './Timeline'
@@ -27,7 +27,12 @@ export function Shell({ dogs, events, selectedId, onSelect }: Props) {
       <main className="flex-1 px-4 pb-6">
         <div className="mt-3 grid gap-2">
           {dogs.map((dog) => (
-            <DogCard key={dog.id} dog={dog} events={events} selected={dog.id === selectedId} />
+            <DogCard
+              key={dog.id}
+              dog={dog}
+              events={events}
+              selected={selectedId === BOTH || dog.id === selectedId}
+            />
           ))}
         </div>
 

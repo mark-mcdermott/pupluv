@@ -14,10 +14,12 @@ export const LOCATION_LABELS: Record<Location, string> = {
   inside: 'Inside',
 }
 
+// Not "Both" — the dog selector directly above owns that word, and two
+// adjacent Both buttons meaning different things is a mis-tap waiting to happen.
 export const POTTY_LABELS: Record<PottyKind, string> = {
   pee: 'Pee',
   poo: 'Poo',
-  both: 'Both',
+  both: 'Pee + Poo',
 }
 
 const isoDate = z.iso.datetime({ offset: true })

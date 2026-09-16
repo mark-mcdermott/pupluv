@@ -15,6 +15,9 @@ import { accentColor } from '../lib/accent'
 import { tapped } from '../lib/feedback'
 import { log, undo } from '../lib/sync'
 
+/** Sentinel selection: log the same thing for every dog at once. */
+export const BOTH = 'both'
+
 type Props = {
   dogs: Dog[]
   events: PupEvent[]
@@ -23,71 +26,115 @@ type Props = {
 }
 
 const POTTY_PAST = { pee: 'Peed', poo: 'Pooed', both: 'Peed and pooed' } as const
-const MOVE_PAST = { pen: 'in the pen', outside: 'outside', inside: 'inside' } as const
+const PLACE_PAST = { pen: 'in the pen', outside: 'outside', inside: 'inside' } as const
+
+function listNames(dogs: Dog[]): string {
+  if (dogs.length <= 1) return dogs[0]?.name ?? ''
+  return `${dogs.slice(0, -1).map((dog) => dog.name).join(', ')} and ${dogs.at(-1)!.name}`
+}
 
 export function Deck({ dogs, events, selectedId, onSelect }: Props) {
-  const dog = dogs.find((candidate) => candidate.id === selectedId) ?? dogs[0]
-  if (!dog) return null
+  const everyone = selectedId === BOTH && dogs.length > 1
+  const targets = everyone ? dogs : dogs.filter((dog) => dog.id === selectedId)
+  const active = targets.length ? targets : dogs.slice(0, 1)
+  if (!active.length) return null
 
-  const accent = accentColor(dog.accent)
-  // The deck always shows the location it is about to file the event under, so
-  // a one-tap log is never a guess.
-  const location = currentLocation(events, dog.id) ?? DEFAULT_LOCATION
+  const where = (dog: Dog) => currentLocation(events, dog.id) ?? DEFAULT_LOCATION
 
-  function announce(message: string, id: string) {
-    toast(message, { action: { label: 'Undo', onClick: () => void undo(id) } })
+  // With one dog this is simply where it is. With both, it is only a single
+  // place when they are actually in the same place — otherwise no segment is
+  // lit, which is the honest way to say "they are apart right now".
+  const places = active.map(where)
+  const shared = places.every((place) => place === places[0]) ? places[0]! : null
+
+  const accents = dogs.map((dog) => accentColor(dog.accent))
+  const spread = `linear-gradient(135deg, ${accents.join(', ')})`
+  const fill = everyone ? spread : accentColor(active[0]!.accent)
+
+  function announce(message: string, ids: string[]) {
+    toast(message, {
+      action: { label: 'Undo', onClick: () => ids.forEach((id) => void undo(id)) },
+    })
   }
 
   async function logPotty(pottyKind: PottyKind) {
     tapped()
-    const event = await log({
-      type: 'potty',
-      dogId: dog.id,
-      occurredAt: new Date().toISOString(),
-      location,
-      pottyKind,
-      note: null,
-    })
-    announce(`${dog.name} · ${POTTY_PAST[pottyKind]} ${MOVE_PAST[location]}`, event.id)
+    // One timestamp for the batch so the entries line up in the timeline.
+    const occurredAt = new Date().toISOString()
+    const created = await Promise.all(
+      active.map((dog) =>
+        log({
+          type: 'potty',
+          dogId: dog.id,
+          occurredAt,
+          location: where(dog),
+          pottyKind,
+          note: null,
+        }),
+      ),
+    )
+    const place = shared ? ` ${PLACE_PAST[shared]}` : ''
+    announce(
+      `${listNames(active)} · ${POTTY_PAST[pottyKind]}${place}`,
+      created.map((event) => event.id),
+    )
   }
 
   async function move(next: Location) {
-    if (next === location) return
+    const moving = active.filter((dog) => where(dog) !== next)
+    if (!moving.length) return
+
     tapped()
-    const event = await log({
-      type: 'location',
-      dogId: dog.id,
-      occurredAt: new Date().toISOString(),
-      location: next,
-      note: null,
-    })
-    announce(`${dog.name} · ${LOCATION_LABELS[next]}`, event.id)
+    const occurredAt = new Date().toISOString()
+    const created = await Promise.all(
+      moving.map((dog) =>
+        log({ type: 'location', dogId: dog.id, occurredAt, location: next, note: null }),
+      ),
+    )
+    announce(
+      `${listNames(moving)} · ${LOCATION_LABELS[next]}`,
+      created.map((event) => event.id),
+    )
   }
+
+  const choices = [
+    ...dogs.map((dog) => ({ id: dog.id, label: dog.name, fill: accentColor(dog.accent) })),
+    ...(dogs.length > 1 ? [{ id: BOTH, label: 'Both', fill: spread }] : []),
+  ]
 
   return (
     <div
       className="sticky bottom-0 z-10 rounded-t-deck border-t bg-surface px-4 pb-5 pt-3 shadow-[0_-12px_32px_-24px_rgba(0,0,0,0.45)]"
-      style={{ borderTopColor: accent, borderTopWidth: 3 }}
+      style={
+        everyone
+          ? { borderTopWidth: 3, borderImage: `${spread} 1` }
+          : { borderTopWidth: 3, borderTopColor: fill }
+      }
     >
-      {dogs.length > 1 ? (
-        <div className="mb-3 grid grid-cols-2 gap-2" role="tablist" aria-label="Which dog">
-          {dogs.map((candidate) => {
-            const active = candidate.id === dog.id
+      {choices.length > 1 ? (
+        <div
+          className="mb-3 grid gap-2"
+          style={{ gridTemplateColumns: `repeat(${choices.length}, minmax(0, 1fr))` }}
+          role="tablist"
+          aria-label="Which dog"
+        >
+          {choices.map((choice) => {
+            const on = choice.id === selectedId
             return (
               <button
-                key={candidate.id}
+                key={choice.id}
                 type="button"
                 role="tab"
-                aria-selected={active}
-                onClick={() => onSelect(candidate.id)}
-                className="press h-11 rounded-2xl border text-base font-semibold"
+                aria-selected={on}
+                onClick={() => onSelect(choice.id)}
+                className="press h-11 truncate rounded-2xl border px-2 text-base font-semibold"
                 style={{
-                  borderColor: active ? accentColor(candidate.accent) : 'var(--color-line)',
-                  background: active ? accentColor(candidate.accent) : 'transparent',
-                  color: active ? 'var(--color-on-accent)' : 'var(--color-ink-muted)',
+                  borderColor: on ? 'transparent' : 'var(--color-line)',
+                  background: on ? choice.fill : 'transparent',
+                  color: on ? 'var(--color-on-accent)' : 'var(--color-ink-muted)',
                 }}
               >
-                {candidate.name}
+                {choice.label}
               </button>
             )
           })}
@@ -101,7 +148,7 @@ export function Deck({ dogs, events, selectedId, onSelect }: Props) {
             type="button"
             onClick={() => void logPotty(kind)}
             className="press h-16 rounded-2xl text-lg font-bold"
-            style={{ background: accent, color: 'var(--color-on-accent)' }}
+            style={{ background: fill, color: 'var(--color-on-accent)' }}
           >
             {POTTY_LABELS[kind]}
           </button>
@@ -111,19 +158,19 @@ export function Deck({ dogs, events, selectedId, onSelect }: Props) {
       <div
         className="mt-2 grid grid-cols-3 gap-2"
         role="radiogroup"
-        aria-label={`Where ${dog.name} is`}
+        aria-label={`Where ${listNames(active)} ${active.length > 1 ? 'are' : 'is'}`}
       >
         {LOCATIONS.map((option) => {
-          const active = option === location
+          const on = option === shared
           return (
             <button
               key={option}
               type="button"
               role="radio"
-              aria-checked={active}
+              aria-checked={on}
               onClick={() => void move(option)}
               className={`press h-11 rounded-2xl border text-sm font-semibold ${
-                active
+                on
                   ? 'border-ink bg-ink text-ground'
                   : 'border-line text-ink-muted hover:border-ink-faint hover:text-ink'
               }`}

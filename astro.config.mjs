@@ -18,6 +18,19 @@ for (const [key, value] of Object.entries(env)) process.env[key] ??= value
 export default defineConfig({
   integrations: [react()],
   adapter: vercel(),
+  security: {
+    // The dev server refuses any request whose Sec-Fetch-Site is cross-site
+    // unless its origin is listed here. The native client is cross-origin by
+    // construction — it serves the bundle from capacitor://localhost and calls
+    // this API — so without these entries `pnpm dev` 403s every sign-in from
+    // the simulator while the browser works fine. Production is unaffected:
+    // that guard is dev-only, and `checkOrigin` (left on) only rejects
+    // cross-origin *form* posts, never this JSON API.
+    allowedDomains: [
+      { protocol: 'capacitor', hostname: 'localhost' },
+      { protocol: 'ionic', hostname: 'localhost' },
+    ],
+  },
   vite: {
     plugins: [tailwindcss()],
     resolve: {

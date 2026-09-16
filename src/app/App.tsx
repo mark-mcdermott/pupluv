@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '@nanostores/react'
 import { Toaster } from '@/components/ui/sonner'
+import { BOTH } from './components/Deck'
 import { Shell } from './components/Shell'
 import { SignIn } from './components/SignIn'
 import { $authed, $dogs, $events, $ready } from './lib/state'
@@ -30,8 +31,10 @@ export default function App() {
     return () => stop?.()
   }, [])
 
+  // Most entries cover both dogs at once, so that is where a fresh install starts.
   useEffect(() => {
-    if (!selectedId && dogs[0]) setSelectedId(dogs[0].id)
+    if (selectedId || !dogs.length) return
+    setSelectedId(dogs.length > 1 ? BOTH : dogs[0]!.id)
   }, [dogs, selectedId])
 
   function select(id: string) {
