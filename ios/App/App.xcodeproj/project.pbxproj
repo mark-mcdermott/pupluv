@@ -7,7 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		00E292B0AF0CCD882EAFE18A /* WidgetRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FB1FFA2D6A736C65FF5812B /* WidgetRefresh.swift */; };
+		298B345A132D27468EC06824 /* LogPlaceIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1910E6386C2C2CBBE791148 /* LogPlaceIntent.swift */; };
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
+		3C7334C841A77DC6D02E8EC9 /* PupluvWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = ADA4974F11A44719CC088157 /* PupluvWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		4D22ABE92AF431CB00220026 /* CapApp-SPM in Frameworks */ = {isa = PBXBuildFile; productRef = 4D22ABE82AF431CB00220026 /* CapApp-SPM */; };
 		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
 		504EC3081FED79650016851F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC3071FED79650016851F /* AppDelegate.swift */; };
@@ -15,11 +18,48 @@
 		504EC30F1FED79650016851F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30E1FED79650016851F /* Assets.xcassets */; };
 		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
+		5E523D0149A84140080AC01E /* PupluvShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = 375B1BFD8084C0B48F12B99D /* PupluvShared.swift */; };
+		7BD46F2928F13AF914AEF03F /* PupluvAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1149D20DA77B8D7B73508AE5 /* PupluvAPI.swift */; };
 		9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9582B6822FE993A50072D4E8 /* SceneDelegate.swift */; };
+		ABB9E79330E9B36325F45AE1 /* PupluvWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29E21A5769CE24A9DEFF1AD5 /* PupluvWidget.swift */; };
+		ACE3D99E9A6ED94C1A16D3EA /* PupluvShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = 375B1BFD8084C0B48F12B99D /* PupluvShared.swift */; };
+		BA2D9810A9A487EBCE7E75F8 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3039CA923D5051281B46103C /* ViewController.swift */; };
+		EACCA52F156ED56A67FEEE7F /* SharedStorePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EA98B4F9656200E5A48398F /* SharedStorePlugin.swift */; };
+		F62015E315D8732ED0669626 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D00968F77D8F6237B70A59AA /* Foundation.framework */; };
+		F7A416609D3996B3FA459EAA /* PupluvAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1149D20DA77B8D7B73508AE5 /* PupluvAPI.swift */; };
+		FF26D445128DAE55D6CC1E11 /* WidgetRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FB1FFA2D6A736C65FF5812B /* WidgetRefresh.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		36AC0C54BC0CF49B75F11887 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 504EC2FC1FED79650016851F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8E02429455AFA20E8D9E18F7;
+			remoteInfo = PupluvWidget;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		2194D2DE5624F641076E77D0 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				3C7334C841A77DC6D02E8EC9 /* PupluvWidget.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		1149D20DA77B8D7B73508AE5 /* PupluvAPI.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PupluvAPI.swift; sourceTree = "<group>"; };
+		29E21A5769CE24A9DEFF1AD5 /* PupluvWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PupluvWidget.swift; sourceTree = "<group>"; };
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
+		3039CA923D5051281B46103C /* ViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		375B1BFD8084C0B48F12B99D /* PupluvShared.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PupluvShared.swift; sourceTree = "<group>"; };
 		50379B222058CBB4000EE86E /* capacitor.config.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = capacitor.config.json; sourceTree = "<group>"; };
 		504EC3041FED79650016851F /* App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = App.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		504EC3071FED79650016851F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -28,11 +68,24 @@
 		504EC3111FED79650016851F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		504EC3131FED79650016851F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		50B271D01FEDC1A000F3C39B /* public */ = {isa = PBXFileReference; lastKnownFileType = folder; path = public; sourceTree = "<group>"; };
+		6FB1FFA2D6A736C65FF5812B /* WidgetRefresh.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WidgetRefresh.swift; sourceTree = "<group>"; };
+		7EA98B4F9656200E5A48398F /* SharedStorePlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SharedStorePlugin.swift; sourceTree = "<group>"; };
 		9582B6822FE993A50072D4E8 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		958DCC722DB07C7200EA8C5F /* debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = debug.xcconfig; path = ../debug.xcconfig; sourceTree = SOURCE_ROOT; };
+		ADA4974F11A44719CC088157 /* PupluvWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PupluvWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		B1910E6386C2C2CBBE791148 /* LogPlaceIntent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LogPlaceIntent.swift; sourceTree = "<group>"; };
+		D00968F77D8F6237B70A59AA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		093F22124F4F2330106889CB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F62015E315D8732ED0669626 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		504EC3011FED79650016851F /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -50,6 +103,9 @@
 				958DCC722DB07C7200EA8C5F /* debug.xcconfig */,
 				504EC3061FED79650016851F /* App */,
 				504EC3051FED79650016851F /* Products */,
+				E904A0B689D5676FB9405B08 /* Shared */,
+				771CBE77E1D7A87135DB1F21 /* Frameworks */,
+				D90C6F5B6310A8EAEB8A691F /* PupluvWidget */,
 			);
 			sourceTree = "<group>";
 		};
@@ -57,6 +113,7 @@
 			isa = PBXGroup;
 			children = (
 				504EC3041FED79650016851F /* App.app */,
+				ADA4974F11A44719CC088157 /* PupluvWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -73,8 +130,47 @@
 				504EC3131FED79650016851F /* Info.plist */,
 				2FAD9762203C412B000D30F8 /* config.xml */,
 				50B271D01FEDC1A000F3C39B /* public */,
+				7EA98B4F9656200E5A48398F /* SharedStorePlugin.swift */,
+				3039CA923D5051281B46103C /* ViewController.swift */,
 			);
 			path = App;
+			sourceTree = "<group>";
+		};
+		771CBE77E1D7A87135DB1F21 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				F45DDCC9F0A2E2BDEFE140BB /* iOS */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		D90C6F5B6310A8EAEB8A691F /* PupluvWidget */ = {
+			isa = PBXGroup;
+			children = (
+				B1910E6386C2C2CBBE791148 /* LogPlaceIntent.swift */,
+				29E21A5769CE24A9DEFF1AD5 /* PupluvWidget.swift */,
+			);
+			name = PupluvWidget;
+			path = PupluvWidget;
+			sourceTree = SOURCE_ROOT;
+		};
+		E904A0B689D5676FB9405B08 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				1149D20DA77B8D7B73508AE5 /* PupluvAPI.swift */,
+				375B1BFD8084C0B48F12B99D /* PupluvShared.swift */,
+				6FB1FFA2D6A736C65FF5812B /* WidgetRefresh.swift */,
+			);
+			name = Shared;
+			path = Shared;
+			sourceTree = SOURCE_ROOT;
+		};
+		F45DDCC9F0A2E2BDEFE140BB /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				D00968F77D8F6237B70A59AA /* Foundation.framework */,
+			);
+			name = iOS;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -87,10 +183,12 @@
 				504EC3001FED79650016851F /* Sources */,
 				504EC3011FED79650016851F /* Frameworks */,
 				504EC3021FED79650016851F /* Resources */,
+				2194D2DE5624F641076E77D0 /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				053EEC3D2DCF6197A6705A4A /* PBXTargetDependency */,
 			);
 			name = App;
 			packageProductDependencies = (
@@ -99,6 +197,23 @@
 			productName = App;
 			productReference = 504EC3041FED79650016851F /* App.app */;
 			productType = "com.apple.product-type.application";
+		};
+		8E02429455AFA20E8D9E18F7 /* PupluvWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5AF72092D3D670B11B662EEE /* Build configuration list for PBXNativeTarget "PupluvWidget" */;
+			buildPhases = (
+				B17BF0CDB758CF0D101D1F0E /* Sources */,
+				093F22124F4F2330106889CB /* Frameworks */,
+				160F7DACB9FDB8A18ADFA692 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PupluvWidget;
+			productName = PupluvWidget;
+			productReference = ADA4974F11A44719CC088157 /* PupluvWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -133,11 +248,19 @@
 			projectRoot = "";
 			targets = (
 				504EC3031FED79650016851F /* App */,
+				8E02429455AFA20E8D9E18F7 /* PupluvWidget */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		160F7DACB9FDB8A18ADFA692 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		504EC3021FED79650016851F /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -160,10 +283,36 @@
 			files = (
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
 				9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */,
+				F7A416609D3996B3FA459EAA /* PupluvAPI.swift in Sources */,
+				ACE3D99E9A6ED94C1A16D3EA /* PupluvShared.swift in Sources */,
+				FF26D445128DAE55D6CC1E11 /* WidgetRefresh.swift in Sources */,
+				EACCA52F156ED56A67FEEE7F /* SharedStorePlugin.swift in Sources */,
+				BA2D9810A9A487EBCE7E75F8 /* ViewController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B17BF0CDB758CF0D101D1F0E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				298B345A132D27468EC06824 /* LogPlaceIntent.swift in Sources */,
+				ABB9E79330E9B36325F45AE1 /* PupluvWidget.swift in Sources */,
+				7BD46F2928F13AF914AEF03F /* PupluvAPI.swift in Sources */,
+				5E523D0149A84140080AC01E /* PupluvShared.swift in Sources */,
+				00E292B0AF0CCD882EAFE18A /* WidgetRefresh.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		053EEC3D2DCF6197A6705A4A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = PupluvWidget;
+			target = 8E02429455AFA20E8D9E18F7 /* PupluvWidget */;
+			targetProxy = 36AC0C54BC0CF49B75F11887 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		504EC30B1FED79650016851F /* Main.storyboard */ = {
@@ -185,6 +334,28 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		20866EBB1098F1E529602771 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = PupluvWidget/PupluvWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = VRFF4MSHAC;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PupluvWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = pupluv;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pupluv.app.PupluvWidget;
+				PRODUCT_NAME = PupluvWidget;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
 		504EC3141FED79650016851F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 958DCC722DB07C7200EA8C5F /* debug.xcconfig */;
@@ -234,7 +405,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -285,7 +456,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
@@ -299,11 +470,12 @@
 			baseConfigurationReference = 958DCC722DB07C7200EA8C5F /* debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = VRFF4MSHAC;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = VRFF4MSHAC;
 				INFOPLIST_FILE = App/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -322,11 +494,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = VRFF4MSHAC;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = VRFF4MSHAC;
 				INFOPLIST_FILE = App/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -337,6 +510,29 @@
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		E27A605C29362F69F8383DD2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = PupluvWidget/PupluvWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = VRFF4MSHAC;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PupluvWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = pupluv;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pupluv.app.PupluvWidget;
+				PRODUCT_NAME = PupluvWidget;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
 		};
@@ -357,6 +553,15 @@
 			buildConfigurations = (
 				504EC3171FED79650016851F /* Debug */,
 				504EC3181FED79650016851F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5AF72092D3D670B11B662EEE /* Build configuration list for PBXNativeTarget "PupluvWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E27A605C29362F69F8383DD2 /* Release */,
+				20866EBB1098F1E529602771 /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

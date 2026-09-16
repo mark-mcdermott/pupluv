@@ -1,5 +1,13 @@
-import { eventSchema, type Dog, type DraftEvent, type PupEvent } from '@/lib/domain'
+import {
+  currentLocation,
+  eventSchema,
+  type Dog,
+  type DraftEvent,
+  type Location,
+  type PupEvent,
+} from '@/lib/domain'
 import { SignInFailed } from './errors'
+import { publishToWidget, takeWidgetEvents } from './native'
 import { $authed, $dogs, $events, $ready, $sync } from './state'
 import { loadEvents, saveEvents } from './store'
 import {
@@ -81,6 +89,8 @@ export function signOut(): void {
   clearSession()
   $authed.set(false)
   $events.set([])
+  // The widget must stop offering to log for an account we no longer hold.
+  void publishToWidget({ token: null, apiBase: API_BASE, dogs: [], placements: {} })
 }
 
 /** Local write first, network later — the tap must never wait on a round trip. */
@@ -175,6 +185,27 @@ async function pull(): Promise<void> {
   }
 }
 
+/** Events the widget logged while offline become ours to deliver. */
+async function adoptWidgetEvents(): Promise<void> {
+  const queued = await takeWidgetEvents()
+  if (!queued.length) return
+
+  await saveEvents(queued)
+  const merged = new Map($events.get().map((event) => [event.id, event]))
+  for (const event of queued) merged.set(event.id, event)
+  $events.set([...merged.values()].sort((a, b) => b.occurredAt.localeCompare(a.occurredAt)))
+  setOutbox([...new Set([...getOutbox(), ...queued.map((event) => event.id)])])
+}
+
+function placementsByDog(dogs: Dog[], events: PupEvent[]): Record<string, Location> {
+  const placements: Record<string, Location> = {}
+  for (const dog of dogs) {
+    const place = currentLocation(events, dog.id)
+    if (place) placements[dog.id] = place
+  }
+  return placements
+}
+
 let inFlight: Promise<void> | null = null
 
 export function sync(): Promise<void> {
@@ -189,10 +220,17 @@ export function sync(): Promise<void> {
   $sync.setKey('status', 'syncing')
   inFlight = (async () => {
     try {
+      await adoptWidgetEvents()
       await push()
       await pull()
       const { dogs } = await api<{ dogs: Dog[] }>('/api/dogs')
       $dogs.set(dogs)
+      await publishToWidget({
+        token: getToken(),
+        apiBase: API_BASE,
+        dogs,
+        placements: placementsByDog(dogs, $events.get()),
+      })
       $sync.set({ status: 'idle', pending: getOutbox().length, lastSyncedAt: new Date().toISOString() })
     } catch (error) {
       if (!(error instanceof AuthError)) {
