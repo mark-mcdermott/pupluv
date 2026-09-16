@@ -9,7 +9,8 @@ export const prerender = false
 
 const PAGE_SIZE = 500
 
-/** Pull: everything the server recorded after the client's cursor. */
+/** Pull: everything the server *changed* after the client's cursor — not just
+ *  what it created, or edits and deletes would never reach another device. */
 export const GET: APIRoute = async ({ request, url }) => {
   if (!(await isAuthed(request))) return unauthorized()
 
@@ -22,13 +23,13 @@ export const GET: APIRoute = async ({ request, url }) => {
   const rows = await getDb()
     .select()
     .from(schema.events)
-    .where(sinceDate ? gt(schema.events.createdAt, sinceDate) : undefined)
-    .orderBy(asc(schema.events.createdAt))
+    .where(sinceDate ? gt(schema.events.updatedAt, sinceDate) : undefined)
+    .orderBy(asc(schema.events.updatedAt))
     .limit(PAGE_SIZE)
 
   return Response.json({
     events: rows.map(fromRow),
-    cursor: rows.at(-1)?.createdAt.toISOString() ?? since,
+    cursor: rows.at(-1)?.updatedAt.toISOString() ?? since,
     more: rows.length === PAGE_SIZE,
   })
 }
@@ -66,6 +67,9 @@ export const POST: APIRoute = async ({ request }) => {
       set: {
         deletedAt: sql`excluded.deleted_at`,
         note: sql`excluded.note`,
+        // clock_timestamp rather than now(): distinct per row inside one
+        // statement, so a batch cannot collide on the cursor.
+        updatedAt: sql`clock_timestamp()`,
       },
     })
 

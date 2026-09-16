@@ -60,6 +60,57 @@ afterEach(() => {
   localStorage.clear()
 })
 
+describe('pull merge', () => {
+  it('applies an incoming tombstone over the local copy', async () => {
+    // The event is already here and live; another device deleted it. Cursoring
+    // on created_at used to mean this update never arrived at all.
+    setOutbox([])
+    $events.set([QUEUED])
+
+    const tombstoned = { ...QUEUED, deletedAt: '2026-09-16T11:00:00.000Z' }
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        const path = String(url)
+        if (path.includes('/api/events') && init?.method !== 'POST') {
+          return Response.json({ events: [tombstoned], cursor: null, more: false })
+        }
+        if (path.includes('/api/events')) return Response.json({ accepted: [] })
+        return Response.json({ dogs: [] })
+      }),
+    )
+
+    await sync()
+
+    const held = $events.get().find((event) => event.id === QUEUED.id)
+    expect(held?.deletedAt).toBe('2026-09-16T11:00:00.000Z')
+    expect($events.get().filter((event) => event.deletedAt === null)).toHaveLength(0)
+  })
+
+  it('applies an incoming note edit over the local copy', async () => {
+    setOutbox([])
+    $events.set([QUEUED])
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        const path = String(url)
+        if (path.includes('/api/events') && init?.method !== 'POST') {
+          return Response.json({
+            events: [{ ...QUEUED, note: 'edited elsewhere' }],
+            cursor: null,
+            more: false,
+          })
+        }
+        return Response.json({ dogs: [] })
+      }),
+    )
+
+    await sync()
+    expect($events.get().find((e) => e.id === QUEUED.id)?.note).toBe('edited elsewhere')
+  })
+})
+
 describe('outbox drain', () => {
   it('clears the queue once the server accepts it', async () => {
     vi.stubGlobal('fetch', server(200))

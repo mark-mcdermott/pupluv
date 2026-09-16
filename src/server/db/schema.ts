@@ -63,11 +63,25 @@ export const events = pgTable(
     /** Tombstone. Undo must propagate to other devices, so rows are never removed. */
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    /**
+     * Bumped on every write, including a tombstone or an edited note. The pull
+     * cursor runs on this rather than `created_at`: an update leaves creation
+     * time alone, so cursoring on it means a delete made on one device is never
+     * delivered to any device that already held the row.
+     *
+     * Millisecond precision on purpose: the cursor travels as an ISO string,
+     * which cannot carry the microseconds Postgres stores by default, so the
+     * newest row would compare as greater than its own cursor and be handed
+     * back on every single pull.
+     */
+    updatedAt: timestamp('updated_at', { withTimezone: true, precision: 3 })
+      .notNull()
+      .defaultNow(),
   },
   (t) => [
     index('events_dog_occurred_idx').on(t.dogId, t.occurredAt.desc()),
-    /** The sync pull is "everything the server saw after my cursor". */
-    index('events_created_idx').on(t.createdAt),
+    /** The sync pull is "everything the server changed after my cursor". */
+    index('events_updated_idx').on(t.updatedAt),
     check(
       'location_event_has_place',
       sql`${t.type} <> 'location' or ${t.location} is not null`,
