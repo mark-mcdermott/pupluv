@@ -1,0 +1,44 @@
+name: verify
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# A new push supersedes an in-flight run on the same branch.
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Reads `packageManager` from package.json, so CI cannot drift onto a
+      # different pnpm than the one this project is pinned to.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24 # matches the Vercel runtime, not the local 25
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Split rather than one `pnpm verify` so a red check says which gate failed.
+      # None of these need secrets: the db client is lazy and the API routes are
+      # bundled, never executed, at build time.
+      - name: Typecheck
+        run: pnpm check
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
