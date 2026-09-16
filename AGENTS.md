@@ -66,3 +66,8 @@ and calls the API cross-origin, where cookies are a fight.
   so there is no parallel dark block to maintain.
 - TypeScript is pinned to 6.x: TS 7's native compiler drops the API `astro check`
   needs.
+- **Testing the API with curl does not prove the native client works.** curl sends
+  no `Sec-Fetch-*` headers, so it skips the dev server's cross-origin guard
+  entirely — a request that passes from curl can still 403 from the simulator.
+  Send `Origin: capacitor://localhost` and `Sec-Fetch-Site: cross-site` when
+  checking anything the native app depends on.
