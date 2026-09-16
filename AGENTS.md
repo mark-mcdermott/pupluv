@@ -20,6 +20,7 @@ pnpm db:seed [a] [b]  # create the two dogs (idempotent)
 pnpm pin:hash <pin> # print a PIN_HASH for .env.local and Vercel
 pnpm cap:sync       # build and copy into the iOS shell (needs PUBLIC_API_URL)
 pnpm cap:ios        # open Xcode
+pnpm ios:device     # build, sign and install on a connected iPhone
 ```
 
 ## The two ideas worth knowing
@@ -63,6 +64,17 @@ the other devices. Everything but `deleted_at` and `note` is immutable once logg
 One shared PIN, scrypt-hashed in `PIN_HASH`, exchanged for a 90-day JWT held as a
 **bearer token, not a cookie** — the bundled iOS app runs on `capacitor://localhost`
 and calls the API cross-origin, where cookies are a fight.
+
+## Running it on a phone
+
+`pnpm ios:device` does the whole round trip: builds the web app against
+production, syncs it into the shell, signs a Release build and installs it over
+USB. The phone needs Developer Mode on (Settings → Privacy & Security) and to
+have trusted this Mac.
+
+Signing is automatic against team `VRFF4MSHAC`, which is a paid membership — so
+the build lasts until the provisioning profile expires rather than the seven days
+a free personal team gets. There is no App Store involvement and none is planned.
 
 ## Conventions
 
