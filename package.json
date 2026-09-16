@@ -21,7 +21,8 @@
     "db:seed": "dotenv -e .env.local -- tsx scripts/seed.ts",
     "cap:sync": "pnpm build && cap sync",
     "cap:ios": "cap open ios",
-    "verify": "pnpm check && pnpm lint && pnpm test && pnpm build"
+    "verify": "pnpm check && pnpm lint && pnpm test && pnpm build",
+    "ios:device": "bash scripts/install-ios.sh"
   },
   "dependencies": {
     "@astrojs/react": "^6.0.5",
