@@ -14,19 +14,24 @@ public class SharedStorePlugin: CAPPlugin, CAPBridgedPlugin {
     ]
 
     @objc func publish(_ call: CAPPluginCall) {
+
         if let token = call.getString("token") { PupluvShared.token = token }
         if let apiBase = call.getString("apiBase") { PupluvShared.apiBase = apiBase }
 
-        if let dogs = call.getArray("dogs") as? [[String: String]] {
-            PupluvShared.dogs = dogs.compactMap { entry in
-                guard let id = entry["id"], let name = entry["name"], let emoji = entry["emoji"]
+        if let dogs = call.getArray("dogs") {
+            PupluvShared.dogs = dogs.compactMap { value in
+                guard
+                    let entry = value as? JSObject,
+                    let id = entry["id"] as? String,
+                    let name = entry["name"] as? String,
+                    let emoji = entry["emoji"] as? String
                 else { return nil }
                 return PupluvShared.Dog(id: id, name: name, emoji: emoji)
             }
         }
 
-        if let placements = call.getObject("placements") as? [String: String] {
-            PupluvShared.placements = placements
+        if let placements = call.getObject("placements") {
+            PupluvShared.placements = placements.compactMapValues { $0 as? String }
         }
 
         WidgetRefresh.reload()

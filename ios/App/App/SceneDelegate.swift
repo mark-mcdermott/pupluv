@@ -8,7 +8,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = scene as? UIWindowScene else { return }
 
         window = UIWindow(windowScene: windowScene)
-        window?.rootViewController = CAPBridgeViewController()
+        // ViewController, not CAPBridgeViewController: the subclass is what
+        // registers the app-local plugin in capacitorDidLoad(). The storyboard
+        // is bypassed entirely here, so pointing it at the subclass is not enough.
+        window?.rootViewController = ViewController()
         window?.makeKeyAndVisible()
 
         SceneDelegateProxy.shared.scene(scene, willConnectTo: session, options: connectionOptions)
