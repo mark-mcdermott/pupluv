@@ -160,3 +160,59 @@ describe('Deck with both dogs selected', () => {
     expect(undo.mock.calls.flat()).toEqual(['event-1', 'event-2'])
   })
 })
+
+describe('Deck notes', () => {
+  async function writeNote(text: string) {
+    await userEvent.click(screen.getByRole('button', { name: /add a note/i }))
+    await userEvent.type(screen.getByLabelText('Note for the next entry'), text)
+  }
+
+  it('stays collapsed so it never pushes the tap targets around', () => {
+    setup([outside])
+    expect(screen.queryByLabelText('Note for the next entry')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /add a note/i })).toBeInTheDocument()
+  })
+
+  it('attaches the note to the entry it is logged with', async () => {
+    setup([outside])
+    await writeNote('soft stool')
+    await userEvent.click(screen.getByRole('button', { name: 'Poo' }))
+
+    expect(log.mock.calls[0]![0]).toMatchObject({ note: 'soft stool' })
+  })
+
+  it('puts the same note on every dog in a both-dogs entry', async () => {
+    setup([outside, inside], BOTH)
+    await writeNote('after the walk')
+    await userEvent.click(screen.getByRole('button', { name: 'Pee' }))
+
+    expect(log).toHaveBeenCalledTimes(2)
+    for (const [event] of log.mock.calls) expect(event.note).toBe('after the walk')
+  })
+
+  it('clears itself once used, so it cannot leak onto the next entry', async () => {
+    setup([outside])
+    await writeNote('one off')
+    await userEvent.click(screen.getByRole('button', { name: 'Pee' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Poo' }))
+
+    expect(log.mock.calls[0]![0].note).toBe('one off')
+    expect(log.mock.calls[1]![0].note).toBeNull()
+  })
+
+  it('sends null rather than an empty string when left blank', async () => {
+    setup([outside])
+    await userEvent.click(screen.getByRole('button', { name: /add a note/i }))
+    await userEvent.click(screen.getByRole('button', { name: 'Pee' }))
+
+    expect(log.mock.calls[0]![0].note).toBeNull()
+  })
+
+  it('also carries the note on a location change', async () => {
+    setup([outside])
+    await writeNote('back gate open')
+    await userEvent.click(screen.getByRole('radio', { name: 'Pen' }))
+
+    expect(log.mock.calls[0]![0]).toMatchObject({ type: 'location', note: 'back gate open' })
+  })
+})

@@ -9,6 +9,10 @@ Shipped and remaining work, in PR-sized pieces with acceptance criteria.
 - One-tap pee / poo / both, filed at the dog's current location.
 - Accidents derived, never stored. Weekly "n of m outside" per dog.
 - Local-first: IndexedDB + outbox, background sync, tombstone undo.
+- A "Both" option that logs one entry per dog from a single tap, each filed at
+  that dog's own location.
+- Optional notes: attach one to the entry as you log it, or add and edit it from
+  the timeline afterwards.
 - Shared-PIN auth, bearer token, 90-day expiry.
 - iOS shell via Capacitor, bundled for offline use.
 - Light/dark, WCAG AA contrast, reduced-motion respected.

@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { toast } from 'sonner'
+import { Plus } from 'lucide-react'
 import {
   DEFAULT_LOCATION,
   LOCATIONS,
@@ -34,6 +36,11 @@ function listNames(dogs: Dog[]): string {
 }
 
 export function Deck({ dogs, events, selectedId, onSelect }: Props) {
+  // A note is optional and rare, so it stays collapsed: the three taps that
+  // matter must never be pushed off the thumb by a textarea nobody is using.
+  const [note, setNote] = useState('')
+  const [noteOpen, setNoteOpen] = useState(false)
+
   const everyone = selectedId === BOTH && dogs.length > 1
   const targets = everyone ? dogs : dogs.filter((dog) => dog.id === selectedId)
   const active = targets.length ? targets : dogs.slice(0, 1)
@@ -50,6 +57,15 @@ export function Deck({ dogs, events, selectedId, onSelect }: Props) {
   const accents = dogs.map((dog) => accentColor(dog.accent))
   const spread = `linear-gradient(135deg, ${accents.join(', ')})`
   const fill = everyone ? spread : accentColor(active[0]!.accent)
+
+  function takeNote(): string | null {
+    return note.trim() || null
+  }
+
+  function clearNote() {
+    setNote('')
+    setNoteOpen(false)
+  }
 
   function announce(message: string, ids: string[]) {
     toast(message, {
@@ -69,10 +85,11 @@ export function Deck({ dogs, events, selectedId, onSelect }: Props) {
           occurredAt,
           location: where(dog),
           pottyKind,
-          note: null,
+          note: takeNote(),
         }),
       ),
     )
+    clearNote()
     const place = shared ? ` ${PLACE_PAST[shared]}` : ''
     announce(
       `${listNames(active)} · ${POTTY_PAST[pottyKind]}${place}`,
@@ -88,9 +105,10 @@ export function Deck({ dogs, events, selectedId, onSelect }: Props) {
     const occurredAt = new Date().toISOString()
     const created = await Promise.all(
       moving.map((dog) =>
-        log({ type: 'location', dogId: dog.id, occurredAt, location: next, note: null }),
+        log({ type: 'location', dogId: dog.id, occurredAt, location: next, note: takeNote() }),
       ),
     )
+    clearNote()
     announce(
       `${listNames(moving)} · ${LOCATION_LABELS[next]}`,
       created.map((event) => event.id),
@@ -180,6 +198,34 @@ export function Deck({ dogs, events, selectedId, onSelect }: Props) {
           )
         })}
       </div>
+
+      {noteOpen ? (
+        <div className="mt-2">
+          <textarea
+            autoFocus
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+            onKeyDown={(event) => event.key === 'Escape' && clearNote()}
+            rows={2}
+            maxLength={500}
+            placeholder="Soft stool, ate something in the yard…"
+            aria-label="Note for the next entry"
+            className="w-full resize-none rounded-2xl border border-line bg-surface px-3 py-2 text-sm outline-none placeholder:text-ink-faint focus-visible:border-ink"
+          />
+          <p className="px-1 pt-1 text-xs text-ink-faint">
+            Goes on the next thing you log{everyone ? ', for both dogs' : ''}.
+          </p>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setNoteOpen(true)}
+          className="press mt-2 flex h-9 w-full items-center justify-center gap-1.5 rounded-2xl text-sm text-ink-faint hover:bg-sunk hover:text-ink"
+        >
+          <Plus size={14} />
+          Add a note
+        </button>
+      )}
     </div>
   )
 }
