@@ -113,7 +113,7 @@ PUBLIC_API_URL="$API_URL" pnpm build >/dev/null
 pnpm exec cap sync ios >/dev/null
 
 echo "→ compiling and signing"
-xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \
+xcodebuild -project iphone/App/App.xcodeproj -scheme App -configuration Release \
   -destination "generic/platform=iOS" -derivedDataPath "$DERIVED" \
   -allowProvisioningUpdates -quiet build 2>/dev/null
 
