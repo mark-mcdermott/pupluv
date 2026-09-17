@@ -72,7 +72,19 @@ widget derives the same proportions from its own tile width.
   UI can be bundled into the iOS webview.
 - `src/app/` — the React island. `lib/sync.ts` is the local-first engine.
 - `src/app/components/Shell.tsx` — signed-in layout, free of data loading so it
-  renders from tests.
+  renders from tests. **Three bands filling the viewport: header, timeline,
+  deck, and only the middle one scrolls.** A scrollable document rubber bands on
+  a phone — drag anywhere and the whole app slides out from under the status bar
+  and back, showing the web view behind it. `html, body` are therefore fixed at
+  `height: 100%; overflow: hidden`, and the timeline's box carries
+  `overscroll-contain` so its own scroll does not chain back to them. `min-h-0`
+  on that box is load-bearing: without it a flex child will not shrink below its
+  content, and the box grows instead of scrolling.
+
+  That also means the web view owns no insets — `contentInset: 'never'` in
+  `capacitor.config.ts` — and the layout pads itself out of the status bar and
+  the home indicator with `env(safe-area-inset-*)`. Let the scroll view inset
+  instead and the page sits offset with nowhere to scroll it back.
 
 ### Local-first sync
 
