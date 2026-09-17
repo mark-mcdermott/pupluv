@@ -196,24 +196,28 @@ export function Timeline({ dogs, events }: { dogs: Dog[]; events: PupEvent[] }) 
                       ) : null}
                     </span>
 
-                    <button
-                      type="button"
-                      onClick={() => open(key, first.note)}
-                      aria-label={`${first.note ? 'Edit' : 'Add'} note for ${label}`}
-                      title={first.note ? 'Edit note' : 'Add note'}
-                      className="press grid size-7 shrink-0 place-items-center rounded-full text-ink-faint hover:bg-sunk hover:text-ink"
-                    >
-                      <Pencil size={13} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => group.forEach((event) => void undo(event.id))}
-                      aria-label={`Remove: ${label}`}
-                      title="Remove"
-                      className="press grid size-7 shrink-0 place-items-center rounded-full text-ink-faint hover:bg-sunk hover:text-ink"
-                    >
-                      <X size={14} />
-                    </button>
+                    {/* Tighter than the row's own gap: these two belong to each
+                        other, not to the entry they sit beside. */}
+                    <span className="flex shrink-0 items-center gap-0.5">
+                      <button
+                        type="button"
+                        onClick={() => open(key, first.note)}
+                        aria-label={`${first.note ? 'Edit' : 'Add'} note for ${label}`}
+                        title={first.note ? 'Edit note' : 'Add note'}
+                        className="press grid size-7 place-items-center rounded-full text-ink-faint hover:bg-sunk hover:text-ink"
+                      >
+                        <Pencil size={13} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => group.forEach((event) => void undo(event.id))}
+                        aria-label={`Remove: ${label}`}
+                        title="Remove"
+                        className="press grid size-7 place-items-center rounded-full text-ink-faint hover:bg-sunk hover:text-ink"
+                      >
+                        <X size={14} />
+                      </button>
+                    </span>
                   </div>
 
                   {editing === key ? (
