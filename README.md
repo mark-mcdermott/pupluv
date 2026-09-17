@@ -47,7 +47,7 @@ pnpm dev                     # pages, the React island and /api/* on one server
 | `pnpm db:seed [a] [b]` | create the two dogs |
 | `pnpm pin:hash <pin>` | print a `PIN_HASH` for `.env.local` and Vercel |
 | `pnpm ios:device` | build, sign and install on a connected iPhone |
-| `pnpm icons` | regenerate every icon from `assets/logo.png` |
+| `pnpm icons` | regenerate every icon from the largest logo in `brand/` |
 
 ## Backups
 
@@ -139,7 +139,9 @@ cannot deliver is queued there and adopted by the app on its next sync.
   - inside it, `App/`, `Widget/` and `Shared/` are siblings — the app target's
     sources, the widget target's, and the Swift compiled into both
 - Added by me
-  - `assets/`: the logo the icons are generated from
+  - `brand/`: the logo the icons are generated from. `pnpm icons` takes the
+    largest `logo*.png` in here, so a re-export at new dimensions needs no code
+    change — pass a path to override
   - `backups/`: database dumps, committed
   - `scripts/`: backup, restore, icons, iphone install, Xcode project edits
   - `docs/`: the roadmap
@@ -149,9 +151,6 @@ cannot deliver is queued there and adopted by the app on its next sync.
 - Added by Vercel when Neon was provisioned
   - `.agents/skills/`: two Neon skills, with `.claude/skills/` symlinked to them
   - `skills-lock.json`: pins their versions
-
-Not in the repo: `branding/` lives one level up in `pupluv-proj/`, outside the
-checkout, holding the logo at its original sizes.
 
 ## More Details
 
