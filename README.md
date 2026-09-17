@@ -152,11 +152,6 @@ cannot deliver is queued there and adopted by the app on its next sync.
   - `.agents/skills/`: two Neon skills, with `.claude/skills/` symlinked to them
   - `skills-lock.json`: pins their versions
 
-Note the near-identical names: `brand/` **in** the repo is the single build
-input the icons come from. `branding/` **one level up** in `pupluv-proj/`, outside
-the checkout, is the working folder of design files — the same logo at several
-sizes, plus whatever else accumulates. Only `brand/` is ever read by anything.
-
 ## More Details
 
 - Architecture and the reasoning behind it: [AGENTS.md](AGENTS.md).
