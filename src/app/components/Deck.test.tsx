@@ -17,7 +17,10 @@ const DOGS: Dog[] = [
 ]
 
 let uid = 0
-const placed = (dogId: string, location: 'pen' | 'outside' | 'inside'): PupEvent =>
+const placed = (
+  dogId: string,
+  location: 'pen' | 'outside' | 'inside' | 'crate' | 'bed',
+): PupEvent =>
   eventSchema.parse({
     id: `55555555-5555-4555-8555-${String(++uid).padStart(12, '0')}`,
     dogId,
@@ -49,7 +52,7 @@ beforeEach(() => {
 })
 
 describe('Deck closed', () => {
-  it('shows only the three places plus the fold', () => {
+  it('shows only the places plus the fold', () => {
     setup(bothOutside)
     expect(screen.getByRole('button', { name: 'Pen' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Add details' })).toBeInTheDocument()
@@ -173,5 +176,41 @@ describe('Deck open', () => {
     const [, options] = toast.mock.calls[0]!
     options.action.onClick()
     expect(undo).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('the crate and the bed', () => {
+  it('offers all five places', () => {
+    setup(bothOutside)
+    for (const name of ['Pen', 'Outside', 'Inside', 'Crate', 'Bed']) {
+      expect(screen.getByRole('button', { name })).toBeInTheDocument()
+    }
+  })
+
+  it('logs a move into the crate for every dog', async () => {
+    setup(bothOutside)
+    await userEvent.click(screen.getByRole('button', { name: 'Crate' }))
+
+    expect(log).toHaveBeenCalledTimes(2)
+    for (const [event] of log.mock.calls) {
+      expect(event).toMatchObject({ type: 'location', location: 'crate' })
+    }
+  })
+
+  it('lights the bed once they are both on it', () => {
+    setup([placed(DOG_A, 'bed'), placed(DOG_B, 'bed')])
+    // Closed, the lit button is where they are.
+    expect(screen.getByRole('button', { name: 'Bed' })).toBeInTheDocument()
+  })
+
+  it('files a potty in the bed at the bed', async () => {
+    setup([placed(DOG_A, 'bed'), placed(DOG_B, 'bed')])
+    await openDetails()
+    await userEvent.click(screen.getByRole('radio', { name: 'Poo' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Log it' }))
+
+    for (const [event] of log.mock.calls) {
+      expect(event).toMatchObject({ type: 'potty', location: 'bed' })
+    }
   })
 })
