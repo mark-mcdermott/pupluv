@@ -23,6 +23,7 @@
     "cap:ios": "cap open ios",
     "desktop:dev": "tauri dev",
     "desktop:build": "bash scripts/build-desktop.sh",
+    "desktop:install": "bash scripts/install-desktop.sh",
     "verify": "pnpm check && pnpm lint && pnpm test && pnpm build",
     "ios:device": "bash scripts/install-ios.sh",
     "icons": "node scripts/make-icons.mjs",

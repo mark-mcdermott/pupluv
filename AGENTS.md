@@ -23,6 +23,7 @@ pnpm cap:ios        # open Xcode
 pnpm ios:device     # build, sign and install on a connected iPhone
 pnpm desktop:dev    # the Mac app against the dev server
 pnpm desktop:build  # signed pupluv.app and .dmg
+pnpm desktop:install  # the same, into /Applications
 ```
 
 ## The two ideas worth knowing
@@ -116,10 +117,14 @@ runs against the xcodeproj gem inside Homebrew's CocoaPods, and
 ## The Mac app
 
 `desktop/` is a Tauri v2 project, flat rather than the usual `src-tauri/` — the
-CLI finds `tauri.conf.json` wherever it sits. There is no Rust to speak of:
-`main.rs` opens a window and nothing else. The web app never calls into Rust, so
-there are no commands, no plugins, and the capability file grants only
-`core:default`.
+CLI finds `tauri.conf.json` wherever it sits. There is almost no Rust: `main.rs`
+opens a window and registers one plugin. The web app never calls into Rust, so
+there are no commands and the capability file grants only the defaults.
+
+That plugin is `window-state`, and it earns its place: Tauri builds its windows
+from the config on every launch, so without it the window re-centres at 420x860
+each time. The version comes from `package.json` — `tauri.conf.json` points at
+the file rather than repeating the number.
 
 It is the phone's approach on a desktop: `frontendDist` is the same
 `dist/client`, `PUBLIC_API_URL` is baked in at build time, and the window loads
