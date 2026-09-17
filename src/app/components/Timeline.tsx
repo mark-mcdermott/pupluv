@@ -170,7 +170,7 @@ export function Timeline({ dogs, events }: { dogs: Dog[]; events: PupEvent[] }) 
                       {clockLabel(first.occurredAt)}
                     </time>
                     <span
-                      className="flex w-16 shrink-0 gap-1 leading-none"
+                      className="flex w-[3.1875rem] shrink-0 gap-1 leading-none"
                       style={{ fontSize: DOG_GLYPH_PX }}
                       role="img"
                       aria-label={who.map((dog) => dog.name).join(' and ')}
@@ -182,7 +182,7 @@ export function Timeline({ dogs, events }: { dogs: Dog[]; events: PupEvent[] }) 
 
                     <span
                       className={`flex min-w-0 items-center gap-1.5 text-sm text-ink ${
-                        anyPotty ? 'flex-1' : 'mr-1'
+                        anyPotty ? 'flex-1' : ''
                       }`}
                     >
                       {place ? <PlaceGlyph location={place} /> : null}
@@ -196,15 +196,16 @@ export function Timeline({ dogs, events }: { dogs: Dog[]; events: PupEvent[] }) 
                       ) : null}
                     </span>
 
-                    {/* Tighter than the row's own gap: these two belong to each
-                        other, not to the entry they sit beside. */}
-                    <span className="flex shrink-0 items-center gap-0.5">
+                    {/* The pair sits as close as the two dogs do. Only the facing
+                        edges are trimmed — the outer padding keeps both tap
+                        targets full height and near full width. */}
+                    <span className="flex shrink-0 items-center">
                       <button
                         type="button"
                         onClick={() => open(key, first.note)}
                         aria-label={`${first.note ? 'Edit' : 'Add'} note for ${label}`}
                         title={first.note ? 'Edit note' : 'Add note'}
-                        className="press grid size-7 place-items-center rounded-full text-ink-faint hover:bg-sunk hover:text-ink"
+                        className="press grid h-7 place-items-center pl-2 pr-[3px] text-ink-faint hover:text-ink"
                       >
                         <Pencil size={13} />
                       </button>
@@ -213,7 +214,7 @@ export function Timeline({ dogs, events }: { dogs: Dog[]; events: PupEvent[] }) 
                         onClick={() => group.forEach((event) => void undo(event.id))}
                         aria-label={`Remove: ${label}`}
                         title="Remove"
-                        className="press grid size-7 place-items-center rounded-full text-ink-faint hover:bg-sunk hover:text-ink"
+                        className="press grid h-7 place-items-center pl-px pr-2 text-ink-faint hover:text-ink"
                       >
                         <X size={14} />
                       </button>
