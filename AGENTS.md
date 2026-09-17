@@ -37,8 +37,9 @@ displays the location it is about to use, so the inheritance is never a guess.
 
 **The deck has two states and they behave differently on purpose.** Closed, it is
 five place buttons and a tap is the whole entry, applied to every dog — the lit
-one is where they are now. Open, it is a form: nothing is written, not even a
-place, until `Log it`. Anything that blurs that line will make the deck lie about
+one is where they are now. The eye beneath them opens a second row — dogs, pee,
+poo, a note, send — and once that row is open nothing is written, not even a
+place, until send. Anything that blurs that line will make the deck lie about
 what a tap does, which is the exact confusion this replaced.
 
 ## Architecture
