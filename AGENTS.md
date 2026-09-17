@@ -79,10 +79,16 @@ a free personal team gets. There is no App Store involvement and none is planned
 
 ## The home-screen widget
 
-`iphone/App/Widget` is a WidgetKit extension: the place buttons, moving both
-dogs without opening the app. Five across is about 25pt each on a small widget,
-so it wraps to two rows there and only spreads out when there is room. Buttons in a widget are App Intents, which is
-why everything targets iOS 17.
+`iphone/App/Widget` is a WidgetKit extension: the deck, on the home screen. The
+same five square places, the same eye holding the right edge beneath them, the
+same row of half-size circles behind it — minus the note, because a widget
+cannot take typed input. Five across is about 20pt each on a small widget, so it
+wraps to two rows there and the detail row only opens where it fits. Buttons in a
+widget are App Intents, which is why everything targets iOS 17.
+
+A widget view keeps no state of its own, so the detail row lives in the App Group
+too: each tap runs an intent that writes there and asks for a redraw, and the
+entry read back on the next draw is what the row shows.
 
 It runs in its own process and cannot see this web view's storage, so the two
 sides meet in the App Group `group.com.pupluv.app`:

@@ -116,19 +116,23 @@ describe('Deck open', () => {
     expect(screen.getByRole('radio', { name: 'Pen' })).toBeChecked()
   })
 
-  it('will not submit with nothing to record', async () => {
+  it('folds away rather than writing when there is nothing to record', async () => {
     setup(bothOutside)
     await openDetails()
-    expect(button('Log it')).toBeDisabled()
+    await send()
+
+    expect(log).not.toHaveBeenCalled()
+    expect(button('Add details')).toBeInTheDocument()
   })
 
-  it('will not submit with no dog taken', async () => {
+  it('writes nothing when no dog is taken', async () => {
     setup(bothOutside)
     await openDetails()
     await userEvent.click(button('Pee'))
     for (const dog of DOGS) await userEvent.click(button(dog.name))
+    await send()
 
-    expect(button('Log it')).toBeDisabled()
+    expect(log).not.toHaveBeenCalled()
   })
 
   it('reads pee and poo together as one entry', async () => {
@@ -151,7 +155,6 @@ describe('Deck open', () => {
 
     await userEvent.click(button('Pee'))
     expect(button('Pee')).toHaveAttribute('aria-pressed', 'false')
-    expect(button('Log it')).toBeDisabled()
   })
 
   it('writes nothing until the send button', async () => {
