@@ -51,3 +51,27 @@ export function isSameDay(iso: string, day: Date): boolean {
     date.getDate() === day.getDate()
   )
 }
+
+/** The value a `datetime-local` input wants: local wall time, no zone. */
+export function toLocalInput(iso: string): string {
+  const date = new Date(iso)
+  const pad = (part: number) => String(part).padStart(2, '0')
+  return (
+    `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
+    `T${pad(date.getHours())}:${pad(date.getMinutes())}`
+  )
+}
+
+/**
+ * Back the other way. Null for the empty or half-typed value the input reports
+ * mid-edit, which must not be written as a date.
+ *
+ * The shape is checked before parsing because `new Date('2026-09-')` is not an
+ * error — it is the first of September. A half-typed value would otherwise move
+ * an entry a fortnight without saying so.
+ */
+export function fromLocalInput(value: string): string | null {
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/.test(value)) return null
+  const date = new Date(value)
+  return Number.isNaN(date.valueOf()) ? null : date.toISOString()
+}
