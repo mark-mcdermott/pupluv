@@ -8,8 +8,8 @@ private struct Place: Identifiable {
     let label: String
 }
 
-/// Daytime places on the first row, the two sleeping ones on the second, which
-/// is also how they split when a small widget cannot fit five across.
+/// Daytime places first, then the two sleeping ones, which is also how they split
+/// when a small widget cannot fit five across.
 private let dayPlaces = [
     Place(id: "pen", glyph: "🛖", label: "Pen"),
     Place(id: "outside", glyph: "🌳", label: "Outside"),
@@ -23,16 +23,69 @@ private let sleepPlaces = [
 
 private let places = dayPlaces + sleepPlaces
 
+private struct Pick: Identifiable {
+    let id: String
+    let glyph: String
+    let label: String
+}
+
+private let pickKinds = [
+    Pick(id: "pee", glyph: "💧", label: "Pee"),
+    Pick(id: "poo", glyph: "💩", label: "Poo"),
+]
+
+/// No paper plane exists in the emoji set; the outbox tray is the send glyph.
+private let sendGlyph = "📤"
+
+// Mirrors accent.ts over the tokens in global.css. These tiles hold emoji, not
+// text, so their background carries no contrast requirement.
+
+/// Softened, as the deck softens the places: a tile that size would swamp the
+/// widget at full strength.
+private func placeTint(_ accent: String?) -> Color {
+    switch accent {
+    case "amber": return Color(red: 0.89, green: 0.78, blue: 0.62)
+    case "teal": return Color(red: 0.64, green: 0.85, blue: 0.82)
+    default: return Color(red: 0.78, green: 0.81, blue: 0.79)
+    }
+}
+
+/// The one fill behind the detail row's circles, mirroring --color-tile. Deep
+/// enough that the white in the bowl and the drop reads against it, and the same
+/// for every button so that being on looks the same everywhere in the row.
+private let tileFill = AnyShapeStyle(Color(red: 0.059, green: 0.325, blue: 0.314))
+
+private func blend(_ dogs: [PupluvShared.Dog]) -> AnyShapeStyle {
+    let colours = dogs.map { placeTint($0.accent) }
+    guard colours.count > 1 else { return AnyShapeStyle(colours.first ?? placeTint(nil)) }
+    return AnyShapeStyle(
+        LinearGradient(colors: colours, startPoint: .topLeading, endPoint: .bottomTrailing)
+    )
+}
+
 struct PlaceEntry: TimelineEntry {
     let date: Date
     let current: String?
     let dogs: [PupluvShared.Dog]
     let signedIn: Bool
+    let detailOpen: Bool
+    let skipped: [String]
+    let picked: [String]
+    let pending: String?
 }
 
 struct PlaceProvider: TimelineProvider {
     func placeholder(in context: Context) -> PlaceEntry {
-        PlaceEntry(date: Date(), current: "outside", dogs: [], signedIn: true)
+        PlaceEntry(
+            date: Date(),
+            current: "outside",
+            dogs: [],
+            signedIn: true,
+            detailOpen: false,
+            skipped: [],
+            picked: [],
+            pending: nil
+        )
     }
 
     func getSnapshot(in context: Context, completion: @escaping (PlaceEntry) -> Void) {
@@ -50,51 +103,133 @@ struct PlaceProvider: TimelineProvider {
             date: Date(),
             current: PupluvShared.sharedPlace,
             dogs: PupluvShared.dogs,
-            signedIn: PupluvShared.token != nil
+            signedIn: PupluvShared.token != nil,
+            detailOpen: PupluvShared.detailOpen,
+            skipped: PupluvShared.skipped,
+            picked: PupluvShared.picks,
+            pending: PupluvShared.pendingPlace
         )
+    }
+}
+
+/// The deck's one button shape: a bordered tile that fills in when it is on. The
+/// corner radius comes from the places, so the half-size row below them rounds to
+/// a circle exactly as it does on the web.
+private struct Tile: View {
+    let glyph: String
+    let side: CGFloat
+    let radius: CGFloat
+    let on: Bool
+    let fill: AnyShapeStyle
+
+    var body: some View {
+        Text(glyph)
+            .font(.system(size: side * 0.375))
+            .minimumScaleFactor(0.5)
+            .lineLimit(1)
+            .frame(width: side, height: side)
+            .background(
+                RoundedRectangle(cornerRadius: radius, style: .continuous)
+                    .fill(on ? fill : AnyShapeStyle(Color.primary.opacity(0.06)))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: radius, style: .continuous)
+                    .strokeBorder(Color.primary.opacity(on ? 0 : 0.12))
+            )
     }
 }
 
 private struct PlaceButton: View {
     let place: Place
+    let side: CGFloat
     let selected: Bool
+    let fill: AnyShapeStyle
 
     var body: some View {
-        Group {
-            if #available(iOS 17.0, *) {
-                Button(intent: LogPlaceIntent(place: place.id)) { face }
-                    .buttonStyle(.plain)
-            } else {
-                face
-            }
+        Button(intent: LogPlaceIntent(place: place.id)) {
+            Tile(glyph: place.glyph, side: side, radius: side / 4, on: selected, fill: fill)
         }
+        .buttonStyle(.plain)
         .accessibilityLabel(place.label)
     }
+}
 
-    private var face: some View {
-        Text(place.glyph)
-            .font(.system(size: 24))
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(
-                        selected
-                            ? AnyShapeStyle(
-                                LinearGradient(
-                                    colors: [
-                                        Color(red: 0.89, green: 0.78, blue: 0.62),
-                                        Color(red: 0.64, green: 0.85, blue: 0.82),
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ))
-                            : AnyShapeStyle(Color.primary.opacity(0.06))
+/// The deck's second row, minus the note: a widget cannot take typed input, so
+/// the space it fills on the web is simply left open here.
+private struct DetailRow: View {
+    let entry: PlaceEntry
+    /// The place tile above, which everything here is measured against.
+    let side: CGFloat
+
+    private var small: CGFloat { side / 2 }
+    private var radius: CGFloat { side / 4 }
+
+    var body: some View {
+        HStack(spacing: 8) {
+            if entry.detailOpen {
+                HStack(spacing: 4) {
+                    ForEach(entry.dogs) { dog in
+                        Button(intent: ToggleDogIntent(dogId: dog.id)) {
+                            Tile(
+                                glyph: dog.emoji,
+                                side: small,
+                                radius: radius,
+                                on: !entry.skipped.contains(dog.id),
+                                fill: tileFill
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(dog.name)
+                    }
+                }
+
+                HStack(spacing: 4) {
+                    ForEach(pickKinds) { pick in
+                        Button(intent: TogglePickIntent(pick: pick.id)) {
+                            Tile(
+                                glyph: pick.glyph,
+                                side: small,
+                                radius: radius,
+                                on: entry.picked.contains(pick.id),
+                                fill: tileFill
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(pick.label)
+                    }
+                }
+
+                Spacer(minLength: 0)
+
+                // No standing fill: it is live the moment the row opens, and a
+                // filled tile would read as something already chosen. The system
+                // supplies the press highlight.
+                Button(intent: SubmitIntent()) {
+                    Tile(
+                        glyph: sendGlyph,
+                        side: small,
+                        radius: radius,
+                        on: false,
+                        fill: tileFill
                     )
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .strokeBorder(Color.primary.opacity(selected ? 0 : 0.12))
-            )
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Log it")
+            } else {
+                Spacer(minLength: 0)
+            }
+
+            Button(intent: ToggleDetailIntent()) {
+                Image(systemName: entry.detailOpen ? "eye.slash" : "eye")
+                    .font(.system(size: side * 0.25))
+                    .foregroundStyle(.secondary)
+                    // Trailing, so the icon ends on the same line as the last
+                    // place button above it.
+                    .frame(width: small, height: small, alignment: .trailing)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(entry.detailOpen ? "Hide details" : "Add details")
+        }
     }
 }
 
@@ -102,70 +237,65 @@ struct PupluvWidgetView: View {
     @Environment(\.widgetFamily) private var family
     var entry: PlaceEntry
 
-    /// Five across a small widget is about 25pt each — well under a thumb. It
-    /// wraps there instead, and only spreads out when there is room.
+    /// Five across a small widget is about 20pt each — well under a thumb. It
+    /// wraps there instead, and the detail row only opens where it fits.
     private var fitsOneRow: Bool { family != .systemSmall }
 
-    var body: some View {
-        VStack(spacing: 8) {
-            HStack(spacing: 6) {
-                Text(entry.dogs.map(\.emoji).joined())
-                    .font(.system(size: 15))
-                Spacer()
-                Text(caption)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-            }
+    /// Closed, the lit place is where they are; open, it is the one about to be
+    /// written. Exactly what the deck does.
+    private var lit: String? { entry.detailOpen ? (entry.pending ?? entry.current) : entry.current }
 
-            if entry.signedIn {
-                if fitsOneRow {
-                    HStack(spacing: 6) {
-                        ForEach(places) { place in
-                            PlaceButton(place: place, selected: place.id == entry.current)
+    var body: some View {
+        if entry.signedIn {
+            GeometryReader { geo in
+                let gap: CGFloat = 6
+                let columns: CGFloat = fitsOneRow ? 5 : 3
+                let side = (geo.size.width - gap * (columns - 1)) / columns
+
+                VStack(spacing: gap) {
+                    if fitsOneRow {
+                        HStack(spacing: gap) {
+                            ForEach(places) { button($0, side) }
+                        }
+                        DetailRow(entry: entry, side: side)
+                    } else {
+                        HStack(spacing: gap) {
+                            ForEach(dayPlaces) { button($0, side) }
+                        }
+                        HStack(spacing: gap) {
+                            ForEach(sleepPlaces) { button($0, side) }
+                            Spacer(minLength: 0)
                         }
                     }
-                } else {
-                    VStack(spacing: 6) {
-                        HStack(spacing: 6) {
-                            ForEach(dayPlaces) { place in
-                                PlaceButton(place: place, selected: place.id == entry.current)
-                            }
-                        }
-                        HStack(spacing: 6) {
-                            ForEach(sleepPlaces) { place in
-                                PlaceButton(place: place, selected: place.id == entry.current)
-                            }
-                        }
-                    }
+                    Spacer(minLength: 0)
                 }
-            } else {
-                Text("Open pupluv to sign in")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+        } else {
+            Text("Open pupluv to sign in")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 
-    private var caption: String {
-        guard entry.signedIn else { return "pupluv" }
-        guard let current = entry.current else { return "apart" }
-        return places.first { $0.id == current }?.label ?? "pupluv"
+    private func button(_ place: Place, _ side: CGFloat) -> some View {
+        PlaceButton(
+            place: place,
+            side: side,
+            selected: place.id == lit,
+            fill: blend(entry.dogs)
+        )
     }
 }
 
 struct PupluvPlaceWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "PupluvPlaceWidget", provider: PlaceProvider()) { entry in
-            if #available(iOS 17.0, *) {
-                PupluvWidgetView(entry: entry)
-                    .containerBackground(.fill.tertiary, for: .widget)
-            } else {
-                PupluvWidgetView(entry: entry).padding()
-            }
+            PupluvWidgetView(entry: entry)
+                .containerBackground(.fill.tertiary, for: .widget)
         }
         .configurationDisplayName("Where the dogs are")
-        .description("Move both dogs between the pen, outside and inside.")
+        .description("Move both dogs between the pen, outside, inside, the crate and our bed.")
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }

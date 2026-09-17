@@ -20,25 +20,23 @@ const AT = {
   bed: 'in our bed',
 } as const
 
-/** Entries logged together share a timestamp and every other field. */
+/**
+ * Entries logged together share a timestamp and every other field. A potty
+ * logged with a move shares the instant and the place, and keys the same: they
+ * were one entry, and the move is how the potty got its location. Two rows a
+ * pixel apart saying nearly the same thing is not what happened.
+ */
 function signature(event: PupEvent): string {
-  const parts = [event.occurredAt, event.type, event.note ?? '']
   switch (event.type) {
     case 'location':
-      parts.push(event.location)
-      break
     case 'potty':
-      parts.push(event.location, event.pottyKind)
-      break
+      return `${event.occurredAt}|place|${event.location}`
     case 'meal':
     case 'water':
-      parts.push(String(event.amount))
-      break
+      return `${event.occurredAt}|${event.type}|${event.amount}`
     case 'sleep':
-      parts.push(event.endedAt ?? '')
-      break
+      return `${event.occurredAt}|sleep|${event.endedAt ?? ''}`
   }
-  return parts.join('|')
 }
 
 function describe(event: PupEvent): string {
@@ -101,8 +99,13 @@ export function Timeline({ dogs, events }: { dogs: Dog[]; events: PupEvent[] }) 
   const [editing, setEditing] = useState<string | null>(null)
   const [draft, setDraft] = useState('')
 
-  const byId = new Map(dogs.map((dog) => [dog.id, dog]))
   const days = byDay(events)
+
+  // With nothing but moves on screen there is no potty column to line up, and
+  // reserving one strands the controls out at the right edge.
+  const anyPotty = days.some((day) =>
+    day.entries.some((entry) => entry.events.some((event) => event.type === 'potty')),
+  )
 
   function open(key: string, note: string | null) {
     setEditing(key)
@@ -138,12 +141,16 @@ export function Timeline({ dogs, events }: { dogs: Dog[]; events: PupEvent[] }) 
 
           <ol className="mt-2 border-l border-line pl-4">
             {day.entries.map(({ key, events: group }) => {
-              const first = group[0]!
-              const accident = isAccident(first)
-              const who = group.map((event) => byId.get(event.dogId)).filter(Boolean) as Dog[]
-              const label = `${who.map((dog) => dog.name).join(' and ')}: ${describe(first)}`
+              // A move logged with a potty is in this group too; the potty is
+              // the one that describes it.
+              const lead = group.find((event) => event.type === 'potty') ?? group[0]!
+              const accident = isAccident(lead)
+              // Ordered by the dog list, not by event order — so a pair always
+              // reads the same way round, and the same way as the deck.
+              const who = dogs.filter((dog) => group.some((event) => event.dogId === dog.id))
+              const label = `${who.map((dog) => dog.name).join(' and ')}: ${describe(lead)}`
               const place =
-                first.type === 'location' || first.type === 'potty' ? first.location : null
+                lead.type === 'location' || lead.type === 'potty' ? lead.location : null
 
               return (
                 <li key={key} className="relative py-2">
@@ -158,49 +165,64 @@ export function Timeline({ dogs, events }: { dogs: Dog[]; events: PupEvent[] }) 
                   <div className="flex items-baseline gap-2">
                     <time
                       className="w-[4.5rem] shrink-0 whitespace-nowrap text-sm text-ink-faint"
-                      dateTime={first.occurredAt}
+                      dateTime={lead.occurredAt}
                     >
-                      {clockLabel(first.occurredAt)}
+                      {clockLabel(lead.occurredAt)}
                     </time>
                     <span
-                      className="w-14 shrink-0 leading-none"
+                      className="flex w-[3.1875rem] shrink-0 gap-1 leading-none"
                       style={{ fontSize: DOG_GLYPH_PX }}
                       role="img"
                       aria-label={who.map((dog) => dog.name).join(' and ')}
                     >
-                      {who.map((dog) => dog.emoji).join('')}
+                      {who.map((dog) => (
+                        <span key={dog.id}>{dog.emoji}</span>
+                      ))}
                     </span>
 
-                    <span className="flex min-w-0 flex-1 items-center gap-1.5 text-sm text-ink">
+                    <span
+                      // Air on both sides in one declaration, so the two can never
+                      // drift apart the way a dog-column width and a control
+                      // margin would. Set to match the gap the time leaves before
+                      // the dogs.
+                      className={`mx-2.5 flex min-w-0 items-center gap-1.5 text-sm text-ink ${
+                        anyPotty ? 'flex-1' : ''
+                      }`}
+                    >
                       {place ? <PlaceGlyph location={place} /> : null}
-                      {first.type === 'potty' ? (
+                      {lead.type === 'potty' ? (
                         <Glyph
-                          text={POTTY_GLYPHS[first.pottyKind]}
-                          label={POTTY_LABELS[first.pottyKind]}
+                          text={POTTY_GLYPHS[lead.pottyKind]}
+                          label={POTTY_LABELS[lead.pottyKind]}
                         />
-                      ) : first.type !== 'location' ? (
-                        <span className="truncate">{describe(first)}</span>
+                      ) : lead.type !== 'location' ? (
+                        <span className="truncate">{describe(lead)}</span>
                       ) : null}
                     </span>
 
-                    <button
-                      type="button"
-                      onClick={() => open(key, first.note)}
-                      aria-label={`${first.note ? 'Edit' : 'Add'} note for ${label}`}
-                      title={first.note ? 'Edit note' : 'Add note'}
-                      className="press grid size-7 shrink-0 place-items-center rounded-full text-ink-faint hover:bg-sunk hover:text-ink"
-                    >
-                      <Pencil size={13} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => group.forEach((event) => void undo(event.id))}
-                      aria-label={`Remove: ${label}`}
-                      title="Remove"
-                      className="press grid size-7 shrink-0 place-items-center rounded-full text-ink-faint hover:bg-sunk hover:text-ink"
-                    >
-                      <X size={14} />
-                    </button>
+                    {/* The pair sits as close as the two dogs do. Only the facing
+                        edges are trimmed — the outer padding keeps both tap
+                        targets full height and near full width. */}
+                    <span className="flex shrink-0 items-center">
+                      <button
+                        type="button"
+                        onClick={() => open(key, lead.note)}
+                        aria-label={`${lead.note ? 'Edit' : 'Add'} note for ${label}`}
+                        title={lead.note ? 'Edit note' : 'Add note'}
+                        className="press grid h-7 place-items-center pl-2 pr-[3px] text-ink-faint hover:text-ink"
+                      >
+                        <Pencil size={13} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => group.forEach((event) => void undo(event.id))}
+                        aria-label={`Remove: ${label}`}
+                        title="Remove"
+                        className="press grid h-7 place-items-center pl-px pr-2 text-ink-faint hover:text-ink"
+                      >
+                        <X size={14} />
+                      </button>
+                    </span>
                   </div>
 
                   {editing === key ? (
@@ -218,8 +240,8 @@ export function Timeline({ dogs, events }: { dogs: Dog[]; events: PupEvent[] }) 
                       aria-label={`Note for ${label}`}
                       className="mt-1.5 ml-20 w-[calc(100%-5rem)] resize-none rounded-xl border border-line bg-surface px-2 py-1.5 text-sm outline-none placeholder:text-ink-faint focus-visible:border-ink"
                     />
-                  ) : first.note ? (
-                    <p className="ml-20 mt-0.5 text-xs leading-snug text-ink-muted">{first.note}</p>
+                  ) : lead.note ? (
+                    <p className="ml-20 mt-0.5 text-xs leading-snug text-ink-muted">{lead.note}</p>
                   ) : null}
                 </li>
               )

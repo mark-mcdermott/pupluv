@@ -3,7 +3,8 @@ import Foundation
 
 /// The whole point of the widget: one tap moves every dog, without opening the
 /// app. Tapping the place they are already in is a no-op, same as in the deck.
-@available(iOS 17.0, *)
+/// With the detail row open it only marks the place, and nothing is written
+/// until send — again, same as the deck.
 struct LogPlaceIntent: AppIntent {
     static var title: LocalizedStringResource = "Log where the dogs are"
     static var isDiscoverable = true
@@ -18,6 +19,12 @@ struct LogPlaceIntent: AppIntent {
     }
 
     func perform() async throws -> some IntentResult {
+        guard !PupluvShared.detailOpen else {
+            PupluvShared.pendingPlace = place
+            WidgetRefresh.reload()
+            return .result()
+        }
+
         let dogs = PupluvShared.dogs
         let moving = dogs.filter { PupluvShared.placements[$0.id] != place }
         guard !moving.isEmpty else { return .result() }

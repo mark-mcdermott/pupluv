@@ -26,7 +26,12 @@ public class SharedStorePlugin: CAPPlugin, CAPBridgedPlugin {
                     let name = entry["name"] as? String,
                     let emoji = entry["emoji"] as? String
                 else { return nil }
-                return PupluvShared.Dog(id: id, name: name, emoji: emoji)
+                return PupluvShared.Dog(
+                    id: id,
+                    name: name,
+                    emoji: emoji,
+                    accent: entry["accent"] as? String
+                )
             }
         }
 

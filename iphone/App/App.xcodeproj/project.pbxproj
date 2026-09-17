@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		00E292B0AF0CCD882EAFE18A /* WidgetRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FB1FFA2D6A736C65FF5812B /* WidgetRefresh.swift */; };
+		260F3E2EEC968FB5349767B7 /* DetailIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF39797EFFF869DD68775450 /* DetailIntents.swift */; };
 		298B345A132D27468EC06824 /* LogPlaceIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1910E6386C2C2CBBE791148 /* LogPlaceIntent.swift */; };
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
 		3C7334C841A77DC6D02E8EC9 /* PupluvWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = ADA4974F11A44719CC088157 /* PupluvWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -75,6 +76,7 @@
 		ADA4974F11A44719CC088157 /* PupluvWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PupluvWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		B1910E6386C2C2CBBE791148 /* LogPlaceIntent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LogPlaceIntent.swift; sourceTree = "<group>"; };
 		D00968F77D8F6237B70A59AA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		EF39797EFFF869DD68775450 /* DetailIntents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DetailIntents.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -149,6 +151,7 @@
 			children = (
 				B1910E6386C2C2CBBE791148 /* LogPlaceIntent.swift */,
 				29E21A5769CE24A9DEFF1AD5 /* PupluvWidget.swift */,
+				EF39797EFFF869DD68775450 /* DetailIntents.swift */,
 			);
 			name = Widget;
 			path = Widget;
@@ -300,6 +303,7 @@
 				7BD46F2928F13AF914AEF03F /* PupluvAPI.swift in Sources */,
 				5E523D0149A84140080AC01E /* PupluvShared.swift in Sources */,
 				00E292B0AF0CCD882EAFE18A /* WidgetRefresh.swift in Sources */,
+				260F3E2EEC968FB5349767B7 /* DetailIntents.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
