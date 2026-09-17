@@ -128,6 +128,18 @@
   .press:active {
     transform: scale(0.96);
   }
+
+  /* Fills only while it is held. The send button is live the moment the row
+     opens, so a standing fill would read as something already chosen. The fill
+     arrives as --fill rather than an inline background, which a rule here could
+     not override. */
+  .fill-on-press {
+    background: transparent;
+  }
+
+  .fill-on-press:active {
+    background: var(--fill);
+  }
 }
 /*
  ---break---

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -83,13 +83,17 @@ export function Deck({ dogs, events }: Props) {
   const spread = `linear-gradient(135deg, ${accents.join(', ')})`
 
   // These buttons hold emoji, not text, so their background carries no contrast
-  // requirement and can be softened.
+  // requirement. The places are big enough to take the colour softened; a wash
+  // that size would swamp the row, and the same wash on a 32px circle would
+  // disappear — so the detail row keeps the accent at full strength.
   const soften = (colour: string) => `color-mix(in oklab, ${colour} 50%, white)`
-  const blend = (list: Dog[]) =>
-    list.length > 1
-      ? `linear-gradient(135deg, ${list.map((dog) => soften(accentColor(dog.accent))).join(', ')})`
-      : soften(accentColor(list[0]!.accent))
-  const fill = blend(open && targets.length ? targets : dogs)
+  const across = (colours: string[]) =>
+    colours.length > 1 ? `linear-gradient(135deg, ${colours.join(', ')})` : colours[0]!
+
+  const chosen = open && targets.length ? targets : dogs
+  const inUse = chosen.map((dog) => accentColor(dog.accent))
+  const fill = across(inUse.map(soften))
+  const detailFill = across(inUse)
 
   function reset() {
     setPendingLocation(null)
@@ -154,7 +158,12 @@ export function Deck({ dogs, events }: Props) {
   const canSubmit = targets.length > 0 && (Boolean(pottyKind) || locationChanges)
 
   async function submit() {
-    if (!canSubmit) return
+    // Live whenever the row is open, so with nothing picked it is simply the way
+    // back out.
+    if (!canSubmit) {
+      reset()
+      return
+    }
     tapped()
 
     const text = note.trim() || null
@@ -240,7 +249,7 @@ export function Deck({ dogs, events }: Props) {
                       aria-label={dog.name}
                       onClick={() => toggleDog(dog.id)}
                       className="press grid size-8 place-items-center rounded-2xl border"
-                      style={tile(on, soften(accentColor(dog.accent)))}
+                      style={tile(on, accentColor(dog.accent))}
                     >
                       <Glyph text={dog.emoji} label={dog.name} size={DETAIL_GLYPH_PX} />
                     </button>
@@ -259,7 +268,7 @@ export function Deck({ dogs, events }: Props) {
                       aria-label={POTTY_LABELS[pick]}
                       onClick={() => togglePick(pick)}
                       className="press grid size-8 place-items-center rounded-2xl border"
-                      style={tile(on, fill)}
+                      style={tile(on, detailFill)}
                     >
                       <Glyph
                         text={POTTY_GLYPHS[pick]}
@@ -282,10 +291,9 @@ export function Deck({ dogs, events }: Props) {
               <button
                 type="button"
                 onClick={() => void submit()}
-                disabled={!canSubmit}
                 aria-label="Log it"
-                className="press grid size-8 place-items-center rounded-2xl border disabled:opacity-40"
-                style={tile(canSubmit, fill)}
+                className="press fill-on-press grid size-8 place-items-center rounded-2xl border border-line"
+                style={{ '--fill': detailFill } as CSSProperties}
               >
                 <Glyph text={SEND} label="Log it" size={DETAIL_GLYPH_PX} />
               </button>
