@@ -21,6 +21,13 @@ function todayAt(hour: number, minute = 30): string {
   return date.toISOString()
 }
 
+function daysBack(days: number, hour = 9): string {
+  const date = new Date()
+  date.setDate(date.getDate() - days)
+  date.setHours(hour, 15, 0, 0)
+  return date.toISOString()
+}
+
 let uid = 0
 function potty(dogId: string, occurredAt: string, note: string | null = null): PupEvent {
   return eventSchema.parse({
@@ -96,5 +103,54 @@ describe('Timeline', () => {
 
     expect(annotate).not.toHaveBeenCalled()
     expect(screen.getByText('keep me')).toBeInTheDocument()
+  })
+})
+
+describe('Timeline days', () => {
+  it('shows entries from before today, not just today', () => {
+    render(
+      <Timeline
+        dogs={DOGS}
+        events={[potty(DOG_A, todayAt(9)), potty(DOG_A, daysBack(1)), potty(DOG_A, daysBack(6))]}
+      />,
+    )
+    expect(screen.getAllByRole('listitem')).toHaveLength(3)
+  })
+
+  it('names today and yesterday, and dates anything older', () => {
+    render(
+      <Timeline
+        dogs={DOGS}
+        events={[potty(DOG_A, todayAt(9)), potty(DOG_A, daysBack(1)), potty(DOG_A, daysBack(6))]}
+      />,
+    )
+    const headings = screen.getAllByRole('heading').map((h) => h.textContent)
+    expect(headings[0]).toBe('Today')
+    expect(headings[1]).toBe('Yesterday')
+    // e.g. "Fri 9/11" — weekday then a numeric date, no comma.
+    expect(headings[2]).toMatch(/^[A-Za-z]{3,4} \d{1,2}\/\d{1,2}$/)
+  })
+
+  it('keeps the newest day first', () => {
+    render(<Timeline dogs={DOGS} events={[potty(DOG_A, daysBack(3)), potty(DOG_A, todayAt(9))]} />)
+    expect(screen.getAllByRole('heading')[0]).toHaveTextContent('Today')
+  })
+
+  it('files entries under the day they happened on', () => {
+    render(<Timeline dogs={DOGS} events={[potty(DOG_A, todayAt(9)), potty(DOG_A, daysBack(1))]} />)
+    expect(screen.getAllByRole('heading')).toHaveLength(2)
+    expect(screen.getAllByRole('list')).toHaveLength(2)
+  })
+
+  it('still collapses a both-dogs entry within its day', () => {
+    const at = daysBack(2)
+    render(<Timeline dogs={DOGS} events={[potty(DOG_A, at), potty(DOG_B, at)]} />)
+    expect(screen.getAllByRole('listitem')).toHaveLength(1)
+    expect(screen.getByRole('img', { name: 'Oreo and Ramen' })).toHaveTextContent('🍪🍜')
+  })
+
+  it('says nothing is logged when there is nothing at all', () => {
+    render(<Timeline dogs={DOGS} events={[]} />)
+    expect(screen.getByText(/Nothing logged yet today/)).toBeInTheDocument()
   })
 })
