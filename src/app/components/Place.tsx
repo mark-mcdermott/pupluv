@@ -6,6 +6,8 @@ const GLYPHS: Record<Location, string> = {
   pen: '🛖',
   outside: '🌳',
   inside: '🏠',
+  crate: '📦',
+  bed: '🛏️',
 }
 
 /** The dog emoji in a timeline row. */

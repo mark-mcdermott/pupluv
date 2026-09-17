@@ -29,7 +29,13 @@ type Props = {
 }
 
 const POTTY_PAST = { pee: 'Peed', poo: 'Pooed', both: 'Peed and pooed' } as const
-const PLACE_PAST = { pen: 'in the pen', outside: 'outside', inside: 'inside' } as const
+const PLACE_PAST = {
+  pen: 'in the pen',
+  outside: 'outside',
+  inside: 'inside',
+  crate: 'in the crate',
+  bed: 'in our bed',
+} as const
 
 function listNames(dogs: Dog[]): string {
   if (dogs.length <= 1) return dogs[0]?.name ?? ''
@@ -37,7 +43,7 @@ function listNames(dogs: Dog[]): string {
 }
 
 export function Deck({ dogs, events, selectedId, onSelect }: Props) {
-  // Closed, this deck is three buttons: move them, for both dogs, right now.
+  // Closed, this deck is five place buttons: move them, for both dogs, right now.
   // Open, it becomes a form and nothing is written until Log it.
   const [open, setOpen] = useState(false)
   const [pendingLocation, setPendingLocation] = useState<Location | null>(null)
@@ -171,7 +177,9 @@ export function Deck({ dogs, events, selectedId, onSelect }: Props) {
     >
       <div className="mx-auto w-full max-w-sm px-4 pb-5 pt-3">
       <div
-        className="grid grid-cols-3 gap-2"
+        // Five places across: at 375px that is ~62px each, comfortably past the
+        // 44px a thumb needs.
+        className="grid grid-cols-5 gap-1.5"
         role={open ? 'radiogroup' : undefined}
         aria-label={open ? 'Where' : undefined}
       >
@@ -192,7 +200,7 @@ export function Deck({ dogs, events, selectedId, onSelect }: Props) {
                 background: on ? placeFill : 'transparent',
               }}
             >
-              <PlaceGlyph location={option} size={26} />
+              <PlaceGlyph location={option} size={24} />
             </button>
           )
         })}

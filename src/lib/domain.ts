@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const LOCATIONS = ['pen', 'outside', 'inside'] as const
+export const LOCATIONS = ['pen', 'outside', 'inside', 'crate', 'bed'] as const
 export const POTTY_KINDS = ['pee', 'poo', 'both'] as const
 export const EVENT_TYPES = ['location', 'potty', 'meal', 'water', 'sleep'] as const
 
@@ -12,6 +12,8 @@ export const LOCATION_LABELS: Record<Location, string> = {
   pen: 'Pen',
   outside: 'Outside',
   inside: 'Inside',
+  crate: 'Crate',
+  bed: 'Bed',
 }
 
 /** Reads as a sentence on the dog card: "In the pen for 2h". */
@@ -19,6 +21,8 @@ export const LOCATION_PHRASES: Record<Location, string> = {
   pen: 'In the pen',
   outside: 'Outside',
   inside: 'Inside',
+  crate: 'In the crate',
+  bed: 'In our bed',
 }
 
 // Not "Both" — the dog selector directly above owns that word, and two

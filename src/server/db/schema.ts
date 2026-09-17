@@ -10,8 +10,12 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 
-/** Where a dog can be. An elimination anywhere but `outside` is an accident. */
-export const location = pgEnum('location', ['pen', 'outside', 'inside'])
+/**
+ * Where a dog can be. An elimination anywhere but `outside` is an accident,
+ * which still holds for the crate and the bed. Appended rather than reordered:
+ * the existing three keep their place in the deck.
+ */
+export const location = pgEnum('location', ['pen', 'outside', 'inside', 'crate', 'bed'])
 
 export const eventType = pgEnum('event_type', [
   'location',

@@ -3,7 +3,8 @@
 Tracking where two dogs are and how house-training is going.
 Live at **[www.pupluv.online](https://www.pupluv.online)**.
 
-One tap says the dogs moved between the pen, the yard and the house. An accident
+One tap says the dogs moved between the pen, the yard, the house, the crate and
+our bed. An accident
 is never recorded as such — every pee and poo is logged with a place, and an
 accident is simply one that did not happen outside. Logging the successes too is
 what turns the weekly tally into a training signal rather than a list of failures.
@@ -100,7 +101,8 @@ when a dog is renamed.
 launches. The phone needs Developer Mode on (Settings → Privacy & Security) and
 to have trusted this Mac; an untrusted phone is paired automatically.
 
-The home-screen widget is three place buttons showing where the dogs are now.
+The home-screen widget carries the same place buttons, showing where the dogs
+are now.
 It runs in its own process and cannot see the web view's storage, so the app
 publishes what it needs into an App Group after every sync. A tap the widget
 cannot deliver is queued there and adopted by the app on its next sync.
