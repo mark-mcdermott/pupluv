@@ -27,7 +27,7 @@ pnpm dev                     # pages, the React island and /api/* on one server
 | `pnpm db:seed [a] [b]` | create the two dogs |
 | `pnpm pin:hash <pin>` | print a `PIN_HASH` for `.env.local` and Vercel |
 | `pnpm ios:device` | build, sign and install on a connected iPhone |
-| `pnpm icons` | regenerate the app icons from `public/favicon.svg` |
+| `pnpm icons` | regenerate every icon from `assets/logo.png` |
 
 ## Backups
 
