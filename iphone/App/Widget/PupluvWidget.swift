@@ -267,7 +267,12 @@ struct PupluvWidgetView: View {
                         HStack(spacing: gap) {
                             ForEach(places) { button($0, side) }
                         }
+                        // Two and a half times the gap running between the
+                        // places. The web carries a note field under this row
+                        // and the widget does not, so without the extra air the
+                        // two rows crowd the top and leave the rest empty.
                         DetailRow(entry: entry, side: side)
+                            .padding(.top, gap * 1.5)
                     } else {
                         HStack(spacing: gap) {
                             ForEach(dayPlaces) { button($0, side) }
