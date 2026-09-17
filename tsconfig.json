@@ -7,6 +7,7 @@
   "exclude": [
     "dist",
     "iphone",
+    "desktop",
     "android",
     ".vercel",
     "node_modules"
