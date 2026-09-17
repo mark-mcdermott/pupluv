@@ -31,6 +31,11 @@
   --color-moss: #3d6b32;
   --color-on-accent: #ffffff;
 
+  /* The one fill behind the detail row's circles. Deep enough that the white in
+     the bowl and the drop reads against it, which is why — alone among these —
+     it does not flip with the theme: the dark accents are far too light to sit
+     behind a white glyph. */
+  --color-tile: #0f5350;
 }
 
 @layer base {

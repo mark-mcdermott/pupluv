@@ -50,19 +50,14 @@ private func placeTint(_ accent: String?) -> Color {
     }
 }
 
-/// Full strength, for the detail row — the same wash on a half-size circle
-/// simply disappears.
-private func detailTint(_ accent: String?) -> Color {
-    switch accent {
-    case "amber": return Color(red: 0.89, green: 0.63, blue: 0.33)
-    case "teal": return Color(red: 0.27, green: 0.71, blue: 0.68)
-    default: return Color.primary.opacity(0.45)
-    }
-}
+/// The one fill behind the detail row's circles, mirroring --color-tile. Deep
+/// enough that the white in the bowl and the drop reads against it, and the same
+/// for every button so that being on looks the same everywhere in the row.
+private let tileFill = AnyShapeStyle(Color(red: 0.059, green: 0.325, blue: 0.314))
 
-private func blend(_ dogs: [PupluvShared.Dog], _ tint: (String?) -> Color) -> AnyShapeStyle {
-    let colours = dogs.map { tint($0.accent) }
-    guard colours.count > 1 else { return AnyShapeStyle(colours.first ?? tint(nil)) }
+private func blend(_ dogs: [PupluvShared.Dog]) -> AnyShapeStyle {
+    let colours = dogs.map { placeTint($0.accent) }
+    guard colours.count > 1 else { return AnyShapeStyle(colours.first ?? placeTint(nil)) }
     return AnyShapeStyle(
         LinearGradient(colors: colours, startPoint: .topLeading, endPoint: .bottomTrailing)
     )
@@ -180,7 +175,7 @@ private struct DetailRow: View {
                                 side: small,
                                 radius: radius,
                                 on: !entry.skipped.contains(dog.id),
-                                fill: AnyShapeStyle(detailTint(dog.accent))
+                                fill: tileFill
                             )
                         }
                         .buttonStyle(.plain)
@@ -196,7 +191,7 @@ private struct DetailRow: View {
                                 side: small,
                                 radius: radius,
                                 on: entry.picked.contains(pick.id),
-                                fill: blend(entry.dogs, detailTint)
+                                fill: tileFill
                             )
                         }
                         .buttonStyle(.plain)
@@ -215,7 +210,7 @@ private struct DetailRow: View {
                         side: small,
                         radius: radius,
                         on: false,
-                        fill: blend(entry.dogs, detailTint)
+                        fill: tileFill
                     )
                 }
                 .buttonStyle(.plain)
@@ -288,7 +283,7 @@ struct PupluvWidgetView: View {
             place: place,
             side: side,
             selected: place.id == lit,
-            fill: blend(entry.dogs, placeTint)
+            fill: blend(entry.dogs)
         )
     }
 }

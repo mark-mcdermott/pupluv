@@ -30,6 +30,9 @@ type PottyPick = (typeof PICKS)[number]
 /** No paper plane exists in the emoji set; the outbox tray is the send glyph. */
 const SEND = '📤'
 
+/** One fill for every button in the detail row — see --color-tile. */
+const TILE_FILL = 'var(--color-tile)'
+
 /** The places, and the detail row beneath them at half the height and half the glyph. */
 const MAIN_GLYPH_PX = 24
 const DETAIL_GLYPH_PX = MAIN_GLYPH_PX / 2
@@ -82,18 +85,16 @@ export function Deck({ dogs, events }: Props) {
   const accents = dogs.map((dog) => accentColor(dog.accent))
   const spread = `linear-gradient(135deg, ${accents.join(', ')})`
 
-  // These buttons hold emoji, not text, so their background carries no contrast
-  // requirement. The places are big enough to take the colour softened; a wash
-  // that size would swamp the row, and the same wash on a 32px circle would
-  // disappear — so the detail row keeps the accent at full strength.
+  // The places hold emoji, not text, so their background carries no contrast
+  // requirement and can be softened. The detail row cannot: at a quarter the
+  // area, behind glyphs that are half white, it takes one deep fill instead —
+  // and one for every button, so that being on looks the same everywhere in the
+  // row.
   const soften = (colour: string) => `color-mix(in oklab, ${colour} 50%, white)`
-  const across = (colours: string[]) =>
-    colours.length > 1 ? `linear-gradient(135deg, ${colours.join(', ')})` : colours[0]!
-
   const chosen = open && targets.length ? targets : dogs
-  const inUse = chosen.map((dog) => accentColor(dog.accent))
-  const fill = across(inUse.map(soften))
-  const detailFill = across(inUse)
+  const softened = chosen.map((dog) => soften(accentColor(dog.accent)))
+  const fill =
+    softened.length > 1 ? `linear-gradient(135deg, ${softened.join(', ')})` : softened[0]!
 
   function reset() {
     setPendingLocation(null)
@@ -249,7 +250,7 @@ export function Deck({ dogs, events }: Props) {
                       aria-label={dog.name}
                       onClick={() => toggleDog(dog.id)}
                       className="press grid size-8 place-items-center rounded-2xl border"
-                      style={tile(on, accentColor(dog.accent))}
+                      style={tile(on, TILE_FILL)}
                     >
                       <Glyph text={dog.emoji} label={dog.name} size={DETAIL_GLYPH_PX} />
                     </button>
@@ -268,7 +269,7 @@ export function Deck({ dogs, events }: Props) {
                       aria-label={POTTY_LABELS[pick]}
                       onClick={() => togglePick(pick)}
                       className="press grid size-8 place-items-center rounded-2xl border"
-                      style={tile(on, detailFill)}
+                      style={tile(on, TILE_FILL)}
                     >
                       <Glyph
                         text={POTTY_GLYPHS[pick]}
@@ -293,7 +294,7 @@ export function Deck({ dogs, events }: Props) {
                 onClick={() => void submit()}
                 aria-label="Log it"
                 className="press fill-on-press grid size-8 place-items-center rounded-2xl border border-line"
-                style={{ '--fill': detailFill } as CSSProperties}
+                style={{ '--fill': TILE_FILL } as CSSProperties}
               >
                 <Glyph text={SEND} label="Log it" size={DETAIL_GLYPH_PX} />
               </button>
