@@ -5,8 +5,20 @@ import { annotate, undo } from '../lib/sync'
 import { clockLabel, dayKey, dayLabel } from '../lib/time'
 import { DOG_GLYPH_PX, Glyph, PlaceGlyph } from './Place'
 
-const MOVED = { pen: 'Moved to the pen', outside: 'Moved outside', inside: 'Moved inside' } as const
-const AT = { pen: 'in the pen', outside: 'outside', inside: 'inside' } as const
+const MOVED = {
+  pen: 'Moved to the pen',
+  outside: 'Moved outside',
+  inside: 'Moved inside',
+  crate: 'Crated',
+  bed: 'Onto our bed',
+} as const
+const AT = {
+  pen: 'in the pen',
+  outside: 'outside',
+  inside: 'inside',
+  crate: 'in the crate',
+  bed: 'in our bed',
+} as const
 
 /** Entries logged together share a timestamp and every other field. */
 function signature(event: PupEvent): string {

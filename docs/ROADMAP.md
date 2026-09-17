@@ -36,6 +36,8 @@ the deployed origin and `pnpm cap:sync`.
 Airplane Mode on still works and reconciles when it comes back.
 
 ### 2. Meals, water and sleep
+Sleep is already half-answered: `crate` and `bed` are places, so time asleep can
+be derived from location events rather than logged separately.
 The schema, the Zod union and the timeline already carry these — this is UI only,
 no migration. A second deck tab, or a long-press on the dog card.
 **Done when** the three types can be logged and appear in the timeline, and the
