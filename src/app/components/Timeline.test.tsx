@@ -10,6 +10,7 @@ vi.mock('../lib/sync', () => ({ annotate, undo }))
 const DOG_A = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 const DOG_B = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
 
+// Order matters: the row follows this list, not the order events arrive in.
 const DOGS: Dog[] = [
   { id: DOG_A, name: 'Oreo', accent: 'amber', emoji: '🍪' },
   { id: DOG_B, name: 'Ramen', accent: 'teal', emoji: '🍜' },
@@ -41,6 +42,16 @@ function potty(dogId: string, occurredAt: string, note: string | null = null): P
   })
 }
 
+function moved(dogId: string, occurredAt: string, location = 'pen'): PupEvent {
+  return eventSchema.parse({
+    id: `88888888-8888-4888-8888-${String(++uid).padStart(12, '0')}`,
+    dogId,
+    type: 'location',
+    occurredAt,
+    location,
+  })
+}
+
 beforeEach(() => {
   annotate.mockReset()
   undo.mockReset()
@@ -51,6 +62,27 @@ describe('Timeline', () => {
     render(<Timeline dogs={DOGS} events={[potty(DOG_A, todayAt(9))]} />)
     expect(screen.getByRole('img', { name: 'Oreo' })).toHaveTextContent('🍪')
     expect(screen.queryByText('Oreo')).not.toBeInTheDocument()
+  })
+
+  it('collapses a move logged with its potty into the one entry it was', () => {
+    const at = todayAt(9)
+    render(<Timeline dogs={DOGS} events={[potty(DOG_A, at), moved(DOG_A, at)]} />)
+
+    expect(screen.getAllByRole('listitem')).toHaveLength(1)
+    expect(screen.getByRole('img', { name: 'Oreo' })).toBeInTheDocument()
+  })
+
+  it('removes the move along with the potty it was logged with', async () => {
+    const at = todayAt(9)
+    render(<Timeline dogs={DOGS} events={[potty(DOG_A, at), moved(DOG_A, at)]} />)
+    await userEvent.click(screen.getByRole('button', { name: /^Remove:/ }))
+
+    expect(undo).toHaveBeenCalledTimes(2)
+  })
+
+  it('keeps a move logged on its own as its own entry', () => {
+    render(<Timeline dogs={DOGS} events={[potty(DOG_A, todayAt(9)), moved(DOG_A, todayAt(10))]} />)
+    expect(screen.getAllByRole('listitem')).toHaveLength(2)
   })
 
   it('collapses one both-dogs entry into a single row carrying both emoji', () => {
@@ -152,5 +184,27 @@ describe('Timeline days', () => {
   it('says nothing is logged when there is nothing at all', () => {
     render(<Timeline dogs={DOGS} events={[]} />)
     expect(screen.getByText(/Nothing logged yet today/)).toBeInTheDocument()
+  })
+})
+
+describe('Timeline row layout', () => {
+  it('reads the dogs in list order however the events arrive', () => {
+    const at = todayAt(9)
+    // Ramen's event first; the row should still follow the dog list.
+    render(<Timeline dogs={DOGS} events={[potty(DOG_B, at), potty(DOG_A, at)]} />)
+    expect(screen.getByRole('img', { name: 'Oreo and Ramen' })).toHaveTextContent('🍪🍜')
+  })
+
+  it('keeps a pair the same way round on every row', () => {
+    const a = todayAt(9)
+    const b = todayAt(11)
+    render(
+      <Timeline
+        dogs={DOGS}
+        events={[potty(DOG_A, a), potty(DOG_B, a), potty(DOG_B, b), potty(DOG_A, b)]}
+      />,
+    )
+    const pairs = screen.getAllByRole('img', { name: 'Oreo and Ramen' }).map((n) => n.textContent)
+    expect(new Set(pairs).size).toBe(1)
   })
 })

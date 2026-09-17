@@ -16,7 +16,9 @@ export const GET: APIRoute = async ({ request }) => {
       emoji: schema.dogs.emoji,
     })
     .from(schema.dogs)
-    .orderBy(asc(schema.dogs.createdAt))
+    // id as a tiebreaker: two dogs seeded in one statement share a created_at,
+    // and ordering on that alone lets Postgres return them either way round.
+    .orderBy(asc(schema.dogs.createdAt), asc(schema.dogs.id))
   return Response.json({ dogs: rows })
 }
 

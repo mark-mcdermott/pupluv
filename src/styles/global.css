@@ -31,6 +31,11 @@
   --color-moss: #3d6b32;
   --color-on-accent: #ffffff;
 
+  /* The one fill behind the detail row's circles. Deep enough that the white in
+     the bowl and the drop reads against it, which is why — alone among these —
+     it does not flip with the theme: the dark accents are far too light to sit
+     behind a white glyph. */
+  --color-tile: #0f5350;
 }
 
 @layer base {
@@ -127,6 +132,30 @@
 
   .press:active {
     transform: scale(0.96);
+  }
+
+  /* The deck's buttons. Both fills arrive as custom properties rather than an
+     inline background, which a rule here could not override. */
+  .deck-tile {
+    background: transparent;
+  }
+
+  /* A trace of the fill, so hovering says what a tap would do. Guarded, because
+     a touch device leaves :hover stuck on the last thing tapped. */
+  @media (hover: hover) {
+    .deck-tile:hover {
+      background: var(--hint);
+    }
+  }
+
+  .deck-tile[data-on='true'] {
+    background: var(--fill);
+  }
+
+  /* Fills only while it is held. The send button is live the moment the row
+     opens, so a standing fill would read as something already chosen. */
+  .deck-tile.fill-on-press:active {
+    background: var(--fill);
   }
 }
 /*

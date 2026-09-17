@@ -7,12 +7,10 @@ import { Timeline } from './Timeline'
 type Props = {
   dogs: Dog[]
   events: PupEvent[]
-  selectedId: string
-  onSelect: (id: string) => void
 }
 
 /** The signed-in layout. Kept free of data loading so it can be rendered from tests. */
-export function Shell({ dogs, events, selectedId, onSelect }: Props) {
+export function Shell({ dogs, events }: Props) {
   return (
     // The deck sits outside the column so its background can run full width;
     // `max-w-sm` is repeated there to keep its buttons on the same grid.
@@ -31,7 +29,7 @@ export function Shell({ dogs, events, selectedId, onSelect }: Props) {
         </main>
       </div>
 
-      <Deck dogs={dogs} events={events} selectedId={selectedId} onSelect={onSelect} />
+      <Deck dogs={dogs} events={events} />
     </div>
   )
 }
