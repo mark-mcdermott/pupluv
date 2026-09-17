@@ -6,7 +6,7 @@
       "name": "Ramen",
       "accent": "teal",
       "emoji": "🍜",
-      "createdAt": "2026-09-16T17:26:37.560Z"
+      "createdAt": "2026-09-16T17:26:36.560Z"
     },
     {
       "id": "aaf65796-a7fa-4f1c-91cb-89dd6f4b2de5",
@@ -534,6 +534,34 @@
       "deletedAt": null,
       "createdAt": "2026-09-17T01:09:04.047Z",
       "updatedAt": "2026-09-17T01:09:04.047Z"
+    },
+    {
+      "id": "52d78400-249e-4052-9324-c720ea35dc87",
+      "dogId": "535f55a3-12b8-4b5c-b4c3-1a419430dac3",
+      "type": "potty",
+      "occurredAt": "2026-09-17T10:53:02.074Z",
+      "endedAt": null,
+      "location": "inside",
+      "pottyKind": "pee",
+      "amount": null,
+      "note": null,
+      "deletedAt": "2026-09-17T11:09:49.240Z",
+      "createdAt": "2026-09-17T10:53:02.529Z",
+      "updatedAt": "2026-09-17T11:09:49.659Z"
+    },
+    {
+      "id": "35fccc71-43f8-411e-b430-ce733d388142",
+      "dogId": "535f55a3-12b8-4b5c-b4c3-1a419430dac3",
+      "type": "location",
+      "occurredAt": "2026-09-17T10:53:02.082Z",
+      "endedAt": null,
+      "location": "inside",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": "2026-09-17T11:09:41.722Z",
+      "createdAt": "2026-09-17T10:53:19.833Z",
+      "updatedAt": "2026-09-17T11:09:42.029Z"
     }
   ]
 }
