@@ -312,10 +312,14 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
     // Full-bleed background and gradient rule; the controls stay on the same
     // column grid as the timeline above.
     <div
-      className="sticky bottom-0 z-10 border-t bg-surface shadow-[0_-12px_32px_-24px_rgba(0,0,0,0.45)]"
+      // A band of the layout now rather than something stuck over it: the
+      // timeline above scrolls inside its own box, so there is nothing to stick
+      // to and nothing to overlap.
+      className="shrink-0 border-t bg-surface shadow-[0_-12px_32px_-24px_rgba(0,0,0,0.45)]"
       style={{ borderTopWidth: 3, borderImage: `${spread} 1` }}
     >
-      <div className="mx-auto w-full max-w-sm px-4 pb-5 pt-3">
+      {/* The home indicator sits over the last row otherwise. */}
+      <div className="mx-auto w-full max-w-sm px-4 pt-3 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
         {editing ? (
           <input
             type="datetime-local"

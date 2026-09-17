@@ -17,29 +17,31 @@ export function Shell({ dogs, events }: Props) {
   const [editing, setEditing] = useState<PupEvent[] | null>(null)
 
   return (
-    // The deck sits outside the column so its background can run full width;
-    // `max-w-sm` is repeated there to keep its buttons on the same grid.
-    <div className="flex min-h-dvh flex-col">
-      <div className="mx-auto flex w-full max-w-sm flex-1 flex-col px-4">
-        <header className="flex items-center justify-between pb-1 pt-4">
+    // Three bands filling the viewport exactly: header, timeline, deck. Only the
+    // middle one scrolls, and `min-h-0` is what lets it — a flex child will not
+    // shrink below its content without it, and the box would grow instead of
+    // scrolling. The header and the deck run full width so their backgrounds do
+    // too; `max-w-sm` inside each keeps all three on one column.
+    <div className="flex h-full flex-col overflow-hidden">
+      <header className="shrink-0">
+        {/* The status bar sits over the wordmark otherwise — the web view
+            covers the whole screen. */}
+        <div className="mx-auto flex w-full max-w-sm items-center justify-between px-4 pb-1 pt-[calc(1rem+env(safe-area-inset-top))]">
           <h1 className="text-2xl font-extrabold tracking-tight">pupluv</h1>
           <div className="flex items-center gap-3">
             <SyncDot />
             <ThemeToggle />
           </div>
-        </header>
+        </div>
+      </header>
 
-        <main className="flex-1 pb-6">
+      <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        <div className="mx-auto w-full max-w-sm px-4 pb-6">
           <Timeline dogs={dogs} events={events} editing={editing} onEdit={setEditing} />
-        </main>
-      </div>
+        </div>
+      </main>
 
-      <Deck
-        dogs={dogs}
-        events={events}
-        editing={editing}
-        onDone={() => setEditing(null)}
-      />
+      <Deck dogs={dogs} events={events} editing={editing} onDone={() => setEditing(null)} />
     </div>
   )
 }
