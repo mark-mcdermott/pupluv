@@ -191,6 +191,17 @@ describe('Deck open', () => {
     expect(byDog).toEqual({ [DOG_A]: 'outside', [DOG_B]: 'inside' })
   })
 
+  it('gives the move and the potty the one instant they happened at', async () => {
+    setup(bothOutside)
+    await openDetails()
+    await userEvent.click(button('Pee'))
+    await userEvent.click(screen.getByRole('radio', { name: 'Inside' }))
+    await send()
+
+    const stamps = new Set(log.mock.calls.map(([event]) => event.occurredAt))
+    expect(stamps.size).toBe(1)
+  })
+
   it('records the move alongside the potty when the place changed', async () => {
     setup(bothOutside)
     await openDetails()

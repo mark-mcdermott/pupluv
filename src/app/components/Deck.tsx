@@ -33,6 +33,9 @@ const SEND = '📤'
 /** One fill for every button in the detail row — see --color-tile. */
 const TILE_FILL = 'var(--color-tile)'
 
+/** A trace of a colour: enough to preview a fill without standing in for it. */
+const trace = (colour: string) => `color-mix(in oklab, ${colour} 16%, transparent)`
+
 /** The places, and the detail row beneath them at half the height and half the glyph. */
 const MAIN_GLYPH_PX = 24
 const DETAIL_GLYPH_PX = MAIN_GLYPH_PX / 2
@@ -51,12 +54,17 @@ function listNames(dogs: Dog[]): string {
   return `${dogs.slice(0, -1).map((dog) => dog.name).join(', ')} and ${dogs.at(-1)!.name}`
 }
 
-/** The deck's one button shape: a bordered tile that fills in when it is on. */
-function tile(on: boolean, fill: string) {
+/**
+ * The deck's one button shape: a bordered tile that fills in when it is on, and
+ * shows a trace of the deck's gradient on hover when it is not. Both fills are
+ * handed to CSS as properties; `.deck-tile` decides which of them applies.
+ */
+function tile(on: boolean, fill: string, hint: string): CSSProperties {
   return {
     borderColor: on ? 'transparent' : 'var(--color-line)',
-    background: on ? fill : 'transparent',
-  }
+    '--fill': fill,
+    '--hint': hint,
+  } as CSSProperties
 }
 
 export function Deck({ dogs, events }: Props) {
@@ -91,10 +99,15 @@ export function Deck({ dogs, events }: Props) {
   // and one for every button, so that being on looks the same everywhere in the
   // row.
   const soften = (colour: string) => `color-mix(in oklab, ${colour} 50%, white)`
+  const across = (colours: string[]) =>
+    colours.length > 1 ? `linear-gradient(135deg, ${colours.join(', ')})` : colours[0]!
+
   const chosen = open && targets.length ? targets : dogs
   const softened = chosen.map((dog) => soften(accentColor(dog.accent)))
-  const fill =
-    softened.length > 1 ? `linear-gradient(135deg, ${softened.join(', ')})` : softened[0]!
+  const fill = across(softened)
+  // One hover trace for the whole deck, taken from the places' gradient — a
+  // trace of the detail row's own deep fill would barely show.
+  const hint = across(softened.map(trace))
 
   function reset() {
     setPendingLocation(null)
@@ -110,10 +123,19 @@ export function Deck({ dogs, events }: Props) {
     })
   }
 
-  async function moveTo(next: Location, who: Dog[], text: string | null) {
+  /**
+   * The instant is passed in rather than minted here: a move logged alongside a
+   * potty is one entry, and two timestamps milliseconds apart split it in two on
+   * the timeline.
+   */
+  async function moveTo(
+    next: Location,
+    who: Dog[],
+    text: string | null,
+    occurredAt: string,
+  ) {
     const moving = who.filter((dog) => where(dog) !== next)
     if (!moving.length) return []
-    const occurredAt = new Date().toISOString()
     const created = await Promise.all(
       moving.map((dog) =>
         log({ type: 'location', dogId: dog.id, occurredAt, location: next, note: text }),
@@ -133,7 +155,7 @@ export function Deck({ dogs, events }: Props) {
       return
     }
     tapped()
-    const moved = await moveTo(next, dogs, null)
+    const moved = await moveTo(next, dogs, null, new Date().toISOString())
     if (!moved.length) return
     announce(
       `${moved.map((entry) => entry.name).join(' and ')} · ${LOCATION_LABELS[next]}`,
@@ -188,7 +210,7 @@ export function Deck({ dogs, events }: Props) {
     }
 
     if (pendingLocation) {
-      const moved = await moveTo(pendingLocation, targets, pottyKind ? null : text)
+      const moved = await moveTo(pendingLocation, targets, pottyKind ? null : text, occurredAt)
       ids.push(...moved.map((entry) => entry.id))
     }
 
@@ -225,8 +247,9 @@ export function Deck({ dogs, events }: Props) {
                 aria-checked={open ? on : undefined}
                 aria-label={LOCATION_LABELS[option]}
                 onClick={() => void tapLocation(option)}
-                className="press grid h-16 place-items-center rounded-2xl border"
-                style={tile(on, fill)}
+                data-on={on}
+                className="press deck-tile grid h-16 place-items-center rounded-2xl border"
+                style={tile(on, fill, hint)}
               >
                 <PlaceGlyph location={option} size={MAIN_GLYPH_PX} />
               </button>
@@ -249,8 +272,9 @@ export function Deck({ dogs, events }: Props) {
                       aria-pressed={on}
                       aria-label={dog.name}
                       onClick={() => toggleDog(dog.id)}
-                      className="press grid size-8 place-items-center rounded-2xl border"
-                      style={tile(on, TILE_FILL)}
+                      data-on={on}
+                      className="press deck-tile grid size-8 place-items-center rounded-2xl border"
+                      style={tile(on, TILE_FILL, hint)}
                     >
                       <Glyph text={dog.emoji} label={dog.name} size={DETAIL_GLYPH_PX} />
                     </button>
@@ -268,8 +292,9 @@ export function Deck({ dogs, events }: Props) {
                       aria-pressed={on}
                       aria-label={POTTY_LABELS[pick]}
                       onClick={() => togglePick(pick)}
-                      className="press grid size-8 place-items-center rounded-2xl border"
-                      style={tile(on, TILE_FILL)}
+                      data-on={on}
+                      className="press deck-tile grid size-8 place-items-center rounded-2xl border"
+                      style={tile(on, TILE_FILL, hint)}
                     >
                       <Glyph
                         text={POTTY_GLYPHS[pick]}
@@ -293,8 +318,9 @@ export function Deck({ dogs, events }: Props) {
                 type="button"
                 onClick={() => void submit()}
                 aria-label="Log it"
-                className="press fill-on-press grid size-8 place-items-center rounded-2xl border border-line"
-                style={{ '--fill': TILE_FILL } as CSSProperties}
+                data-on={false}
+                className="press deck-tile fill-on-press grid size-8 place-items-center rounded-2xl border"
+                style={tile(false, TILE_FILL, hint)}
               >
                 <Glyph text={SEND} label="Log it" size={DETAIL_GLYPH_PX} />
               </button>

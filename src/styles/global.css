@@ -134,15 +134,27 @@
     transform: scale(0.96);
   }
 
-  /* Fills only while it is held. The send button is live the moment the row
-     opens, so a standing fill would read as something already chosen. The fill
-     arrives as --fill rather than an inline background, which a rule here could
-     not override. */
-  .fill-on-press {
+  /* The deck's buttons. Both fills arrive as custom properties rather than an
+     inline background, which a rule here could not override. */
+  .deck-tile {
     background: transparent;
   }
 
-  .fill-on-press:active {
+  /* A trace of the fill, so hovering says what a tap would do. Guarded, because
+     a touch device leaves :hover stuck on the last thing tapped. */
+  @media (hover: hover) {
+    .deck-tile:hover {
+      background: var(--hint);
+    }
+  }
+
+  .deck-tile[data-on='true'] {
+    background: var(--fill);
+  }
+
+  /* Fills only while it is held. The send button is live the moment the row
+     opens, so a standing fill would read as something already chosen. */
+  .deck-tile.fill-on-press:active {
     background: var(--fill);
   }
 }
