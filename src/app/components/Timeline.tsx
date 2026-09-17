@@ -1,7 +1,6 @@
-import { useState } from 'react'
 import { Pencil, X } from 'lucide-react'
 import { POTTY_GLYPHS, POTTY_LABELS, isAccident, isLive, type Dog, type PupEvent } from '@/lib/domain'
-import { annotate, undo } from '../lib/sync'
+import { undo } from '../lib/sync'
 import { clockLabel, dayKey, dayLabel } from '../lib/time'
 import { DOG_GLYPH_PX, Glyph, PlaceGlyph } from './Place'
 
@@ -95,10 +94,15 @@ function byDay(events: PupEvent[]): Day[] {
   return days
 }
 
-export function Timeline({ dogs, events }: { dogs: Dog[]; events: PupEvent[] }) {
-  const [editing, setEditing] = useState<string | null>(null)
-  const [draft, setDraft] = useState('')
+type Props = {
+  dogs: Dog[]
+  events: PupEvent[]
+  /** The entry the deck is editing, so its row can say so. */
+  editing?: PupEvent[] | null
+  onEdit?: (group: PupEvent[]) => void
+}
 
+export function Timeline({ dogs, events, editing = null, onEdit }: Props) {
   const days = byDay(events)
 
   // With nothing but moves on screen there is no potty column to line up, and
@@ -106,17 +110,6 @@ export function Timeline({ dogs, events }: { dogs: Dog[]; events: PupEvent[] }) 
   const anyPotty = days.some((day) =>
     day.entries.some((entry) => entry.events.some((event) => event.type === 'potty')),
   )
-
-  function open(key: string, note: string | null) {
-    setEditing(key)
-    setDraft(note ?? '')
-  }
-
-  async function commit(group: PupEvent[]) {
-    setEditing(null)
-    const note = draft.trim() || null
-    await Promise.all(group.map((event) => annotate(event.id, note)))
-  }
 
   if (days.length === 0) {
     return (
@@ -145,6 +138,9 @@ export function Timeline({ dogs, events }: { dogs: Dog[]; events: PupEvent[] }) 
               // the one that describes it.
               const lead = group.find((event) => event.type === 'potty') ?? group[0]!
               const accident = isAccident(lead)
+              const beingEdited = Boolean(
+                editing?.some((event) => group.some((member) => member.id === event.id)),
+              )
               // Ordered by the dog list, not by event order — so a pair always
               // reads the same way round, and the same way as the deck.
               const who = dogs.filter((dog) => group.some((event) => event.dogId === dog.id))
@@ -153,7 +149,12 @@ export function Timeline({ dogs, events }: { dogs: Dog[]; events: PupEvent[] }) 
                 lead.type === 'location' || lead.type === 'potty' ? lead.location : null
 
               return (
-                <li key={key} className="relative py-2">
+                <li
+                  key={key}
+                  // Lifted off the ground while the deck below holds it, so the
+                  // controls down there plainly belong to this row.
+                  className={`relative py-2 ${beingEdited ? 'rounded-xl bg-surface' : ''}`}
+                >
                   {accident ? (
                     <span
                       className="absolute -left-[1.1875rem] top-4 size-1.5 rounded-full bg-clay"
@@ -206,9 +207,9 @@ export function Timeline({ dogs, events }: { dogs: Dog[]; events: PupEvent[] }) 
                     <span className="flex shrink-0 items-center">
                       <button
                         type="button"
-                        onClick={() => open(key, lead.note)}
-                        aria-label={`${lead.note ? 'Edit' : 'Add'} note for ${label}`}
-                        title={lead.note ? 'Edit note' : 'Add note'}
+                        onClick={() => onEdit?.(group)}
+                        aria-label={`Edit: ${label}`}
+                        title="Edit"
                         className="press grid h-7 place-items-center pl-2 pr-[3px] text-ink-faint hover:text-ink"
                       >
                         <Pencil size={13} />
@@ -225,22 +226,7 @@ export function Timeline({ dogs, events }: { dogs: Dog[]; events: PupEvent[] }) 
                     </span>
                   </div>
 
-                  {editing === key ? (
-                    <textarea
-                      autoFocus
-                      value={draft}
-                      onChange={(change) => setDraft(change.target.value)}
-                      onBlur={() => void commit(group)}
-                      onKeyDown={(pressed) => {
-                        if (pressed.key === 'Escape') setEditing(null)
-                      }}
-                      rows={2}
-                      maxLength={500}
-                      placeholder="Add a note…"
-                      aria-label={`Note for ${label}`}
-                      className="mt-1.5 ml-20 w-[calc(100%-5rem)] resize-none rounded-xl border border-line bg-surface px-2 py-1.5 text-sm outline-none placeholder:text-ink-faint focus-visible:border-ink"
-                    />
-                  ) : lead.note ? (
+                  {lead.note ? (
                     <p className="ml-20 mt-0.5 text-xs leading-snug text-ink-muted">{lead.note}</p>
                   ) : null}
                 </li>

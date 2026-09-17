@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -16,11 +16,15 @@ import {
 import { accentColor } from '../lib/accent'
 import { tapped } from '../lib/feedback'
 import { log, undo } from '../lib/sync'
+import { fromLocalInput, toLocalInput } from '../lib/time'
 import { Glyph, PlaceGlyph } from './Place'
 
 type Props = {
   dogs: Dog[]
   events: PupEvent[]
+  /** The entry the pencil opened, which this deck becomes the editor for. */
+  editing?: PupEvent[] | null
+  onDone?: () => void
 }
 
 /** Pee and poo are picked independently; picking both is the `both` kind. */
@@ -67,7 +71,7 @@ function tile(on: boolean, fill: string, hint: string): CSSProperties {
   } as CSSProperties
 }
 
-export function Deck({ dogs, events }: Props) {
+export function Deck({ dogs, events, editing = null, onDone }: Props) {
   // Closed, this deck is five place buttons: move them, for both dogs, right now.
   // Open, it becomes a form and nothing is written until the send button.
   const [open, setOpen] = useState(false)
@@ -77,6 +81,31 @@ export function Deck({ dogs, events }: Props) {
   // Held as the dogs left out rather than the ones taken, so every dog — including
   // one that only syncs down later — starts an entry selected.
   const [skipped, setSkipped] = useState<string[]>([])
+  /** Only an edit shows a time, and only an edit can change one. */
+  const [at, setAt] = useState('')
+
+  // The pencil hands the entry over; the deck takes its shape on so the buttons
+  // read as what was logged rather than as a fresh entry.
+  useEffect(() => {
+    if (!editing?.length) return
+    const lead = editing.find((event) => event.type === 'potty') ?? editing[0]!
+    setOpen(true)
+    setSkipped(
+      dogs.filter((dog) => !editing.some((event) => event.dogId === dog.id)).map((dog) => dog.id),
+    )
+    setPicks(
+      lead.type === 'potty'
+        ? lead.pottyKind === 'both'
+          ? [...PICKS]
+          : [lead.pottyKind]
+        : [],
+    )
+    setPendingLocation(lead.type === 'potty' || lead.type === 'location' ? lead.location : null)
+    setNote(lead.note ?? '')
+    setAt(toLocalInput(lead.occurredAt))
+    // Only the entry, deliberately. Every sync hands down a fresh dogs array,
+    // and listing it here would reset a half-finished edit once a minute.
+  }, [editing])
 
   if (!dogs.length) return null
 
@@ -114,7 +143,9 @@ export function Deck({ dogs, events }: Props) {
     setPicks([])
     setNote('')
     setSkipped([])
+    setAt('')
     setOpen(false)
+    onDone?.()
   }
 
   function announce(message: string, ids: string[]) {
@@ -175,6 +206,61 @@ export function Deck({ dogs, events }: Props) {
     )
   }
 
+  /**
+   * An edit is a replacement: what was logged is tombstoned and what is on
+   * screen is written in its place. Everything but the note is immutable once
+   * logged, and replacing keeps that true while still letting a row be
+   * corrected — including which dogs it covers, which no update to a single row
+   * could change.
+   */
+  async function submitEdit() {
+    if (!editing?.length || !targets.length) return
+    tapped()
+
+    const lead = editing.find((event) => event.type === 'potty') ?? editing[0]!
+    const place =
+      pendingLocation ??
+      (lead.type === 'potty' || lead.type === 'location' ? lead.location : DEFAULT_LOCATION)
+    const occurredAt = fromLocalInput(at) ?? lead.occurredAt
+    const text = note.trim() || null
+    // An entry always has a place, so a row left with no potty on it is a move.
+    const asMove = !pottyKind || editing.some((event) => event.type === 'location')
+
+    await Promise.all(editing.map((event) => undo(event.id)))
+    await Promise.all(
+      targets.flatMap((dog) => {
+        const writes = []
+        if (pottyKind) {
+          writes.push(
+            log({
+              type: 'potty',
+              dogId: dog.id,
+              occurredAt,
+              location: place,
+              pottyKind,
+              note: text,
+            }),
+          )
+        }
+        if (asMove) {
+          writes.push(
+            log({
+              type: 'location',
+              dogId: dog.id,
+              occurredAt,
+              location: place,
+              note: pottyKind ? null : text,
+            }),
+          )
+        }
+        return writes
+      }),
+    )
+
+    toast(`Updated · ${listNames(targets)}`)
+    reset()
+  }
+
   const locationChanges = pendingLocation
     ? targets.some((dog) => where(dog) !== pendingLocation)
     : false
@@ -230,6 +316,16 @@ export function Deck({ dogs, events }: Props) {
       style={{ borderTopWidth: 3, borderImage: `${spread} 1` }}
     >
       <div className="mx-auto w-full max-w-sm px-4 pb-5 pt-3">
+        {editing ? (
+          <input
+            type="datetime-local"
+            value={at}
+            onChange={(event) => setAt(event.target.value)}
+            aria-label="When this happened"
+            className="mb-2 rounded-xl border border-line bg-surface px-3 py-1.5 text-sm text-ink outline-none focus-visible:border-ink"
+          />
+        ) : null}
+
         <div
           // Five places across: at 375px that is ~62px each, comfortably past the
           // 44px a thumb needs.
@@ -308,16 +404,18 @@ export function Deck({ dogs, events }: Props) {
 
               <span className="flex-1" />
 
-              <button
-                type="button"
-                onClick={() => void submit()}
-                aria-label="Log it"
-                data-on={false}
-                className="press deck-tile fill-on-press grid size-12 shrink-0 place-items-center rounded-full border"
-                style={tile(false, TILE_FILL, hint)}
-              >
-                <Glyph text={SEND} label="Log it" size={DETAIL_GLYPH_PX} />
-              </button>
+              {editing ? null : (
+                <button
+                  type="button"
+                  onClick={() => void submit()}
+                  aria-label="Log it"
+                  data-on={false}
+                  className="press deck-tile fill-on-press grid size-12 shrink-0 place-items-center rounded-full border"
+                  style={tile(false, TILE_FILL, hint)}
+                >
+                  <Glyph text={SEND} label="Log it" size={DETAIL_GLYPH_PX} />
+                </button>
+              )}
             </>
           ) : null}
 
@@ -342,6 +440,29 @@ export function Deck({ dogs, events }: Props) {
             aria-label="Note for this entry"
             className="mt-1.5 h-12 w-full rounded-2xl border border-line bg-surface px-4 text-sm outline-none focus-visible:border-ink"
           />
+        ) : null}
+
+        {editing ? (
+          <div className="mt-1.5 flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={reset}
+              className="press h-11 rounded-xl border border-line px-4 text-sm font-semibold text-ink-muted hover:text-ink"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => void submitEdit()}
+              disabled={!targets.length}
+              // White rather than --color-on-accent: the tile fill is deep in
+              // both themes, and that token flips to a dark ink in the dark one.
+              className="press h-11 rounded-xl px-5 text-sm font-bold text-white disabled:opacity-40"
+              style={{ background: TILE_FILL }}
+            >
+              Submit
+            </button>
+          </div>
         ) : null}
       </div>
     </div>
