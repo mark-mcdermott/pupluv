@@ -119,6 +119,11 @@ xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \
 
 echo "→ installing"
 devicectl device install app --device "$DEVICE_ID" "$APP"
-devicectl device process launch --device "$DEVICE_ID" "$BUNDLE_ID"
 
-echo "✓ pupluv is on ${DEVICE_NAME:-the device}"
+# A locked phone installs perfectly well but refuses to launch. That is not a
+# failed install, so do not report it as one.
+if devicectl device process launch --device "$DEVICE_ID" "$BUNDLE_ID" 2>/dev/null; then
+  echo "✓ pupluv is on ${DEVICE_NAME:-the device}"
+else
+  echo "✓ pupluv is installed on ${DEVICE_NAME:-the device} — unlock the phone to open it"
+fi
