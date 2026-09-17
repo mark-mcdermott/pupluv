@@ -15,7 +15,7 @@ what turns the weekly tally into a training signal rather than a list of failure
 
 ## Stack
 
-- ZENCATS: **Z**od/drizzle, **E**dge/Neon (postgres), **N**ode, **C**apacitor (ios), **A**stro/React, **T**auri (on roadmap), **S**hadcn/Tailwind
+- ZENCATS: **Z**od/drizzle, **E**dge/Neon (postgres), **N**ode, **C**apacitor (ios), **A**stro/React, **T**auri (mac), **S**hadcn/Tailwind
 - Astro shell (for possible future static pages) with a client-rendered React app
 - Deployed on Vercel, with Postgres on Neon
 - Private, one household, no App Store plans
@@ -26,8 +26,8 @@ Simple PIN-only login, no users
 - PIN in 1Password
 - PIN hash in `.env.local` locally, and in Vercel's env vars in production —
   scrypt with a random salt, so the file never holds the PIN itself
-- The JWT it issues is a **bearer token, not a cookie**: the bundled iPhone app
-  runs on `capacitor://localhost` and calls the API cross-origin
+- The JWT it issues is a **bearer token, not a cookie**: the bundled apps run on
+  `capacitor://localhost` and `tauri://localhost` and call the API cross-origin
 
 ## Install
 
@@ -47,6 +47,8 @@ pnpm dev                     # pages, the React island and /api/* on one server
 | `pnpm db:seed [a] [b]` | create the two dogs |
 | `pnpm pin:hash <pin>` | print a `PIN_HASH` for `.env.local` and Vercel |
 | `pnpm ios:device` | build, sign and install on a connected iPhone |
+| `pnpm desktop:dev` | the Mac app against the local dev server |
+| `pnpm desktop:build` | build and sign `pupluv.app` and a `.dmg` |
 | `pnpm icons` | regenerate every icon from the largest logo in `brand/` |
 
 ## Backups
@@ -127,10 +129,27 @@ It runs in its own process and cannot see the web view's storage, so the app
 publishes what it needs into an App Group after every sync. A tap the widget
 cannot deliver is queued there and adopted by the app on its next sync.
 
+## Mac
+
+`pnpm desktop:build` produces a signed `pupluv.app` and a `.dmg` under
+`desktop/target/release/bundle/`. Same bundle as the phone, in a 420pt window:
+Tauri serves the built files from `tauri://localhost` and the app calls the
+deployed API cross-origin, exactly as Capacitor does.
+
+Signing uses whichever **Developer ID Application** certificate is in the
+keychain — enough for a build that stays on this Mac. Notarising is what a
+download would need, and is on the roadmap.
+
+`pnpm desktop:dev` opens the same window against `localhost:4321`, starting the
+dev server only if one is not already up.
+
 ## File Structure
 
 - From the Astro scaffold: `public/`, `src/`, and the configs at the root
 - `iphone/` is the Xcode project — the ios app (Capacitor) and the widget (Swift)
+- `desktop/` is the Tauri project — the Mac app. Flat rather than the usual
+  `src-tauri/`: the CLI finds `tauri.conf.json` wherever it sits, and there is
+  only ever one native shell per platform folder here
 - `iphone/App/App/` reads oddly for two separate reasons
   - the nesting is Xcode's own `Foo/Foo.xcodeproj` + `Foo/Foo/` convention
   - the *name* is Capacitor's: both `App`s are hardcoded in its config resolver,
@@ -143,7 +162,8 @@ cannot deliver is queued there and adopted by the app on its next sync.
     largest `logo*.png` in here, so a re-export at new dimensions needs no code
     change — pass a path to override
   - `backups/`: database dumps, committed
-  - `scripts/`: backup, restore, icons, iphone install, Xcode project edits
+  - `scripts/`: backup, restore, icons, iphone install, mac build, Xcode project
+    edits
   - `docs/`: the roadmap
   - `.github/`: CI and the scheduled backup
   - `CLAUDE.md`: a **symlink** to `AGENTS.md` — edit `AGENTS.md`, since staging

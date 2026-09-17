@@ -14,7 +14,9 @@ Shipped and remaining work, in PR-sized pieces with acceptance criteria.
 - Optional notes: attach one to the entry as you log it, or add and edit it from
   the timeline afterwards.
 - Shared-PIN auth, bearer token, 90-day expiry.
-- iOS shell via Capacitor, bundled for offline use.
+- iOS shell via Capacitor, bundled for offline use, with a home-screen widget.
+- A Mac app via Tauri, from the same bundle, signed with the Developer ID cert.
+- The timeline covers every day, not just today, under day headings.
 - Light/dark, WCAG AA contrast, reduced-motion respected.
 
 ## Parked
@@ -29,13 +31,7 @@ name on the card. `PATCH /api/dogs` still works.
 
 ## Next
 
-### 1. Deploy and point the app at it
-Run `vercel deploy --prod`, then rebuild the shell with `PUBLIC_API_URL` set to
-the deployed origin and `pnpm cap:sync`.
-**Done when** a fresh install syncs against production, and logging with
-Airplane Mode on still works and reconciles when it comes back.
-
-### 2. Meals, water and sleep
+### 1. Meals, water and sleep
 Sleep is already half-answered: `crate` and `bed` are places, so time asleep can
 be derived from location events rather than logged separately.
 The schema, the Zod union and the timeline already carry these — this is UI only,
@@ -43,14 +39,18 @@ no migration. A second deck tab, or a long-press on the dog card.
 **Done when** the three types can be logged and appear in the timeline, and the
 CHECK constraints reject a meal with no amount.
 
-### 3. History beyond today
-The timeline shows today only. Add previous days and a simple week view — the
-data is already there and indexed on `(dog_id, occurred_at desc)`.
-**Done when** you can see last week's pattern and the tally matches the timeline.
+### 2. A week view
+The timeline lists every day, but there is no shape to it yet — no way to see
+last week's pattern at a glance. The data is already there and indexed on
+`(dog_id, occurred_at desc)`.
+**Done when** you can see a week at a time and the tally matches the timeline.
 
-### 4. Mac
-Tauri, the desktop half of ZENCATS, against the same bundle.
-**Done when** `pnpm tauri:build` produces a Mac app that syncs.
+### 3. Notarise the Mac app
+`pnpm desktop:build` signs with the Developer ID certificate, which is enough for
+a build that never leaves this Mac. Anything downloaded needs notarising, or
+Gatekeeper refuses it outright.
+**Done when** the build notarises and staples, given an App Store Connect API key
+in the environment.
 
 ## Deliberately not doing
 

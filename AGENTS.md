@@ -6,7 +6,7 @@ user, phone-first.
 ## Stack — ZENCATS
 
 Astro 7 (static) · React 19 islands · Tailwind 4 · shadcn/ui · Drizzle + Neon ·
-Zod 4 · Capacitor (iOS) · Vercel. Follows the house direction set in
+Zod 4 · Capacitor (iOS) · Tauri (macOS) · Vercel. Follows the house direction set in
 `~/Dev/_PROJECTS.md`: Astro shell, React applet as a `client:only` island,
 one deploy target. `fullstackwolfpack` is the reference implementation.
 
@@ -21,6 +21,8 @@ pnpm pin:hash <pin> # print a PIN_HASH for .env.local and Vercel
 pnpm cap:sync       # build and copy into the iOS shell (needs PUBLIC_API_URL)
 pnpm cap:ios        # open Xcode
 pnpm ios:device     # build, sign and install on a connected iPhone
+pnpm desktop:dev    # the Mac app against the dev server
+pnpm desktop:build  # signed pupluv.app and .dmg
 ```
 
 ## The two ideas worth knowing
@@ -63,8 +65,14 @@ the other devices. Everything but `deleted_at` and `note` is immutable once logg
 ### Auth
 
 One shared PIN, scrypt-hashed in `PIN_HASH`, exchanged for a 90-day JWT held as a
-**bearer token, not a cookie** — the bundled iOS app runs on `capacitor://localhost`
-and calls the API cross-origin, where cookies are a fight.
+**bearer token, not a cookie** — the bundled apps run on `capacitor://localhost`
+and `tauri://localhost` and call the API cross-origin, where cookies are a fight.
+
+Every bundled scheme has to be listed twice: in `src/middleware.ts`, which sets
+the CORS headers production sends, and in `astro.config.mjs` under
+`security.allowedDomains`, which is the dev server's own cross-site guard. Miss
+either and the browser keeps working while the shipped app cannot sign in.
+`src/middleware.test.ts` holds the list.
 
 ## Running it on a phone
 
@@ -104,6 +112,29 @@ sides meet in the App Group `group.com.pupluv.app`:
 The Xcode project is scripted, not hand-edited: `scripts/xcode.sh <ruby file>`
 runs against the xcodeproj gem inside Homebrew's CocoaPods, and
 `scripts/add-widget-target.rb` is idempotent.
+
+## The Mac app
+
+`desktop/` is a Tauri v2 project, flat rather than the usual `src-tauri/` — the
+CLI finds `tauri.conf.json` wherever it sits. There is no Rust to speak of:
+`main.rs` opens a window and nothing else. The web app never calls into Rust, so
+there are no commands, no plugins, and the capability file grants only
+`core:default`.
+
+It is the phone's approach on a desktop: `frontendDist` is the same
+`dist/client`, `PUBLIC_API_URL` is baked in at build time, and the window loads
+from `tauri://localhost`. Verified rather than assumed — a bundled build pointed
+at a local listener showed `Origin: tauri://localhost` with
+`Sec-Fetch-Site: cross-site`, which is why both the middleware and
+`allowedDomains` need it.
+
+The CSP in `tauri.conf.json` pins `connect-src` to the API origins. It has to
+allow `'unsafe-inline'` for scripts because the theme is set inline before first
+paint, so the value it adds is stopping the page talking to anywhere else.
+
+Icons come from `pnpm icons` like every other one. macOS draws no mask, so the
+rounded tile is part of the art: an 824pt tile on a clear 1024 canvas, per
+Apple's grid, then `iconutil` for the `.icns`.
 
 ## Backups
 
