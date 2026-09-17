@@ -20,6 +20,6 @@
     ]
   },
   "commitStyle": "conventional",
-  "automerge": false,
+  "automerge": true,
   "stack": "ZENCATS"
 }

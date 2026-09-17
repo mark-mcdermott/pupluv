@@ -32,6 +32,7 @@ export default defineConfig({
     allowedDomains: [
       { protocol: 'capacitor', hostname: 'localhost' },
       { protocol: 'ionic', hostname: 'localhost' },
+      { protocol: 'tauri', hostname: 'localhost' },
     ],
   },
   vite: {
