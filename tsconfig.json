@@ -6,7 +6,7 @@
   ],
   "exclude": [
     "dist",
-    "ios",
+    "iphone",
     "android",
     ".vercel",
     "node_modules"

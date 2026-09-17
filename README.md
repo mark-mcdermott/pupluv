@@ -1,24 +1,40 @@
-# pupluv
+# 🐶 pupluv
 
-Tracking where two dogs are and how house-training is going.
-Live at **[www.pupluv.online](https://www.pupluv.online)**.
+Tracks Ramen and Oreo's "state" (pen, outside, inside, crate, bed) and their bathrooming and accidents so we can make better informed decisions on how to improve their potty-training.
 
-One tap says the dogs moved between the pen, the yard, the house, the crate and
-our bed. An accident
-is never recorded as such — every pee and poo is logged with a place, and an
+## Urls
+
+- Live at **[www.pupluv.online](https://www.pupluv.online)** (a NameCheap domain)
+- Repo is at [https://github.com/mark-mcdermott/pupluv](github.com/mark-mcdermott/pupluv)
+
+## Idea
+
+One tap says the dogs moved between the pen, yard, loose in the house, crates or our bed. An accident is never recorded as such — every pee and poo is logged with a place, and an
 accident is simply one that did not happen outside. Logging the successes too is
 what turns the weekly tally into a training signal rather than a list of failures.
 
-Astro + React islands · Drizzle/Neon · Tailwind + shadcn/ui · Capacitor iOS with a
-home-screen widget · Vercel. Private, one household, no App Store plans.
+## Stack
 
-## Getting started
+- ZENCATS: **Z**od/drizzle, **E**dge/Neon (postgres), **N**ode, **C**apacitor (ios), **A**stro/React, **T**auri (on roadmap), **S**hadcn/Tailwind
+- Astro shell (for possible future static pages) with a client-rendered React app
+- Deployed on Vercel, with Postgres on Neon
+- Private, one household, no App Store plans
+
+## Auth
+
+Simple PIN-only login, no users
+- PIN in 1password
+- PIN hash in `.env/.local`
+
+## Install
 
 ```bash
 pnpm install
 vercel env pull .env.local   # DATABASE_URL, AUTH_SECRET, PIN_HASH
 pnpm dev                     # pages, the React island and /api/* on one server
 ```
+
+## Commands
 
 | | |
 |---|---|
@@ -75,7 +91,7 @@ readable and diffable than as a binary.
 The restore path is exercised, not assumed: insert a throwaway row, dump, delete
 it, restore, confirm it came back.
 
-## What is actually in the database
+## DB Contents
 
 Places and potty kinds are stored as **words**, in Postgres enums the database
 enforces:
@@ -95,17 +111,30 @@ The one exception is `dogs.emoji` — 🍪 and 🍜 — which is stored, because
 per-dog identity that the widget reads from a shared container and that changes
 when a dog is renamed.
 
-## On the phone
+## iPhone
 
 `pnpm ios:device` builds against production, signs, installs over USB and
 launches. The phone needs Developer Mode on (Settings → Privacy & Security) and
 to have trusted this Mac; an untrusted phone is paired automatically.
 
-The home-screen widget carries the same place buttons, showing where the dogs
-are now.
+The home-screen widget is three place buttons showing where the dogs are now.
 It runs in its own process and cannot see the web view's storage, so the app
 publishes what it needs into an App Group after every sync. A tap the widget
 cannot deliver is queued there and adopted by the app on its next sync.
 
-Architecture and the reasoning behind it: [AGENTS.md](AGENTS.md).
-Remaining work: [docs/ROADMAP.md](docs/ROADMAP.md).
+## File Structure
+
+- Root-level folders (`assets`/`public`/`src`) are an Astro scaffold
+- in `iphone` is the Xcode project for ios app (capacitor) and ios widget (swift)
+- `iphone/App/App/`
+  - Xcode's `Foo/Foo` convention
+  - Capacitor needs app name to be `App`
+- custom setup
+  - `.agents/skills`: neon/postgres skills added by Vercel
+  - `backups`: db backups
+  - `branding`: logo in various sizes
+
+## More Details
+
+- Architecture and the reasoning behind it: [AGENTS.md](AGENTS.md).
+- Remaining work: [docs/ROADMAP.md](docs/ROADMAP.md).

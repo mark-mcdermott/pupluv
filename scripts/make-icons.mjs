@@ -10,7 +10,7 @@ const SRC = 'assets/logo.png'
 const GRADIENT = ['#f3d0ad', '#aadad6']
 // Behind the gradient, for the alpha flatten. Any colour works; nothing shows.
 const GROUND = GRADIENT[0]
-const APP_ICON = 'ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png'
+const APP_ICON = 'iphone/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png'
 
 const { width, height } = await sharp(SRC).metadata()
 const side = Math.max(width, height)

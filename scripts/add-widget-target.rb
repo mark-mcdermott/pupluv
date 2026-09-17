@@ -1,8 +1,11 @@
 # Creates the WidgetKit extension target and embeds it in the app. Idempotent.
 require 'xcodeproj'
 
-ROOT = File.expand_path('../ios/App', __dir__)
+ROOT = File.expand_path('../iphone/App', __dir__)
+# The target keeps its name — and so its bundle id — while its sources live in
+# a plainly named folder.
 NAME = 'PupluvWidget'
+DIR = 'Widget'
 TEAM = 'VRFF4MSHAC'
 
 project = Xcodeproj::Project.open(File.join(ROOT, 'App.xcodeproj'))
@@ -20,10 +23,10 @@ widget.build_configurations.each do |config|
   config.build_settings.merge!(
     'PRODUCT_BUNDLE_IDENTIFIER' => 'com.pupluv.app.PupluvWidget',
     'PRODUCT_NAME' => NAME,
-    'INFOPLIST_FILE' => "#{NAME}/Info.plist",
+    'INFOPLIST_FILE' => "#{DIR}/Info.plist",
     'GENERATE_INFOPLIST_FILE' => 'YES',
     'INFOPLIST_KEY_CFBundleDisplayName' => 'pupluv',
-    'CODE_SIGN_ENTITLEMENTS' => "#{NAME}/#{NAME}.entitlements",
+    'CODE_SIGN_ENTITLEMENTS' => "#{DIR}/#{NAME}.entitlements",
     'CODE_SIGN_STYLE' => 'Automatic',
     'DEVELOPMENT_TEAM' => TEAM,
     # Interactive widget buttons are App Intents, which need 17.
@@ -37,11 +40,11 @@ widget.build_configurations.each do |config|
 end
 
 # Sources: the widget's own files plus the model shared with the app.
-group = project.main_group.find_subpath(NAME, true)
+group = project.main_group.find_subpath(DIR, true)
 group.set_source_tree('SOURCE_ROOT')
-group.set_path(NAME)
+group.set_path(DIR)
 
-sources = Dir[File.join(ROOT, NAME, '*.swift')].sort.map do |file|
+sources = Dir[File.join(ROOT, DIR, '*.swift')].sort.map do |file|
   name = File.basename(file)
   group.files.find { |f| f.display_name == name } || group.new_reference(name)
 end

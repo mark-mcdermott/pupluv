@@ -105,7 +105,7 @@
 				504EC3051FED79650016851F /* Products */,
 				E904A0B689D5676FB9405B08 /* Shared */,
 				771CBE77E1D7A87135DB1F21 /* Frameworks */,
-				D90C6F5B6310A8EAEB8A691F /* PupluvWidget */,
+				D90C6F5B6310A8EAEB8A691F /* Widget */,
 			);
 			sourceTree = "<group>";
 		};
@@ -144,14 +144,14 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		D90C6F5B6310A8EAEB8A691F /* PupluvWidget */ = {
+		D90C6F5B6310A8EAEB8A691F /* Widget */ = {
 			isa = PBXGroup;
 			children = (
 				B1910E6386C2C2CBBE791148 /* LogPlaceIntent.swift */,
 				29E21A5769CE24A9DEFF1AD5 /* PupluvWidget.swift */,
 			);
-			name = PupluvWidget;
-			path = PupluvWidget;
+			name = Widget;
+			path = Widget;
 			sourceTree = SOURCE_ROOT;
 		};
 		E904A0B689D5676FB9405B08 /* Shared */ = {
@@ -338,12 +338,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGN_ENTITLEMENTS = PupluvWidget/PupluvWidget.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Widget/PupluvWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = VRFF4MSHAC;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = PupluvWidget/Info.plist;
+				INFOPLIST_FILE = Widget/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = pupluv;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 1.0;
@@ -517,12 +517,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGN_ENTITLEMENTS = PupluvWidget/PupluvWidget.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Widget/PupluvWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = VRFF4MSHAC;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = PupluvWidget/Info.plist;
+				INFOPLIST_FILE = Widget/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = pupluv;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 1.0;
