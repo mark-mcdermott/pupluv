@@ -5,7 +5,7 @@ Tracks Ramen and Oreo's "state" (pen, outside, inside, crate, bed) and their bat
 ## Urls
 
 - Live at **[www.pupluv.online](https://www.pupluv.online)** (a NameCheap domain)
-- Repo is at [https://github.com/mark-mcdermott/pupluv](github.com/mark-mcdermott/pupluv)
+- Repo is at [github.com/mark-mcdermott/pupluv](https://github.com/mark-mcdermott/pupluv)
 
 ## Idea
 
@@ -23,8 +23,11 @@ what turns the weekly tally into a training signal rather than a list of failure
 ## Auth
 
 Simple PIN-only login, no users
-- PIN in 1password
-- PIN hash in `.env/.local`
+- PIN in 1Password
+- PIN hash in `.env.local` locally, and in Vercel's env vars in production —
+  scrypt with a random salt, so the file never holds the PIN itself
+- The JWT it issues is a **bearer token, not a cookie**: the bundled iPhone app
+  runs on `capacitor://localhost` and calls the API cross-origin
 
 ## Install
 
@@ -99,7 +102,7 @@ enforces:
 | column | values |
 |---|---|
 | `events.type` | `location`, `potty`, `meal`, `water`, `sleep` |
-| `events.location` | `pen`, `outside`, `inside` |
+| `events.location` | `pen`, `outside`, `inside`, `crate`, `bed` |
 | `events.potty_kind` | `pee`, `poo`, `both` |
 
 The 🛖 🌳 🏠 💧 💩 in the timeline live **only in the code**. Storing them would
@@ -117,22 +120,38 @@ when a dog is renamed.
 launches. The phone needs Developer Mode on (Settings → Privacy & Security) and
 to have trusted this Mac; an untrusted phone is paired automatically.
 
-The home-screen widget is three place buttons showing where the dogs are now.
+The home-screen widget carries the same five place buttons, showing where the
+dogs are now. Five across a small widget would be about 25pt each, so it wraps
+to two rows there.
 It runs in its own process and cannot see the web view's storage, so the app
 publishes what it needs into an App Group after every sync. A tap the widget
 cannot deliver is queued there and adopted by the app on its next sync.
 
 ## File Structure
 
-- Root-level folders (`assets`/`public`/`src`) are an Astro scaffold
-- in `iphone` is the Xcode project for ios app (capacitor) and ios widget (swift)
-- `iphone/App/App/`
-  - Xcode's `Foo/Foo` convention
-  - Capacitor needs app name to be `App`
-- custom setup
-  - `.agents/skills`: neon/postgres skills added by Vercel
-  - `backups`: db backups
-  - `branding`: logo in various sizes
+- From the Astro scaffold: `public/`, `src/`, and the configs at the root
+- `iphone/` is the Xcode project — the ios app (Capacitor) and the widget (Swift)
+- `iphone/App/App/` reads oddly for two separate reasons
+  - the nesting is Xcode's own `Foo/Foo.xcodeproj` + `Foo/Foo/` convention
+  - the *name* is Capacitor's: both `App`s are hardcoded in its config resolver,
+    so neither can be renamed. `iphone/` could be, via `ios.path`. The app's
+    display name is `appName` in `capacitor.config.ts`, and is already `pupluv`
+  - inside it, `App/`, `Widget/` and `Shared/` are siblings — the app target's
+    sources, the widget target's, and the Swift compiled into both
+- Added by me
+  - `assets/`: the logo the icons are generated from
+  - `backups/`: database dumps, committed
+  - `scripts/`: backup, restore, icons, iphone install, Xcode project edits
+  - `docs/`: the roadmap
+  - `.github/`: CI and the scheduled backup
+  - `CLAUDE.md`: a **symlink** to `AGENTS.md` — edit `AGENTS.md`, since staging
+    `CLAUDE.md` by name stages the link rather than the file
+- Added by Vercel when Neon was provisioned
+  - `.agents/skills/`: two Neon skills, with `.claude/skills/` symlinked to them
+  - `skills-lock.json`: pins their versions
+
+Not in the repo: `branding/` lives one level up in `pupluv-proj/`, outside the
+checkout, holding the logo at its original sizes.
 
 ## More Details
 
