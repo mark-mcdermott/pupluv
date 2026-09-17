@@ -1,9 +1,11 @@
-// Regenerates every icon from assets/logo.png, the single source of truth.
-// Run after replacing it:  pnpm icons
+// Regenerates every icon from the largest logo in brand/, the single source of
+// truth. Run after replacing it:  pnpm icons [path/to/logo.png]
 import { execFileSync } from 'node:child_process'
+import { readdirSync } from 'node:fs'
+import { join } from 'node:path'
 import sharp from 'sharp'
 
-const SRC = 'assets/logo.png'
+const BRAND = 'brand'
 
 // The place buttons in the deck, resolved out of CSS: their fill is
 // color-mix(in oklab, <accent> 50%, white) over the dark-theme amber and teal.
@@ -12,7 +14,33 @@ const GRADIENT = ['#f3d0ad', '#aadad6']
 const GROUND = GRADIENT[0]
 const APP_ICON = 'iphone/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png'
 
+/**
+ * The biggest logo in brand/, or a path given on the command line. Resolved by
+ * reading each file rather than parsing its name, so a re-export at new
+ * dimensions needs no edit here — and the largest is always the best source to
+ * rasterise from.
+ */
+async function findSource() {
+  if (process.argv[2]) return process.argv[2]
+
+  const candidates = readdirSync(BRAND).filter((name) => /^logo.*\.(png|jpe?g|webp)$/i.test(name))
+  if (candidates.length === 0) {
+    throw new Error(`no logo*.png in ${BRAND}/ — pass one: pnpm icons <path>`)
+  }
+
+  const measured = await Promise.all(
+    candidates.map(async (name) => {
+      const file = join(BRAND, name)
+      const { width = 0, height = 0 } = await sharp(file).metadata()
+      return { file, pixels: width * height }
+    }),
+  )
+  return measured.sort((a, b) => b.pixels - a.pixels)[0].file
+}
+
+const SRC = await findSource()
 const { width, height } = await sharp(SRC).metadata()
+console.log(`source: ${SRC}  ${width}x${height}`)
 const side = Math.max(width, height)
 
 // Square the canvas by padding, never by stretching — the art is wider than it
