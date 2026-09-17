@@ -78,7 +78,7 @@ a free personal team gets. There is no App Store involvement and none is planned
 
 ## The home-screen widget
 
-`ios/App/PupluvWidget` is a WidgetKit extension: the place buttons, moving both
+`iphone/App/Widget` is a WidgetKit extension: the place buttons, moving both
 dogs without opening the app. Five across is about 25pt each on a small widget,
 so it wraps to two rows there and only spreads out when there is room. Buttons in a widget are App Intents, which is
 why everything targets iOS 17.
@@ -91,7 +91,7 @@ sides meet in the App Group `group.com.pupluv.app`:
   a reader; it never owns the session.
 - **The widget queues** a tap it could not deliver, and the app adopts that queue
   on its next sync. Only one outbox ever retries, and it is the app's.
-- `ios/App/Shared/*.swift` compiles into **both** targets. Keep it free of
+- `iphone/App/Shared/*.swift` compiles into **both** targets. Keep it free of
   Capacitor imports or the widget will not build.
 
 The Xcode project is scripted, not hand-edited: `scripts/xcode.sh <ruby file>`
