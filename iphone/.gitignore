@@ -1,4 +1,6 @@
-App/build
+# Any Xcode build directory, wherever it lands — App/build for the app, and
+# App/CapApp-SPM/build for the Swift package Capacitor generates beside it.
+build/
 App/Pods
 App/output
 App/App/public
