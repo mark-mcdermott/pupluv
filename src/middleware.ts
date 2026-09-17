@@ -1,9 +1,14 @@
 import { defineMiddleware } from 'astro:middleware'
 
-// The bundled iOS build serves the UI from capacitor://localhost and calls the
-// deployed API cross-origin. Auth is a bearer token, not a cookie, so an origin
-// allowlist is all that is needed here — no credentialed requests.
-const ALLOWED_ORIGINS = new Set(['capacitor://localhost', 'ionic://localhost'])
+// Every bundled build serves the UI from its own scheme and calls the deployed
+// API cross-origin: capacitor://localhost on the phone, tauri://localhost in the
+// Mac app. Auth is a bearer token, not a cookie, so an origin allowlist is all
+// that is needed here — no credentialed requests.
+const ALLOWED_ORIGINS = new Set([
+  'capacitor://localhost',
+  'ionic://localhost',
+  'tauri://localhost',
+])
 
 function isAllowed(origin: string | null): origin is string {
   if (!origin) return false
