@@ -36,7 +36,7 @@ that location, which is what makes the common case one tap. The deck always
 displays the location it is about to use, so the inheritance is never a guess.
 
 **The deck has two states and they behave differently on purpose.** Closed, it is
-three place buttons and a tap is the whole entry, applied to every dog — the lit
+five place buttons and a tap is the whole entry, applied to every dog — the lit
 one is where they are now. Open, it is a form: nothing is written, not even a
 place, until `Log it`. Anything that blurs that line will make the deck lie about
 what a tap does, which is the exact confusion this replaced.
@@ -78,8 +78,9 @@ a free personal team gets. There is no App Store involvement and none is planned
 
 ## The home-screen widget
 
-`ios/App/PupluvWidget` is a WidgetKit extension: three place buttons that move
-both dogs without opening the app. Buttons in a widget are App Intents, which is
+`ios/App/PupluvWidget` is a WidgetKit extension: the place buttons, moving both
+dogs without opening the app. Five across is about 25pt each on a small widget,
+so it wraps to two rows there and only spreads out when there is room. Buttons in a widget are App Intents, which is
 why everything targets iOS 17.
 
 It runs in its own process and cannot see this web view's storage, so the two

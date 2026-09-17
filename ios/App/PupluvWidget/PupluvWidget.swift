@@ -8,11 +8,20 @@ private struct Place: Identifiable {
     let label: String
 }
 
-private let places = [
+/// Daytime places on the first row, the two sleeping ones on the second, which
+/// is also how they split when a small widget cannot fit five across.
+private let dayPlaces = [
     Place(id: "pen", glyph: "🛖", label: "Pen"),
     Place(id: "outside", glyph: "🌳", label: "Outside"),
     Place(id: "inside", glyph: "🏠", label: "Inside"),
 ]
+
+private let sleepPlaces = [
+    Place(id: "crate", glyph: "📦", label: "Crate"),
+    Place(id: "bed", glyph: "🛏️", label: "Bed"),
+]
+
+private let places = dayPlaces + sleepPlaces
 
 struct PlaceEntry: TimelineEntry {
     let date: Date
@@ -64,7 +73,7 @@ private struct PlaceButton: View {
 
     private var face: some View {
         Text(place.glyph)
-            .font(.system(size: 30))
+            .font(.system(size: 24))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
@@ -90,7 +99,12 @@ private struct PlaceButton: View {
 }
 
 struct PupluvWidgetView: View {
+    @Environment(\.widgetFamily) private var family
     var entry: PlaceEntry
+
+    /// Five across a small widget is about 25pt each — well under a thumb. It
+    /// wraps there instead, and only spreads out when there is room.
+    private var fitsOneRow: Bool { family != .systemSmall }
 
     var body: some View {
         VStack(spacing: 8) {
@@ -104,9 +118,24 @@ struct PupluvWidgetView: View {
             }
 
             if entry.signedIn {
-                HStack(spacing: 8) {
-                    ForEach(places) { place in
-                        PlaceButton(place: place, selected: place.id == entry.current)
+                if fitsOneRow {
+                    HStack(spacing: 6) {
+                        ForEach(places) { place in
+                            PlaceButton(place: place, selected: place.id == entry.current)
+                        }
+                    }
+                } else {
+                    VStack(spacing: 6) {
+                        HStack(spacing: 6) {
+                            ForEach(dayPlaces) { place in
+                                PlaceButton(place: place, selected: place.id == entry.current)
+                            }
+                        }
+                        HStack(spacing: 6) {
+                            ForEach(sleepPlaces) { place in
+                                PlaceButton(place: place, selected: place.id == entry.current)
+                            }
+                        }
                     }
                 }
             } else {
