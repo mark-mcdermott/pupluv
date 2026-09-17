@@ -42,6 +42,16 @@ function potty(dogId: string, occurredAt: string, note: string | null = null): P
   })
 }
 
+function moved(dogId: string, occurredAt: string, location = 'pen'): PupEvent {
+  return eventSchema.parse({
+    id: `88888888-8888-4888-8888-${String(++uid).padStart(12, '0')}`,
+    dogId,
+    type: 'location',
+    occurredAt,
+    location,
+  })
+}
+
 beforeEach(() => {
   annotate.mockReset()
   undo.mockReset()
@@ -52,6 +62,27 @@ describe('Timeline', () => {
     render(<Timeline dogs={DOGS} events={[potty(DOG_A, todayAt(9))]} />)
     expect(screen.getByRole('img', { name: 'Oreo' })).toHaveTextContent('🍪')
     expect(screen.queryByText('Oreo')).not.toBeInTheDocument()
+  })
+
+  it('collapses a move logged with its potty into the one entry it was', () => {
+    const at = todayAt(9)
+    render(<Timeline dogs={DOGS} events={[potty(DOG_A, at), moved(DOG_A, at)]} />)
+
+    expect(screen.getAllByRole('listitem')).toHaveLength(1)
+    expect(screen.getByRole('img', { name: 'Oreo' })).toBeInTheDocument()
+  })
+
+  it('removes the move along with the potty it was logged with', async () => {
+    const at = todayAt(9)
+    render(<Timeline dogs={DOGS} events={[potty(DOG_A, at), moved(DOG_A, at)]} />)
+    await userEvent.click(screen.getByRole('button', { name: /^Remove:/ }))
+
+    expect(undo).toHaveBeenCalledTimes(2)
+  })
+
+  it('keeps a move logged on its own as its own entry', () => {
+    render(<Timeline dogs={DOGS} events={[potty(DOG_A, todayAt(9)), moved(DOG_A, todayAt(10))]} />)
+    expect(screen.getAllByRole('listitem')).toHaveLength(2)
   })
 
   it('collapses one both-dogs entry into a single row carrying both emoji', () => {
