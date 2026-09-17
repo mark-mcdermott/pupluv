@@ -111,12 +111,6 @@ export function log(event: DraftEvent): Promise<PupEvent> {
   return record(eventSchema.parse({ ...event, id: crypto.randomUUID(), deletedAt: null }))
 }
 
-/** Notes are the one field that stays editable after the fact. */
-export async function annotate(id: string, note: string | null): Promise<void> {
-  const existing = $events.get().find((event) => event.id === id)
-  if (!existing || existing.note === note) return
-  await record({ ...existing, note })
-}
 
 /** Undo is a tombstone so it reaches the other devices too. */
 export async function undo(id: string): Promise<void> {
