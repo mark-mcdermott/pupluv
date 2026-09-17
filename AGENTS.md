@@ -38,12 +38,25 @@ location is just its most recent `location` event. A potty entry files itself at
 that location, which is what makes the common case one tap. The deck always
 displays the location it is about to use, so the inheritance is never a guess.
 
-**The deck has two states and they behave differently on purpose.** Closed, it is
-five place buttons and a tap is the whole entry, applied to every dog — the lit
-one is where they are now. The eye beneath them opens a row of circles — dogs,
-pee, poo, send — over a note field, and once that row is open nothing is written,
-not even a place, until send. Anything that blurs that line will make the deck
-lie about what a tap does, which is the exact confusion this replaced.
+**The deck has three states and they behave differently on purpose.** Closed, it
+is five place buttons and a tap is the whole entry, applied to every dog — the
+lit one is where they are now. The eye beneath them opens a row of circles —
+dogs, pee, poo, send — over a note field, and once that row is open nothing is
+written, not even a place, until send. Anything that blurs that line will make
+the deck lie about what a tap does, which is the exact confusion this replaced.
+
+The third state is an edit. A pencil in the timeline hands its entry down and
+the deck wears it: the row lights the place that was logged, the dogs and picks
+it covered, its note, and a time above the places that can be corrected. Send
+goes, Cancel and Submit take its place, and `Shell` holds the entry because the
+timeline starts the edit and the deck finishes it.
+
+**An edit replaces rather than updates.** Submitting tombstones every event in
+the entry and writes the row as it stands. Nothing else could change which dogs
+a row covers or when it happened, and it keeps events immutable, which the sync
+relies on. The effect that dresses the deck watches the entry alone — every sync
+hands down a fresh dogs array, and reacting to that would wipe a half-finished
+edit once a minute.
 
 The circles are three quarters of a place, and the gaps are measured against the
 circle rather than fixed: tight within a group, loose between them, so dogs /
@@ -66,7 +79,9 @@ widget derives the same proportions from its own tile width.
 Taps write to IndexedDB and an outbox first; the network happens after. Event ids
 are minted on the device, so replaying the outbox is idempotent (`onConflictDoUpdate`).
 Pull is cursor-based on `created_at`. Deletes are tombstones — undo has to reach
-the other devices. Everything but `deleted_at` and `note` is immutable once logged.
+the other devices. An event is immutable once logged apart from `deleted_at`:
+editing an entry tombstones it and writes a new one, which is the only way to
+change which dogs a row covers or when it happened.
 
 ### Auth
 

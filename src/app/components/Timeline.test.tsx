@@ -2,10 +2,11 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { eventSchema, type Dog, type PupEvent } from '@/lib/domain'
+import { clockLabel } from '../lib/time'
 import { Timeline } from './Timeline'
 
-const { annotate, undo } = vi.hoisted(() => ({ annotate: vi.fn(), undo: vi.fn() }))
-vi.mock('../lib/sync', () => ({ annotate, undo }))
+const { undo } = vi.hoisted(() => ({ undo: vi.fn() }))
+vi.mock('../lib/sync', () => ({ undo }))
 
 const DOG_A = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 const DOG_B = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
@@ -53,7 +54,6 @@ function moved(dogId: string, occurredAt: string, location = 'pen'): PupEvent {
 }
 
 beforeEach(() => {
-  annotate.mockReset()
   undo.mockReset()
 })
 
@@ -115,26 +115,34 @@ describe('Timeline', () => {
     expect(screen.getByText('ate grass')).toBeInTheDocument()
   })
 
-  it('annotates the whole group at once', async () => {
+  it('hands the whole entry to the deck when the pencil is pressed', async () => {
     const at = todayAt(9)
     const group = [potty(DOG_A, at), potty(DOG_B, at)]
-    render(<Timeline dogs={DOGS} events={group} />)
-    await userEvent.click(screen.getByRole('button', { name: /add note for/i }))
-    await userEvent.type(screen.getByRole('textbox'), 'both of them')
-    await userEvent.tab()
+    const onEdit = vi.fn()
+    render(<Timeline dogs={DOGS} events={group} onEdit={onEdit} />)
+    await userEvent.click(screen.getByRole('button', { name: /^Edit:/ }))
 
-    expect(annotate).toHaveBeenCalledTimes(2)
-    for (const [, note] of annotate.mock.calls) expect(note).toBe('both of them')
+    expect(onEdit).toHaveBeenCalledTimes(1)
+    expect(onEdit.mock.calls[0]![0].map((event: PupEvent) => event.id).sort()).toEqual(
+      group.map((event) => event.id).sort(),
+    )
   })
 
-  it('abandons an edit on escape without writing', async () => {
-    render(<Timeline dogs={DOGS} events={[potty(DOG_A, todayAt(9), 'keep me')]} />)
-    await userEvent.click(screen.getByRole('button', { name: /edit note for/i }))
-    await userEvent.type(screen.getByRole('textbox'), ' changed')
-    await userEvent.keyboard('{Escape}')
+  it('writes nothing itself when the pencil is pressed', async () => {
+    render(<Timeline dogs={DOGS} events={[potty(DOG_A, todayAt(9))]} onEdit={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: /^Edit:/ }))
+    expect(undo).not.toHaveBeenCalled()
+  })
 
-    expect(annotate).not.toHaveBeenCalled()
-    expect(screen.getByText('keep me')).toBeInTheDocument()
+  it('marks only the row being edited', () => {
+    const one = potty(DOG_A, todayAt(9))
+    const two = potty(DOG_A, todayAt(10))
+    render(<Timeline dogs={DOGS} events={[one, two]} editing={[two]} />)
+
+    const rows = screen.getAllByRole('listitem')
+    const marked = rows.filter((row) => row.className.includes('bg-surface'))
+    expect(marked).toHaveLength(1)
+    expect(marked[0]).toHaveTextContent(clockLabel(two.occurredAt))
   })
 })
 

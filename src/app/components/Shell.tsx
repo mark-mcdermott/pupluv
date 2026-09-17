@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { Dog, PupEvent } from '@/lib/domain'
 import { Deck } from './Deck'
 import { SyncDot } from './SyncDot'
@@ -11,6 +12,10 @@ type Props = {
 
 /** The signed-in layout. Kept free of data loading so it can be rendered from tests. */
 export function Shell({ dogs, events }: Props) {
+  // The entry the pencil opened, held here because the timeline starts the edit
+  // and the deck is what carries it out.
+  const [editing, setEditing] = useState<PupEvent[] | null>(null)
+
   return (
     // The deck sits outside the column so its background can run full width;
     // `max-w-sm` is repeated there to keep its buttons on the same grid.
@@ -25,11 +30,16 @@ export function Shell({ dogs, events }: Props) {
         </header>
 
         <main className="flex-1 pb-6">
-          <Timeline dogs={dogs} events={events} />
+          <Timeline dogs={dogs} events={events} editing={editing} onEdit={setEditing} />
         </main>
       </div>
 
-      <Deck dogs={dogs} events={events} />
+      <Deck
+        dogs={dogs}
+        events={events}
+        editing={editing}
+        onDone={() => setEditing(null)}
+      />
     </div>
   )
 }

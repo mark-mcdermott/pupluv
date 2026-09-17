@@ -36,6 +36,22 @@ function setup(events: PupEvent[] = []) {
   return render(<Deck dogs={DOGS} events={events} />)
 }
 
+const pottied = (
+  dogId: string,
+  occurredAt: string,
+  pottyKind: 'pee' | 'poo' | 'both' = 'pee',
+  note: string | null = null,
+): PupEvent =>
+  eventSchema.parse({
+    id: `77777777-7777-4777-8777-${String(++uid).padStart(12, '0')}`,
+    dogId,
+    type: 'potty',
+    occurredAt,
+    location: 'outside',
+    pottyKind,
+    note,
+  })
+
 const button = (name: string) => screen.getByRole('button', { name })
 const openDetails = () => userEvent.click(button('Add details'))
 const send = () => userEvent.click(button('Log it'))
@@ -272,5 +288,107 @@ describe('the crate and the bed', () => {
     for (const [event] of log.mock.calls) {
       expect(event).toMatchObject({ type: 'potty', location: 'bed' })
     }
+  })
+})
+
+describe('editing an entry', () => {
+  const AT = '2026-09-16T14:30:00.000Z'
+
+  function edit(group: PupEvent[], events: PupEvent[] = bothOutside) {
+    const onDone = vi.fn()
+    render(<Deck dogs={DOGS} events={events} editing={group} onDone={onDone} />)
+    return onDone
+  }
+
+  it('opens the row already wearing the entry', () => {
+    edit([pottied(DOG_B, AT, 'both', 'soft stool')])
+
+    expect(button('Ramen')).toHaveAttribute('aria-pressed', 'true')
+    expect(button('Oreo')).toHaveAttribute('aria-pressed', 'false')
+    expect(button('Pee')).toHaveAttribute('aria-pressed', 'true')
+    expect(button('Poo')).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByLabelText('Note for this entry')).toHaveValue('soft stool')
+    expect(screen.getByRole('radio', { name: 'Outside' })).toBeChecked()
+  })
+
+  it('trades the send button for Cancel and Submit', () => {
+    edit([pottied(DOG_A, AT)])
+
+    expect(screen.queryByRole('button', { name: 'Log it' })).not.toBeInTheDocument()
+    expect(button('Cancel')).toBeInTheDocument()
+    expect(button('Submit')).toBeInTheDocument()
+  })
+
+  it('writes nothing on Cancel', async () => {
+    const onDone = edit([pottied(DOG_A, AT)])
+    await userEvent.click(button('Cancel'))
+
+    expect(log).not.toHaveBeenCalled()
+    expect(undo).not.toHaveBeenCalled()
+    expect(onDone).toHaveBeenCalled()
+  })
+
+  it('replaces the entry rather than editing it in place', async () => {
+    const original = [pottied(DOG_A, AT), pottied(DOG_B, AT)]
+    edit(original)
+    await userEvent.click(button('Poo'))
+    await userEvent.click(button('Submit'))
+
+    expect(undo.mock.calls.flat()).toEqual(original.map((event) => event.id))
+    expect(log).toHaveBeenCalledTimes(2)
+    for (const [event] of log.mock.calls) {
+      expect(event).toMatchObject({ type: 'potty', pottyKind: 'both', location: 'outside' })
+    }
+  })
+
+  it('drops a dog left out of the edit', async () => {
+    edit([pottied(DOG_A, AT), pottied(DOG_B, AT)])
+    await userEvent.click(button('Oreo'))
+    await userEvent.click(button('Submit'))
+
+    expect(log).toHaveBeenCalledTimes(1)
+    expect(log.mock.calls[0]![0]).toMatchObject({ dogId: DOG_B })
+  })
+
+  it('carries the entry to a corrected time', async () => {
+    edit([pottied(DOG_A, AT)])
+    const when = screen.getByLabelText('When this happened')
+    await userEvent.clear(when)
+    await userEvent.type(when, '2026-09-16T09:15')
+    await userEvent.click(button('Submit'))
+
+    expect(new Date(log.mock.calls[0]![0].occurredAt as string).getHours()).toBe(9)
+  })
+
+  it('keeps the move that was logged with the potty', async () => {
+    const at = AT
+    const original = [pottied(DOG_A, at), placed(DOG_A, 'outside')]
+    edit(original)
+    await userEvent.click(button('Submit'))
+
+    const types = log.mock.calls.map(([event]) => event.type)
+    expect(types).toEqual(['potty', 'location'])
+  })
+
+  it('survives the dogs arriving again from a sync', async () => {
+    const group = [pottied(DOG_A, AT)]
+    const view = render(
+      <Deck dogs={DOGS} events={bothOutside} editing={group} onDone={vi.fn()} />,
+    )
+    await userEvent.type(screen.getByLabelText('Note for this entry'), 'half typed')
+
+    // A fresh array with the same dogs in it, which is what every sync produces.
+    view.rerender(
+      <Deck dogs={[...DOGS]} events={bothOutside} editing={group} onDone={vi.fn()} />,
+    )
+    expect(screen.getByLabelText('Note for this entry')).toHaveValue('half typed')
+  })
+
+  it('leaves a move a move when the potty is taken off it', async () => {
+    edit([placed(DOG_A, 'outside')])
+    await userEvent.click(button('Submit'))
+
+    expect(log).toHaveBeenCalledTimes(1)
+    expect(log.mock.calls[0]![0]).toMatchObject({ type: 'location', location: 'outside' })
   })
 })
