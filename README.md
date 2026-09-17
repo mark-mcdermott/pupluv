@@ -49,6 +49,7 @@ pnpm dev                     # pages, the React island and /api/* on one server
 | `pnpm ios:device` | build, sign and install on a connected iPhone |
 | `pnpm desktop:dev` | the Mac app against the local dev server |
 | `pnpm desktop:build` | build and sign `pupluv.app` and a `.dmg` |
+| `pnpm desktop:install` | the same, then put it in `/Applications` |
 | `pnpm icons` | regenerate every icon from the largest logo in `brand/` |
 
 ## Backups
@@ -131,14 +132,20 @@ cannot deliver is queued there and adopted by the app on its next sync.
 
 ## Mac
 
-`pnpm desktop:build` produces a signed `pupluv.app` and a `.dmg` under
-`desktop/target/release/bundle/`. Same bundle as the phone, in a 420pt window:
-Tauri serves the built files from `tauri://localhost` and the app calls the
-deployed API cross-origin, exactly as Capacitor does.
+`pnpm desktop:install` builds the app and puts it in `/Applications`, which is
+the whole round trip. `pnpm desktop:build` stops at
+`desktop/target/release/bundle/`, leaving a signed `pupluv.app` and a `.dmg`
+there.
+
+Same bundle as the phone, in a 420pt window: Tauri serves the built files from
+`tauri://localhost` and the app calls the deployed API cross-origin, exactly as
+Capacitor does. The window remembers where you left it.
 
 Signing uses whichever **Developer ID Application** certificate is in the
-keychain — enough for a build that stays on this Mac. Notarising is what a
-download would need, and is on the roadmap.
+keychain. That is enough for a build that stays on this Mac — Gatekeeper only
+assesses apps carrying a quarantine flag, which one built here does not. Copy the
+`.dmg` to another machine and it *will* be refused until it is notarised, which
+is on the roadmap.
 
 `pnpm desktop:dev` opens the same window against `localhost:4321`, starting the
 dev server only if one is not already up.
