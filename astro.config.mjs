@@ -18,6 +18,9 @@ for (const [key, value] of Object.entries(env)) process.env[key] ??= value
 export default defineConfig({
   integrations: [react()],
   adapter: vercel(),
+  // The dev toolbar floats over the bottom centre of the viewport, which is
+  // exactly where the deck's controls live — it covers "Add details".
+  devToolbar: { enabled: false },
   security: {
     // The dev server refuses any request whose Sec-Fetch-Site is cross-site
     // unless its origin is listed here. The native client is cross-origin by

@@ -10,6 +10,7 @@ vi.mock('../lib/sync', () => ({ annotate, undo }))
 const DOG_A = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 const DOG_B = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
 
+// Order matters: the row follows this list, not the order events arrive in.
 const DOGS: Dog[] = [
   { id: DOG_A, name: 'Oreo', accent: 'amber', emoji: '🍪' },
   { id: DOG_B, name: 'Ramen', accent: 'teal', emoji: '🍜' },
@@ -152,5 +153,27 @@ describe('Timeline days', () => {
   it('says nothing is logged when there is nothing at all', () => {
     render(<Timeline dogs={DOGS} events={[]} />)
     expect(screen.getByText(/Nothing logged yet today/)).toBeInTheDocument()
+  })
+})
+
+describe('Timeline row layout', () => {
+  it('reads the dogs in list order however the events arrive', () => {
+    const at = todayAt(9)
+    // Ramen's event first; the row should still follow the dog list.
+    render(<Timeline dogs={DOGS} events={[potty(DOG_B, at), potty(DOG_A, at)]} />)
+    expect(screen.getByRole('img', { name: 'Oreo and Ramen' })).toHaveTextContent('🍪🍜')
+  })
+
+  it('keeps a pair the same way round on every row', () => {
+    const a = todayAt(9)
+    const b = todayAt(11)
+    render(
+      <Timeline
+        dogs={DOGS}
+        events={[potty(DOG_A, a), potty(DOG_B, a), potty(DOG_B, b), potty(DOG_A, b)]}
+      />,
+    )
+    const pairs = screen.getAllByRole('img', { name: 'Oreo and Ramen' }).map((n) => n.textContent)
+    expect(new Set(pairs).size).toBe(1)
   })
 })
