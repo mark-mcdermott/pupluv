@@ -40,10 +40,15 @@ displays the location it is about to use, so the inheritance is never a guess.
 
 **The deck has two states and they behave differently on purpose.** Closed, it is
 five place buttons and a tap is the whole entry, applied to every dog — the lit
-one is where they are now. The eye beneath them opens a second row — dogs, pee,
-poo, a note, send — and once that row is open nothing is written, not even a
-place, until send. Anything that blurs that line will make the deck lie about
-what a tap does, which is the exact confusion this replaced.
+one is where they are now. The eye beneath them opens a row of circles — dogs,
+pee, poo, send — over a note field, and once that row is open nothing is written,
+not even a place, until send. Anything that blurs that line will make the deck
+lie about what a tap does, which is the exact confusion this replaced.
+
+The circles are three quarters of a place, and the gaps are measured against the
+circle rather than fixed: tight within a group, loose between them, so dogs /
+pee and poo / send / the eye read as four things rather than one run of six. The
+widget derives the same proportions from its own tile width.
 
 ## Architecture
 
@@ -90,8 +95,8 @@ a free personal team gets. There is no App Store involvement and none is planned
 
 `iphone/App/Widget` is a WidgetKit extension: the deck, on the home screen. The
 same five square places, the same eye holding the right edge beneath them, the
-same row of half-size circles behind it — minus the note, because a widget
-cannot take typed input. Five across is about 20pt each on a small widget, so it
+same row of circles behind it — minus the note, because a widget cannot take
+typed input. Five across is about 20pt each on a small widget, so it
 wraps to two rows there and the detail row only opens where it fits. Buttons in a
 widget are App Intents, which is why everything targets iOS 17.
 
