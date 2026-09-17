@@ -10,7 +10,11 @@ const config: CapacitorConfig = {
   webDir: 'dist/client',
   // The platform directory is renameable; the App folders inside it are not —
   // Capacitor hardcodes them as nativeProjectDir and nativeTargetDir.
-  ios: { path: 'iphone', contentInset: 'always' },
+  // never, not always: the web view fills the screen and the layout pads itself
+  // out of the status bar and the home indicator with env(safe-area-inset-*).
+  // Letting the scroll view inset instead leaves the page offset by that much
+  // with nowhere to scroll it back, now that the document itself does not move.
+  ios: { path: 'iphone', contentInset: 'never' },
 }
 
 export default config
