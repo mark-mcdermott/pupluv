@@ -101,8 +101,13 @@ export function Timeline({ dogs, events }: { dogs: Dog[]; events: PupEvent[] }) 
   const [editing, setEditing] = useState<string | null>(null)
   const [draft, setDraft] = useState('')
 
-  const byId = new Map(dogs.map((dog) => [dog.id, dog]))
   const days = byDay(events)
+
+  // With nothing but moves on screen there is no potty column to line up, and
+  // reserving one strands the controls out at the right edge.
+  const anyPotty = days.some((day) =>
+    day.entries.some((entry) => entry.events[0]!.type === 'potty'),
+  )
 
   function open(key: string, note: string | null) {
     setEditing(key)
@@ -140,7 +145,9 @@ export function Timeline({ dogs, events }: { dogs: Dog[]; events: PupEvent[] }) 
             {day.entries.map(({ key, events: group }) => {
               const first = group[0]!
               const accident = isAccident(first)
-              const who = group.map((event) => byId.get(event.dogId)).filter(Boolean) as Dog[]
+              // Ordered by the dog list, not by event order — so a pair always
+              // reads the same way round, and the same way as the deck.
+              const who = dogs.filter((dog) => group.some((event) => event.dogId === dog.id))
               const label = `${who.map((dog) => dog.name).join(' and ')}: ${describe(first)}`
               const place =
                 first.type === 'location' || first.type === 'potty' ? first.location : null
@@ -163,15 +170,21 @@ export function Timeline({ dogs, events }: { dogs: Dog[]; events: PupEvent[] }) 
                       {clockLabel(first.occurredAt)}
                     </time>
                     <span
-                      className="w-14 shrink-0 leading-none"
+                      className="flex w-16 shrink-0 gap-1 leading-none"
                       style={{ fontSize: DOG_GLYPH_PX }}
                       role="img"
                       aria-label={who.map((dog) => dog.name).join(' and ')}
                     >
-                      {who.map((dog) => dog.emoji).join('')}
+                      {who.map((dog) => (
+                        <span key={dog.id}>{dog.emoji}</span>
+                      ))}
                     </span>
 
-                    <span className="flex min-w-0 flex-1 items-center gap-1.5 text-sm text-ink">
+                    <span
+                      className={`flex min-w-0 items-center gap-1.5 text-sm text-ink ${
+                        anyPotty ? 'flex-1' : 'mr-1'
+                      }`}
+                    >
                       {place ? <PlaceGlyph location={place} /> : null}
                       {first.type === 'potty' ? (
                         <Glyph
