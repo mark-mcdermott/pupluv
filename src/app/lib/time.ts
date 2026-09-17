@@ -24,6 +24,25 @@ export function daysAgo(days: number): Date {
   return date
 }
 
+/** Identity of the local calendar day an event belongs to. */
+export function dayKey(iso: string): string {
+  const date = new Date(iso)
+  return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
+}
+
+/**
+ * "Today", "Yesterday", then "Thu 9/26". Built by hand rather than with a single
+ * toLocaleDateString call, which renders this combination with a comma.
+ */
+export function dayLabel(iso: string): string {
+  if (isSameDay(iso, startOfToday())) return 'Today'
+  if (isSameDay(iso, daysAgo(1))) return 'Yesterday'
+  const date = new Date(iso)
+  const weekday = date.toLocaleDateString(undefined, { weekday: 'short' })
+  const short = date.toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' })
+  return `${weekday} ${short}`
+}
+
 export function isSameDay(iso: string, day: Date): boolean {
   const date = new Date(iso)
   return (
