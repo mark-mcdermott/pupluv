@@ -24,7 +24,6 @@
     "verify": "pnpm check && pnpm lint && pnpm test && pnpm build",
     "ios:device": "bash scripts/install-ios.sh",
     "icons": "node scripts/make-icons.mjs",
-    "icons:ico": "node -e \"const s=require(\\\"sharp\\\");(async()=>{for(const n of [16,32,48])await s(\\\"public/favicon.svg\\\",{density:900}).resize(n,n).png().toFile(`/tmp/ico-${n}.png`)})()\" && magick /tmp/ico-16.png /tmp/ico-32.png /tmp/ico-48.png public/favicon.ico",
     "db:backup": "dotenv -e .env.local -- tsx scripts/backup-db.ts",
     "db:restore": "dotenv -e .env.local -- tsx scripts/restore-db.ts"
   },
