@@ -3,7 +3,7 @@
 # warning about mismatched minimums.
 require 'xcodeproj'
 
-project = Xcodeproj::Project.open(File.expand_path('../ios/App/App.xcodeproj', __dir__))
+project = Xcodeproj::Project.open(File.expand_path('../iphone/App/App.xcodeproj', __dir__))
 project.targets.each do |target|
   target.build_configurations.each do |config|
     config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '17.0'

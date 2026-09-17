@@ -2,7 +2,7 @@
 # target. Idempotent: running it twice changes nothing.
 require 'xcodeproj'
 
-ROOT = File.expand_path('../ios/App', __dir__)
+ROOT = File.expand_path('../iphone/App', __dir__)
 project = Xcodeproj::Project.open(File.join(ROOT, 'App.xcodeproj'))
 app = project.targets.find { |t| t.name == 'App' } or abort 'App target not found'
 

@@ -8,7 +8,9 @@ const config: CapacitorConfig = {
   appName: 'pupluv',
   // `astro build` with the Vercel adapter leaves the static output in dist/client.
   webDir: 'dist/client',
-  ios: { contentInset: 'always' },
+  // The platform directory is renameable; the App folders inside it are not —
+  // Capacitor hardcodes them as nativeProjectDir and nativeTargetDir.
+  ios: { path: 'iphone', contentInset: 'always' },
 }
 
 export default config
