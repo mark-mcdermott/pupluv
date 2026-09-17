@@ -15,7 +15,7 @@ let seq = 0
 const id = () => `33333333-3333-4333-8333-${String(++seq).padStart(12, '0')}`
 
 function potty(
-  location: 'pen' | 'outside' | 'inside',
+  location: 'pen' | 'outside' | 'inside' | 'crate' | 'bed',
   occurredAt: string,
   dogId = DOG,
   deletedAt: string | null = null,
@@ -31,15 +31,19 @@ function potty(
   })
 }
 
-function moved(location: 'pen' | 'outside' | 'inside', occurredAt: string): PupEvent {
+function moved(
+  location: 'pen' | 'outside' | 'inside' | 'crate' | 'bed',
+  occurredAt: string,
+): PupEvent {
   return eventSchema.parse({ id: id(), dogId: DOG, type: 'location', occurredAt, location })
 }
 
 describe('isAccident', () => {
   it('treats anything but outside as an accident', () => {
     expect(isAccident(potty('outside', '2026-09-16T10:00:00Z'))).toBe(false)
-    expect(isAccident(potty('inside', '2026-09-16T10:00:00Z'))).toBe(true)
-    expect(isAccident(potty('pen', '2026-09-16T10:00:00Z'))).toBe(true)
+    for (const place of ['inside', 'pen', 'crate', 'bed'] as const) {
+      expect(isAccident(potty(place, '2026-09-16T10:00:00Z'))).toBe(true)
+    }
   })
 
   it('is not a property of non-potty events', () => {
@@ -123,5 +127,29 @@ describe('eventSchema', () => {
       amount: 1.5,
     })
     expect(meal).toMatchObject({ type: 'meal', amount: 1.5 })
+  })
+})
+
+describe('the five places', () => {
+  it('accepts the sleeping places the dogs actually use', () => {
+    for (const place of ['crate', 'bed'] as const) {
+      // Read it back through currentLocation rather than narrowing the union by
+      // hand — that is how the app asks the question anyway.
+      expect(currentLocation([moved(place, '2026-09-16T22:00:00Z')], DOG)).toBe(place)
+    }
+  })
+
+  it('tracks a move into the crate as the current location', () => {
+    const events = [moved('inside', '2026-09-16T20:00:00Z'), moved('crate', '2026-09-16T22:00:00Z')]
+    expect(currentLocation(events, DOG)).toBe('crate')
+  })
+
+  it('counts a bed accident against the weekly tally', () => {
+    const tally = tallyPotty(
+      [potty('outside', '2026-09-15T10:00:00Z'), potty('bed', '2026-09-15T23:00:00Z')],
+      DOG,
+      new Date('2026-09-10T00:00:00Z'),
+    )
+    expect(tally).toEqual({ outside: 1, accidents: 1, total: 2 })
   })
 })
