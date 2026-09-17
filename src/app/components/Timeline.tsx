@@ -181,7 +181,10 @@ export function Timeline({ dogs, events }: { dogs: Dog[]; events: PupEvent[] }) 
                     </span>
 
                     <span
-                      className={`flex min-w-0 items-center gap-1.5 text-sm text-ink ${
+                      // Air on both sides in one declaration, so the two can never
+                      // drift apart the way a dog-column width and a control
+                      // margin would.
+                      className={`mx-2 flex min-w-0 items-center gap-1.5 text-sm text-ink ${
                         anyPotty ? 'flex-1' : ''
                       }`}
                     >
