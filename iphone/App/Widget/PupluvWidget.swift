@@ -113,8 +113,8 @@ struct PlaceProvider: TimelineProvider {
 }
 
 /// The deck's one button shape: a bordered tile that fills in when it is on. The
-/// corner radius comes from the places, so the half-size row below them rounds to
-/// a circle exactly as it does on the web.
+/// places take a rounded square; the row below them takes half its own side, so
+/// it stays a circle exactly as it does on the web.
 private struct Tile: View {
     let glyph: String
     let side: CGFloat
@@ -154,20 +154,29 @@ private struct PlaceButton: View {
     }
 }
 
-/// The deck's second row, minus the note: a widget cannot take typed input, so
-/// the space it fills on the web is simply left open here.
+/// The deck's second row. The note has a line of its own on the web and none
+/// here — a widget cannot take typed input.
 private struct DetailRow: View {
     let entry: PlaceEntry
     /// The place tile above, which everything here is measured against.
     let side: CGFloat
 
-    private var small: CGFloat { side / 2 }
-    private var radius: CGFloat { side / 4 }
+    /// Three quarters of a place. Half read as an afterthought under buttons
+    /// that size.
+    private var small: CGFloat { side * 0.75 }
+    /// Half the tile, so it stays a circle whatever the tile grows to.
+    private var radius: CGFloat { small / 2 }
+
+    /// Tight inside a group, loose between them, so dogs / pee and poo / send /
+    /// the eye read as four things rather than one run of six. Both measured
+    /// against the circle, which is what the eye is comparing them to.
+    private var within: CGFloat { small * 0.125 }
+    private var between: CGFloat { small * 0.29 }
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: between) {
             if entry.detailOpen {
-                HStack(spacing: 4) {
+                HStack(spacing: within) {
                     ForEach(entry.dogs) { dog in
                         Button(intent: ToggleDogIntent(dogId: dog.id)) {
                             Tile(
@@ -183,7 +192,7 @@ private struct DetailRow: View {
                     }
                 }
 
-                HStack(spacing: 4) {
+                HStack(spacing: within) {
                     ForEach(pickKinds) { pick in
                         Button(intent: TogglePickIntent(pick: pick.id)) {
                             Tile(
@@ -199,7 +208,7 @@ private struct DetailRow: View {
                     }
                 }
 
-                Spacer(minLength: 0)
+                Spacer(minLength: between)
 
                 // No standing fill: it is live the moment the row opens, and a
                 // filled tile would read as something already chosen. The system
@@ -221,11 +230,12 @@ private struct DetailRow: View {
 
             Button(intent: ToggleDetailIntent()) {
                 Image(systemName: entry.detailOpen ? "eye.slash" : "eye")
-                    .font(.system(size: side * 0.25))
+                    .font(.system(size: small * 0.45))
                     .foregroundStyle(.secondary)
-                    // Trailing, so the icon ends on the same line as the last
-                    // place button above it.
-                    .frame(width: small, height: small, alignment: .trailing)
+                    // Narrower than a circle — it is an icon, not a button face,
+                    // and the row has no width to spare. Trailing, so it ends on
+                    // the same line as the last place button above it.
+                    .frame(width: small * 0.7, height: small, alignment: .trailing)
             }
             .buttonStyle(.plain)
             .accessibilityLabel(entry.detailOpen ? "Hide details" : "Add details")

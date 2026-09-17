@@ -36,9 +36,9 @@ const TILE_FILL = 'var(--color-tile)'
 /** A trace of a colour: enough to preview a fill without standing in for it. */
 const trace = (colour: string) => `color-mix(in oklab, ${colour} 16%, transparent)`
 
-/** The places, and the detail row beneath them at half the height and half the glyph. */
+/** The places, and the detail row beneath them at three quarters the size. */
 const MAIN_GLYPH_PX = 24
-const DETAIL_GLYPH_PX = MAIN_GLYPH_PX / 2
+const DETAIL_GLYPH_PX = Math.round(MAIN_GLYPH_PX * 0.75)
 
 const POTTY_PAST = { pee: 'Peed', poo: 'Pooed', both: 'Peed and pooed' } as const
 const PLACE_PAST = {
@@ -259,10 +259,10 @@ export function Deck({ dogs, events }: Props) {
 
         {/* The eye is the only thing on this line until it is opened, and it holds
             its place at the right edge while the form fills in to its left. */}
-        <div className="mt-1.5 flex items-center justify-end gap-2">
+        <div className="mt-1.5 flex items-center justify-end gap-3.5">
           {open ? (
             <>
-              <div className="flex gap-1" role="group" aria-label="Which dog">
+              <div className="flex gap-1.5" role="group" aria-label="Which dog">
                 {dogs.map((dog) => {
                   const on = !skipped.includes(dog.id)
                   return (
@@ -273,7 +273,7 @@ export function Deck({ dogs, events }: Props) {
                       aria-label={dog.name}
                       onClick={() => toggleDog(dog.id)}
                       data-on={on}
-                      className="press deck-tile grid size-8 place-items-center rounded-2xl border"
+                      className="press deck-tile grid size-12 shrink-0 place-items-center rounded-full border"
                       style={tile(on, TILE_FILL, hint)}
                     >
                       <Glyph text={dog.emoji} label={dog.name} size={DETAIL_GLYPH_PX} />
@@ -282,7 +282,7 @@ export function Deck({ dogs, events }: Props) {
                 })}
               </div>
 
-              <div className="flex gap-1" role="group" aria-label="What happened">
+              <div className="flex gap-1.5" role="group" aria-label="What happened">
                 {PICKS.map((pick) => {
                   const on = picks.includes(pick)
                   return (
@@ -293,7 +293,7 @@ export function Deck({ dogs, events }: Props) {
                       aria-label={POTTY_LABELS[pick]}
                       onClick={() => togglePick(pick)}
                       data-on={on}
-                      className="press deck-tile grid size-8 place-items-center rounded-2xl border"
+                      className="press deck-tile grid size-12 shrink-0 place-items-center rounded-full border"
                       style={tile(on, TILE_FILL, hint)}
                     >
                       <Glyph
@@ -306,20 +306,14 @@ export function Deck({ dogs, events }: Props) {
                 })}
               </div>
 
-              <input
-                value={note}
-                onChange={(event) => setNote(event.target.value)}
-                maxLength={500}
-                aria-label="Note for this entry"
-                className="h-8 min-w-0 flex-1 rounded-2xl border border-line bg-surface px-3 text-sm outline-none focus-visible:border-ink"
-              />
+              <span className="flex-1" />
 
               <button
                 type="button"
                 onClick={() => void submit()}
                 aria-label="Log it"
                 data-on={false}
-                className="press deck-tile fill-on-press grid size-8 place-items-center rounded-2xl border"
+                className="press deck-tile fill-on-press grid size-12 shrink-0 place-items-center rounded-full border"
                 style={tile(false, TILE_FILL, hint)}
               >
                 <Glyph text={SEND} label="Log it" size={DETAIL_GLYPH_PX} />
@@ -334,11 +328,21 @@ export function Deck({ dogs, events }: Props) {
             aria-label={open ? 'Hide details' : 'Add details'}
             // No padding on the right, so the icon ends on the same line as the
             // last place button above it.
-            className="press grid h-8 place-items-center pl-2 text-ink-faint hover:text-ink"
+            className="press grid h-12 shrink-0 place-items-center pl-2 text-ink-faint hover:text-ink"
           >
-            {open ? <EyeOff size={16} /> : <Eye size={16} />}
+            {open ? <EyeOff size={22} /> : <Eye size={22} />}
           </button>
         </div>
+
+        {open ? (
+          <input
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+            maxLength={500}
+            aria-label="Note for this entry"
+            className="mt-1.5 h-12 w-full rounded-2xl border border-line bg-surface px-4 text-sm outline-none focus-visible:border-ink"
+          />
+        ) : null}
       </div>
     </div>
   )
