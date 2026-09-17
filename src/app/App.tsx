@@ -21,7 +21,7 @@ export default function App() {
   }, [])
 
   if (!ready) {
-    return <div className="grid min-h-dvh place-items-center text-ink-faint">Loading…</div>
+    return <div className="grid h-full place-items-center text-ink-faint">Loading…</div>
   }
 
   if (!authed) {

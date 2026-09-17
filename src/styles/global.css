@@ -78,6 +78,19 @@
     --color-on-accent: #101613;
   }
 
+  /* The document itself never scrolls. On a phone a scrollable document rubber
+     bands: drag anywhere and the whole app slides out from under the status bar
+     and back, showing the webview behind it. Only the timeline scrolls, inside
+     its own box — see Shell. Percentages rather than dvh, so this is the
+     viewport the webview actually laid out rather than the one it would have
+     without a content inset. */
+  html,
+  body {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
   html {
     background: var(--color-ground);
     -webkit-tap-highlight-color: transparent;
@@ -89,9 +102,6 @@
     color: var(--color-ink);
     font-family: var(--font-sans);
     font-variant-numeric: tabular-nums;
-    /* The deck sits on the home indicator otherwise. */
-    padding-bottom: env(safe-area-inset-bottom);
-    overscroll-behavior-y: none;
   }
 
   /* Tailwind's reset leaves buttons on the default arrow. Every button in this

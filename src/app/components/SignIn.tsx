@@ -29,7 +29,7 @@ export function SignIn() {
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-sm flex-col justify-center gap-8 px-6">
+    <main className="mx-auto flex h-full w-full max-w-sm flex-col justify-center gap-8 overflow-y-auto px-6 py-8">
       <div>
         <h1 className="text-5xl font-extrabold tracking-tight">pupluv</h1>
         <p className="mt-2 text-ink-muted">Where they are, and how it is going.</p>
