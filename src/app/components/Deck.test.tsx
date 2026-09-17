@@ -2,7 +2,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { eventSchema, type Dog, type PupEvent } from '@/lib/domain'
-import { BOTH, Deck } from './Deck'
+import { Deck } from './Deck'
 
 const { log, undo, toast } = vi.hoisted(() => ({ log: vi.fn(), undo: vi.fn(), toast: vi.fn() }))
 vi.mock('../lib/sync', () => ({ log, undo }))
@@ -32,11 +32,13 @@ const placed = (
 const bothOutside = [placed(DOG_A, 'outside'), placed(DOG_B, 'outside')]
 const apart = [placed(DOG_A, 'outside'), placed(DOG_B, 'inside')]
 
-function setup(events: PupEvent[] = [], selectedId: string = BOTH) {
-  return render(<Deck dogs={DOGS} events={events} selectedId={selectedId} onSelect={vi.fn()} />)
+function setup(events: PupEvent[] = []) {
+  return render(<Deck dogs={DOGS} events={events} />)
 }
 
-const openDetails = () => userEvent.click(screen.getByRole('button', { name: 'Add details' }))
+const button = (name: string) => screen.getByRole('button', { name })
+const openDetails = () => userEvent.click(button('Add details'))
+const send = () => userEvent.click(button('Log it'))
 
 let minted = 0
 beforeEach(() => {
@@ -52,17 +54,17 @@ beforeEach(() => {
 })
 
 describe('Deck closed', () => {
-  it('shows only the places plus the fold', () => {
+  it('shows only the places plus the eye', () => {
     setup(bothOutside)
-    expect(screen.getByRole('button', { name: 'Pen' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Add details' })).toBeInTheDocument()
+    expect(button('Pen')).toBeInTheDocument()
+    expect(button('Add details')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Log it' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('radio', { name: 'Pee' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Pee' })).not.toBeInTheDocument()
   })
 
   it('logs a move for every dog on a single tap', async () => {
     setup(bothOutside)
-    await userEvent.click(screen.getByRole('button', { name: 'Pen' }))
+    await userEvent.click(button('Pen'))
 
     expect(log).toHaveBeenCalledTimes(2)
     expect(log.mock.calls.map(([event]) => event.dogId)).toEqual([DOG_A, DOG_B])
@@ -71,15 +73,9 @@ describe('Deck closed', () => {
     }
   })
 
-  it('applies to both dogs even when one is selected', async () => {
-    setup(bothOutside, DOG_A)
-    await userEvent.click(screen.getByRole('button', { name: 'Inside' }))
-    expect(log).toHaveBeenCalledTimes(2)
-  })
-
   it('moves only the dog that is not already there', async () => {
     setup(apart)
-    await userEvent.click(screen.getByRole('button', { name: 'Outside' }))
+    await userEvent.click(button('Outside'))
 
     expect(log).toHaveBeenCalledTimes(1)
     expect(log.mock.calls[0]![0]).toMatchObject({ dogId: DOG_B, location: 'outside' })
@@ -87,12 +83,30 @@ describe('Deck closed', () => {
 
   it('does nothing when they are already there', async () => {
     setup(bothOutside)
-    await userEvent.click(screen.getByRole('button', { name: 'Outside' }))
+    await userEvent.click(button('Outside'))
     expect(log).not.toHaveBeenCalled()
   })
 })
 
 describe('Deck open', () => {
+  it('turns the eye into a way back out', async () => {
+    setup(bothOutside)
+    await openDetails()
+    expect(button('Hide details')).toBeInTheDocument()
+
+    await userEvent.click(button('Hide details'))
+    expect(button('Add details')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Log it' })).not.toBeInTheDocument()
+  })
+
+  it('starts with every dog taken', async () => {
+    setup(bothOutside)
+    await openDetails()
+    for (const dog of DOGS) {
+      expect(button(dog.name)).toHaveAttribute('aria-pressed', 'true')
+    }
+  })
+
   it('stops logging on tap once it is a form', async () => {
     setup(bothOutside)
     await openDetails()
@@ -105,49 +119,82 @@ describe('Deck open', () => {
   it('will not submit with nothing to record', async () => {
     setup(bothOutside)
     await openDetails()
-    expect(screen.getByRole('button', { name: 'Log it' })).toBeDisabled()
+    expect(button('Log it')).toBeDisabled()
   })
 
-  it('keeps the potty choices exclusive', async () => {
+  it('will not submit with no dog taken', async () => {
     setup(bothOutside)
     await openDetails()
-    await userEvent.click(screen.getByRole('radio', { name: 'Pee' }))
-    await userEvent.click(screen.getByRole('radio', { name: 'Pee + Poo' }))
+    await userEvent.click(button('Pee'))
+    for (const dog of DOGS) await userEvent.click(button(dog.name))
 
-    expect(screen.getByRole('radio', { name: 'Pee + Poo' })).toBeChecked()
-    expect(screen.getByRole('radio', { name: 'Pee' })).not.toBeChecked()
-    expect(screen.getByRole('radio', { name: 'Poo' })).not.toBeChecked()
+    expect(button('Log it')).toBeDisabled()
   })
 
-  it('writes nothing until Log it is pressed', async () => {
+  it('reads pee and poo together as one entry', async () => {
     setup(bothOutside)
     await openDetails()
-    await userEvent.click(screen.getByRole('radio', { name: 'Poo' }))
+    await userEvent.click(button('Pee'))
+    await userEvent.click(button('Poo'))
+    await send()
+
+    for (const [event] of log.mock.calls) {
+      expect(event).toMatchObject({ type: 'potty', pottyKind: 'both' })
+    }
+  })
+
+  it('lets a pick be taken back', async () => {
+    setup(bothOutside)
+    await openDetails()
+    await userEvent.click(button('Pee'))
+    expect(button('Pee')).toHaveAttribute('aria-pressed', 'true')
+
+    await userEvent.click(button('Pee'))
+    expect(button('Pee')).toHaveAttribute('aria-pressed', 'false')
+    expect(button('Log it')).toBeDisabled()
+  })
+
+  it('writes nothing until the send button', async () => {
+    setup(bothOutside)
+    await openDetails()
+    await userEvent.click(button('Poo'))
     expect(log).not.toHaveBeenCalled()
 
-    await userEvent.click(screen.getByRole('button', { name: 'Log it' }))
+    await send()
     expect(log).toHaveBeenCalledTimes(2)
     for (const [event] of log.mock.calls) {
       expect(event).toMatchObject({ type: 'potty', pottyKind: 'poo', location: 'outside' })
     }
   })
 
+  it('records only the dogs still taken', async () => {
+    setup(bothOutside)
+    await openDetails()
+    await userEvent.click(button('Oreo'))
+    await userEvent.click(button('Pee'))
+    await send()
+
+    expect(log).toHaveBeenCalledTimes(1)
+    expect(log.mock.calls[0]![0]).toMatchObject({ dogId: DOG_B, type: 'potty' })
+  })
+
   it('files each dog at its own place when no place is chosen', async () => {
     setup(apart)
     await openDetails()
-    await userEvent.click(screen.getByRole('radio', { name: 'Pee' }))
-    await userEvent.click(screen.getByRole('button', { name: 'Log it' }))
+    await userEvent.click(button('Pee'))
+    await send()
 
     const byDog = Object.fromEntries(log.mock.calls.map(([e]) => [e.dogId, e.location]))
     expect(byDog).toEqual({ [DOG_A]: 'outside', [DOG_B]: 'inside' })
   })
 
   it('records the move alongside the potty when the place changed', async () => {
-    setup(bothOutside, DOG_A)
+    setup(bothOutside)
     await openDetails()
-    await userEvent.click(screen.getByRole('radio', { name: 'Pee' }))
+    await userEvent.click(button('Ramen'))
+    await userEvent.click(button('Pee'))
     await userEvent.click(screen.getByRole('radio', { name: 'Inside' }))
-    await userEvent.click(screen.getByRole('button', { name: 'Log it' }))
+    await send()
 
     const types = log.mock.calls.map(([e]) => e.type)
     expect(types).toEqual(['potty', 'location'])
@@ -155,12 +202,11 @@ describe('Deck open', () => {
   })
 
   it('attaches a note and clears it after submitting', async () => {
-    setup(bothOutside, DOG_A)
+    setup(bothOutside)
     await openDetails()
-    await userEvent.click(screen.getByRole('radio', { name: 'Poo' }))
-    await userEvent.click(screen.getByRole('button', { name: /add a note/i }))
+    await userEvent.click(button('Poo'))
     await userEvent.type(screen.getByLabelText('Note for this entry'), 'soft stool')
-    await userEvent.click(screen.getByRole('button', { name: 'Log it' }))
+    await send()
 
     expect(log.mock.calls[0]![0].note).toBe('soft stool')
     // Folds back up, so nothing carries into the next entry.
@@ -170,8 +216,8 @@ describe('Deck open', () => {
   it('undoes everything one submit created', async () => {
     setup(bothOutside)
     await openDetails()
-    await userEvent.click(screen.getByRole('radio', { name: 'Pee' }))
-    await userEvent.click(screen.getByRole('button', { name: 'Log it' }))
+    await userEvent.click(button('Pee'))
+    await send()
 
     const [, options] = toast.mock.calls[0]!
     options.action.onClick()
@@ -183,13 +229,13 @@ describe('the crate and the bed', () => {
   it('offers all five places', () => {
     setup(bothOutside)
     for (const name of ['Pen', 'Outside', 'Inside', 'Crate', 'Bed']) {
-      expect(screen.getByRole('button', { name })).toBeInTheDocument()
+      expect(button(name)).toBeInTheDocument()
     }
   })
 
   it('logs a move into the crate for every dog', async () => {
     setup(bothOutside)
-    await userEvent.click(screen.getByRole('button', { name: 'Crate' }))
+    await userEvent.click(button('Crate'))
 
     expect(log).toHaveBeenCalledTimes(2)
     for (const [event] of log.mock.calls) {
@@ -200,14 +246,14 @@ describe('the crate and the bed', () => {
   it('lights the bed once they are both on it', () => {
     setup([placed(DOG_A, 'bed'), placed(DOG_B, 'bed')])
     // Closed, the lit button is where they are.
-    expect(screen.getByRole('button', { name: 'Bed' })).toBeInTheDocument()
+    expect(button('Bed')).toBeInTheDocument()
   })
 
   it('files a potty in the bed at the bed', async () => {
     setup([placed(DOG_A, 'bed'), placed(DOG_B, 'bed')])
     await openDetails()
-    await userEvent.click(screen.getByRole('radio', { name: 'Poo' }))
-    await userEvent.click(screen.getByRole('button', { name: 'Log it' }))
+    await userEvent.click(button('Poo'))
+    await send()
 
     for (const [event] of log.mock.calls) {
       expect(event).toMatchObject({ type: 'potty', location: 'bed' })

@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { ChevronDown, ChevronUp, Plus } from 'lucide-react'
+import { Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   DEFAULT_LOCATION,
   LOCATIONS,
   LOCATION_LABELS,
-  POTTY_KINDS,
+  POTTY_GLYPHS,
   POTTY_LABELS,
   currentLocation,
   type Dog,
@@ -16,17 +16,23 @@ import {
 import { accentColor } from '../lib/accent'
 import { tapped } from '../lib/feedback'
 import { log, undo } from '../lib/sync'
-import { PlaceGlyph } from './Place'
-
-/** Sentinel selection: apply the entry to every dog at once. */
-export const BOTH = 'both'
+import { Glyph, PlaceGlyph } from './Place'
 
 type Props = {
   dogs: Dog[]
   events: PupEvent[]
-  selectedId: string
-  onSelect: (id: string) => void
 }
+
+/** Pee and poo are picked independently; picking both is the `both` kind. */
+const PICKS = ['pee', 'poo'] as const
+type PottyPick = (typeof PICKS)[number]
+
+/** No paper plane exists in the emoji set; the outbox tray is the send glyph. */
+const SEND = '📤'
+
+/** The places, and the detail row beneath them at half the height and half the glyph. */
+const MAIN_GLYPH_PX = 24
+const DETAIL_GLYPH_PX = MAIN_GLYPH_PX / 2
 
 const POTTY_PAST = { pee: 'Peed', poo: 'Pooed', both: 'Peed and pooed' } as const
 const PLACE_PAST = {
@@ -42,19 +48,29 @@ function listNames(dogs: Dog[]): string {
   return `${dogs.slice(0, -1).map((dog) => dog.name).join(', ')} and ${dogs.at(-1)!.name}`
 }
 
-export function Deck({ dogs, events, selectedId, onSelect }: Props) {
+/** The deck's one button shape: a bordered tile that fills in when it is on. */
+function tile(on: boolean, fill: string) {
+  return {
+    borderColor: on ? 'transparent' : 'var(--color-line)',
+    background: on ? fill : 'transparent',
+  }
+}
+
+export function Deck({ dogs, events }: Props) {
   // Closed, this deck is five place buttons: move them, for both dogs, right now.
-  // Open, it becomes a form and nothing is written until Log it.
+  // Open, it becomes a form and nothing is written until the send button.
   const [open, setOpen] = useState(false)
   const [pendingLocation, setPendingLocation] = useState<Location | null>(null)
-  const [pottyKind, setPottyKind] = useState<PottyKind | null>(null)
+  const [picks, setPicks] = useState<PottyPick[]>([])
   const [note, setNote] = useState('')
-  const [noteOpen, setNoteOpen] = useState(false)
+  // Held as the dogs left out rather than the ones taken, so every dog — including
+  // one that only syncs down later — starts an entry selected.
+  const [skipped, setSkipped] = useState<string[]>([])
 
-  const everyone = selectedId === BOTH && dogs.length > 1
-  const chosen = everyone ? dogs : dogs.filter((dog) => dog.id === selectedId)
-  const targets = chosen.length ? chosen : dogs.slice(0, 1)
-  if (!targets.length) return null
+  if (!dogs.length) return null
+
+  const targets = dogs.filter((dog) => !skipped.includes(dog.id))
+  const pottyKind: PottyKind | null = picks.length === 2 ? 'both' : (picks[0] ?? null)
 
   const where = (dog: Dog) => currentLocation(events, dog.id) ?? DEFAULT_LOCATION
 
@@ -65,22 +81,21 @@ export function Deck({ dogs, events, selectedId, onSelect }: Props) {
 
   const accents = dogs.map((dog) => accentColor(dog.accent))
   const spread = `linear-gradient(135deg, ${accents.join(', ')})`
-  const fill = open && !everyone ? accentColor(targets[0]!.accent) : spread
 
-  // The place buttons hold emoji, not text, so their background carries no
-  // contrast requirement and can be softened. Everything else here is a label
-  // on a solid, and stays full strength.
+  // These buttons hold emoji, not text, so their background carries no contrast
+  // requirement and can be softened.
   const soften = (colour: string) => `color-mix(in oklab, ${colour} 50%, white)`
-  const placeFill =
-    open && !everyone
-      ? soften(accentColor(targets[0]!.accent))
-      : `linear-gradient(135deg, ${accents.map(soften).join(', ')})`
+  const blend = (list: Dog[]) =>
+    list.length > 1
+      ? `linear-gradient(135deg, ${list.map((dog) => soften(accentColor(dog.accent))).join(', ')})`
+      : soften(accentColor(list[0]!.accent))
+  const fill = blend(open && targets.length ? targets : dogs)
 
   function reset() {
     setPendingLocation(null)
-    setPottyKind(null)
+    setPicks([])
     setNote('')
-    setNoteOpen(false)
+    setSkipped([])
     setOpen(false)
   }
 
@@ -121,10 +136,22 @@ export function Deck({ dogs, events, selectedId, onSelect }: Props) {
     )
   }
 
+  function togglePick(pick: PottyPick) {
+    setPicks((current) =>
+      current.includes(pick) ? current.filter((other) => other !== pick) : [...current, pick],
+    )
+  }
+
+  function toggleDog(id: string) {
+    setSkipped((current) =>
+      current.includes(id) ? current.filter((other) => other !== id) : [...current, id],
+    )
+  }
+
   const locationChanges = pendingLocation
     ? targets.some((dog) => where(dog) !== pendingLocation)
     : false
-  const canSubmit = Boolean(pottyKind) || locationChanges
+  const canSubmit = targets.length > 0 && (Boolean(pottyKind) || locationChanges)
 
   async function submit() {
     if (!canSubmit) return
@@ -163,11 +190,6 @@ export function Deck({ dogs, events, selectedId, onSelect }: Props) {
     reset()
   }
 
-  const choices = [
-    ...dogs.map((dog) => ({ id: dog.id, label: dog.name, fill: accentColor(dog.accent) })),
-    ...(dogs.length > 1 ? [{ id: BOTH, label: 'Both', fill: spread }] : []),
-  ]
-
   return (
     // Full-bleed background and gradient rule; the controls stay on the same
     // column grid as the timeline above.
@@ -176,135 +198,112 @@ export function Deck({ dogs, events, selectedId, onSelect }: Props) {
       style={{ borderTopWidth: 3, borderImage: `${spread} 1` }}
     >
       <div className="mx-auto w-full max-w-sm px-4 pb-5 pt-3">
-      <div
-        // Five places across: at 375px that is ~62px each, comfortably past the
-        // 44px a thumb needs.
-        className="grid grid-cols-5 gap-1.5"
-        role={open ? 'radiogroup' : undefined}
-        aria-label={open ? 'Where' : undefined}
-      >
-        {LOCATIONS.map((option) => {
-          const on = option === lit
-          return (
-            <button
-              key={option}
-              type="button"
-              role={open ? 'radio' : undefined}
-              aria-checked={open ? on : undefined}
-              aria-label={LOCATION_LABELS[option]}
-              title={LOCATION_LABELS[option]}
-              onClick={() => void tapLocation(option)}
-              className="press grid h-16 place-items-center rounded-2xl border"
-              style={{
-                borderColor: on ? 'transparent' : 'var(--color-line)',
-                background: on ? placeFill : 'transparent',
-              }}
-            >
-              <PlaceGlyph location={option} size={24} />
-            </button>
-          )
-        })}
-      </div>
+        <div
+          // Five places across: at 375px that is ~62px each, comfortably past the
+          // 44px a thumb needs.
+          className="grid grid-cols-5 gap-1.5"
+          role={open ? 'radiogroup' : undefined}
+          aria-label={open ? 'Where' : undefined}
+        >
+          {LOCATIONS.map((option) => {
+            const on = option === lit
+            return (
+              <button
+                key={option}
+                type="button"
+                role={open ? 'radio' : undefined}
+                aria-checked={open ? on : undefined}
+                aria-label={LOCATION_LABELS[option]}
+                onClick={() => void tapLocation(option)}
+                className="press grid h-16 place-items-center rounded-2xl border"
+                style={tile(on, fill)}
+              >
+                <PlaceGlyph location={option} size={MAIN_GLYPH_PX} />
+              </button>
+            )
+          })}
+        </div>
 
-      <button
-        type="button"
-        onClick={() => (open ? reset() : setOpen(true))}
-        aria-expanded={open}
-        className="press mt-2 flex h-9 w-full items-center justify-center gap-1.5 rounded-2xl text-sm text-ink-faint hover:bg-sunk hover:text-ink"
-      >
-        {open ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
-        {open ? 'Less' : 'Add details'}
-      </button>
+        {/* The eye is the only thing on this line until it is opened, and it holds
+            its place at the right edge while the form fills in to its left. */}
+        <div className="mt-1.5 flex items-center justify-end gap-2">
+          {open ? (
+            <>
+              <div className="flex gap-1" role="group" aria-label="Which dog">
+                {dogs.map((dog) => {
+                  const on = !skipped.includes(dog.id)
+                  return (
+                    <button
+                      key={dog.id}
+                      type="button"
+                      aria-pressed={on}
+                      aria-label={dog.name}
+                      onClick={() => toggleDog(dog.id)}
+                      className="press grid size-8 place-items-center rounded-2xl border"
+                      style={tile(on, soften(accentColor(dog.accent)))}
+                    >
+                      <Glyph text={dog.emoji} label={dog.name} size={DETAIL_GLYPH_PX} />
+                    </button>
+                  )
+                })}
+              </div>
 
-      {open ? (
-        <div className="mt-1 grid gap-2">
-          {choices.length > 1 ? (
-            <div
-              className="grid gap-2"
-              style={{ gridTemplateColumns: `repeat(${choices.length}, minmax(0, 1fr))` }}
-              role="radiogroup"
-              aria-label="Which dog"
-            >
-              {choices.map((choice) => {
-                const on = choice.id === selectedId
-                return (
-                  <button
-                    key={choice.id}
-                    type="button"
-                    role="radio"
-                    aria-checked={on}
-                    onClick={() => onSelect(choice.id)}
-                    className="press h-11 truncate rounded-2xl border px-2 text-base font-semibold"
-                    style={{
-                      borderColor: on ? 'transparent' : 'var(--color-line)',
-                      background: on ? choice.fill : 'transparent',
-                      color: on ? 'var(--color-on-accent)' : 'var(--color-ink-muted)',
-                    }}
-                  >
-                    {choice.label}
-                  </button>
-                )
-              })}
-            </div>
+              <div className="flex gap-1" role="group" aria-label="What happened">
+                {PICKS.map((pick) => {
+                  const on = picks.includes(pick)
+                  return (
+                    <button
+                      key={pick}
+                      type="button"
+                      aria-pressed={on}
+                      aria-label={POTTY_LABELS[pick]}
+                      onClick={() => togglePick(pick)}
+                      className="press grid size-8 place-items-center rounded-2xl border"
+                      style={tile(on, fill)}
+                    >
+                      <Glyph
+                        text={POTTY_GLYPHS[pick]}
+                        label={POTTY_LABELS[pick]}
+                        size={DETAIL_GLYPH_PX}
+                      />
+                    </button>
+                  )
+                })}
+              </div>
+
+              <input
+                value={note}
+                onChange={(event) => setNote(event.target.value)}
+                maxLength={500}
+                aria-label="Note for this entry"
+                className="h-8 min-w-0 flex-1 rounded-2xl border border-line bg-surface px-3 text-sm outline-none focus-visible:border-ink"
+              />
+
+              <button
+                type="button"
+                onClick={() => void submit()}
+                disabled={!canSubmit}
+                aria-label="Log it"
+                className="press grid size-8 place-items-center rounded-2xl border disabled:opacity-40"
+                style={tile(canSubmit, fill)}
+              >
+                <Glyph text={SEND} label="Log it" size={DETAIL_GLYPH_PX} />
+              </button>
+            </>
           ) : null}
-
-          <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="What happened">
-            {POTTY_KINDS.map((kind) => {
-              const on = kind === pottyKind
-              return (
-                <button
-                  key={kind}
-                  type="button"
-                  role="radio"
-                  aria-checked={on}
-                  // Exclusive: picking one clears the other two.
-                  onClick={() => setPottyKind(on ? null : kind)}
-                  className="press h-12 rounded-2xl border text-base font-bold"
-                  style={{
-                    borderColor: on ? 'transparent' : 'var(--color-line)',
-                    background: on ? fill : 'transparent',
-                    color: on ? 'var(--color-on-accent)' : 'var(--color-ink-muted)',
-                  }}
-                >
-                  {POTTY_LABELS[kind]}
-                </button>
-              )
-            })}
-          </div>
-
-          {noteOpen ? (
-            <textarea
-              autoFocus
-              value={note}
-              onChange={(event) => setNote(event.target.value)}
-              rows={2}
-              maxLength={500}
-              placeholder="Soft stool, ate something in the yard…"
-              aria-label="Note for this entry"
-              className="w-full resize-none rounded-2xl border border-line bg-surface px-3 py-2 text-sm outline-none placeholder:text-ink-faint focus-visible:border-ink"
-            />
-          ) : (
-            <button
-              type="button"
-              onClick={() => setNoteOpen(true)}
-              className="press flex h-9 w-full items-center justify-center gap-1.5 rounded-2xl text-sm text-ink-faint hover:bg-sunk hover:text-ink"
-            >
-              <Plus size={14} />
-              Add a note
-            </button>
-          )}
 
           <button
             type="button"
-            onClick={() => void submit()}
-            disabled={!canSubmit}
-            className="press h-14 rounded-2xl text-lg font-bold disabled:opacity-40"
-            style={{ background: fill, color: 'var(--color-on-accent)' }}
+            onClick={() => (open ? reset() : setOpen(true))}
+            aria-expanded={open}
+            aria-label={open ? 'Hide details' : 'Add details'}
+            // No padding on the right, so the icon ends on the same line as the
+            // last place button above it.
+            className="press grid h-8 place-items-center pl-2 text-ink-faint hover:text-ink"
           >
-            Log it
+            {open ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
         </div>
-      ) : null}
       </div>
     </div>
   )
