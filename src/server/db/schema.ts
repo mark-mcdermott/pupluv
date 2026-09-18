@@ -20,6 +20,7 @@ export const location = pgEnum('location', ['pen', 'outside', 'inside', 'crate',
 export const eventType = pgEnum('event_type', [
   'location',
   'potty',
+  'bark',
   'meal',
   'water',
   'sleep',
@@ -94,6 +95,7 @@ export const events = pgTable(
       'potty_event_is_complete',
       sql`${t.type} <> 'potty' or (${t.location} is not null and ${t.pottyKind} is not null)`,
     ),
+    check('bark_event_has_place', sql`${t.type} <> 'bark' or ${t.location} is not null`),
     check(
       'intake_event_has_amount',
       sql`${t.type} not in ('meal', 'water') or ${t.amount} is not null`,

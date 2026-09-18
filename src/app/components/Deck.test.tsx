@@ -414,3 +414,55 @@ describe('editing an entry', () => {
     expect(log.mock.calls[0]![0]).toMatchObject({ type: 'location', location: 'outside' })
   })
 })
+
+describe('barking', () => {
+  it('sits with pee and poo without being one of them', async () => {
+    setup(bothOutside)
+    await openDetails()
+    await userEvent.click(button('Barked'))
+    await send()
+
+    expect(log).toHaveBeenCalledTimes(2)
+    for (const [event] of log.mock.calls) {
+      expect(event).toMatchObject({ type: 'bark', location: 'outside' })
+      expect(event.pottyKind).toBeUndefined()
+    }
+  })
+
+  it('rides along with a potty as one entry', async () => {
+    setup(bothOutside)
+    await openDetails()
+    await userEvent.click(button('Pee'))
+    await userEvent.click(button('Barked'))
+    await send()
+
+    const types = log.mock.calls.map(([event]) => event.type).sort()
+    expect(types).toEqual(['bark', 'bark', 'potty', 'potty'])
+    const stamps = new Set(log.mock.calls.map(([event]) => event.occurredAt))
+    expect(stamps.size).toBe(1)
+  })
+
+  it('is enough on its own to submit', async () => {
+    setup(bothOutside)
+    await openDetails()
+    expect(button('Submit')).toBeDisabled()
+
+    await userEvent.click(button('Barked'))
+    expect(button('Submit')).toBeEnabled()
+  })
+
+  it('comes back pressed when the entry is reopened', () => {
+    const at = '2026-09-16T14:30:00.000Z'
+    const bark = eventSchema.parse({
+      id: '66666666-6666-4666-8666-000000000001',
+      dogId: DOG_A,
+      type: 'bark',
+      occurredAt: at,
+      location: 'outside',
+    })
+    render(<Deck dogs={DOGS} events={bothOutside} editing={[bark]} onDone={vi.fn()} />)
+
+    expect(button('Barked')).toHaveAttribute('aria-pressed', 'true')
+    expect(button('Pee')).toHaveAttribute('aria-pressed', 'false')
+  })
+})

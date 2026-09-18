@@ -28,6 +28,13 @@ pnpm desktop:install  # the same, into /Applications
 
 ## The two ideas worth knowing
 
+**A bark is its own kind of event, not a kind of potty.** It is never an
+accident, it has nothing to do with house-training, and what matters about it is
+when and where — 6am on a Saturday, 11pm on a weekday. It shares the potty
+buttons' row because that row is "what happened", and shares an entry with a
+potty when both are logged at once, but it is a separate arm of the union with
+its own CHECK constraint. Never fold it into `POTTY_KINDS`.
+
 **An accident is derived, not recorded.** Every elimination is logged with a
 type *and* a location. `isAccident` is `location !== 'outside'`. Logging the
 successes too is what makes the weekly tally a training signal instead of a
