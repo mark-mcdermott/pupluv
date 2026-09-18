@@ -138,10 +138,15 @@
       transform 120ms cubic-bezier(0.2, 0, 0, 1),
       background-color 120ms ease,
       border-color 120ms ease;
+    /* No waiting to see whether a tap is a double tap. */
+    touch-action: manipulation;
   }
 
   .press:active {
     transform: scale(0.96);
+    /* Instant down, eased back up. Animating *into* the press is what reads as
+       lag: the finger is already there and the button is still travelling. */
+    transition-duration: 0s;
   }
 
   /* The deck's buttons. Both fills arrive as custom properties rather than an

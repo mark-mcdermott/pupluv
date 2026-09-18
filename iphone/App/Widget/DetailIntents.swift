@@ -127,6 +127,10 @@ struct SubmitIntent: AppIntent {
             return .result()
         }
 
+        // Redraw before the network, not after: the tap has already changed
+        // what the widget should show, and waiting on a round trip to say so is
+        // the pause you feel.
+        WidgetRefresh.reload()
         await PupluvAPI.send(events)
         WidgetRefresh.reload()
         return .result()
