@@ -54,7 +54,7 @@ const pottied = (
 
 const button = (name: string) => screen.getByRole('button', { name })
 const openDetails = () => userEvent.click(button('Add details'))
-const send = () => userEvent.click(button('Log it'))
+const send = () => userEvent.click(button('Submit'))
 
 let minted = 0
 beforeEach(() => {
@@ -74,7 +74,7 @@ describe('Deck closed', () => {
     setup(bothOutside)
     expect(button('Pen')).toBeInTheDocument()
     expect(button('Add details')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Log it' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Submit' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Pee' })).not.toBeInTheDocument()
   })
 
@@ -112,7 +112,7 @@ describe('Deck open', () => {
 
     await userEvent.click(button('Hide details'))
     expect(button('Add details')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Log it' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Submit' })).not.toBeInTheDocument()
   })
 
   it('starts with every dog taken', async () => {
@@ -132,23 +132,35 @@ describe('Deck open', () => {
     expect(screen.getByRole('radio', { name: 'Pen' })).toBeChecked()
   })
 
-  it('folds away rather than writing when there is nothing to record', async () => {
+  it('will not submit with nothing to record', async () => {
     setup(bothOutside)
     await openDetails()
-    await send()
+    expect(button('Submit')).toBeDisabled()
+  })
+
+  it('will not submit with no dog taken', async () => {
+    setup(bothOutside)
+    await openDetails()
+    await userEvent.click(button('Pee'))
+    for (const dog of DOGS) await userEvent.click(button(dog.name))
+
+    expect(button('Submit')).toBeDisabled()
+  })
+
+  it('folds away on Cancel without writing', async () => {
+    setup(bothOutside)
+    await openDetails()
+    await userEvent.click(button('Pee'))
+    await userEvent.click(button('Cancel'))
 
     expect(log).not.toHaveBeenCalled()
     expect(button('Add details')).toBeInTheDocument()
   })
 
-  it('writes nothing when no dog is taken', async () => {
+  it('has no Delete until there is something to delete', async () => {
     setup(bothOutside)
     await openDetails()
-    await userEvent.click(button('Pee'))
-    for (const dog of DOGS) await userEvent.click(button(dog.name))
-    await send()
-
-    expect(log).not.toHaveBeenCalled()
+    expect(screen.queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument()
   })
 
   it('reads pee and poo together as one entry', async () => {
@@ -173,7 +185,7 @@ describe('Deck open', () => {
     expect(button('Pee')).toHaveAttribute('aria-pressed', 'false')
   })
 
-  it('writes nothing until the send button', async () => {
+  it('writes nothing until Submit', async () => {
     setup(bothOutside)
     await openDetails()
     await userEvent.click(button('Poo'))
@@ -240,7 +252,7 @@ describe('Deck open', () => {
 
     expect(log.mock.calls[0]![0].note).toBe('soft stool')
     // Folds back up, so nothing carries into the next entry.
-    expect(screen.queryByRole('button', { name: 'Log it' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Submit' })).not.toBeInTheDocument()
   })
 
   it('undoes everything one submit created', async () => {
@@ -311,12 +323,22 @@ describe('editing an entry', () => {
     expect(screen.getByRole('radio', { name: 'Outside' })).toBeChecked()
   })
 
-  it('trades the send button for Cancel and Submit', () => {
+  it('adds Delete to Cancel and Submit', () => {
     edit([pottied(DOG_A, AT)])
 
-    expect(screen.queryByRole('button', { name: 'Log it' })).not.toBeInTheDocument()
+    expect(button('Delete')).toBeInTheDocument()
     expect(button('Cancel')).toBeInTheDocument()
     expect(button('Submit')).toBeInTheDocument()
+  })
+
+  it('tombstones the whole entry on Delete, and writes nothing back', async () => {
+    const original = [pottied(DOG_A, AT), pottied(DOG_B, AT)]
+    const onDone = edit(original)
+    await userEvent.click(button('Delete'))
+
+    expect(undo.mock.calls.flat()).toEqual(original.map((event) => event.id))
+    expect(log).not.toHaveBeenCalled()
+    expect(onDone).toHaveBeenCalled()
   })
 
   it('writes nothing on Cancel', async () => {

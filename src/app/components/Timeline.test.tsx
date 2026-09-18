@@ -5,9 +5,6 @@ import { eventSchema, type Dog, type PupEvent } from '@/lib/domain'
 import { clockLabel } from '../lib/time'
 import { Timeline } from './Timeline'
 
-const { undo } = vi.hoisted(() => ({ undo: vi.fn() }))
-vi.mock('../lib/sync', () => ({ undo }))
-
 const DOG_A = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 const DOG_B = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
 
@@ -54,7 +51,6 @@ function moved(dogId: string, occurredAt: string, location = 'pen'): PupEvent {
 }
 
 beforeEach(() => {
-  undo.mockReset()
 })
 
 describe('Timeline', () => {
@@ -70,14 +66,6 @@ describe('Timeline', () => {
 
     expect(screen.getAllByRole('listitem')).toHaveLength(1)
     expect(screen.getByRole('img', { name: 'Oreo' })).toBeInTheDocument()
-  })
-
-  it('removes the move along with the potty it was logged with', async () => {
-    const at = todayAt(9)
-    render(<Timeline dogs={DOGS} events={[potty(DOG_A, at), moved(DOG_A, at)]} />)
-    await userEvent.click(screen.getByRole('button', { name: /^Remove:/ }))
-
-    expect(undo).toHaveBeenCalledTimes(2)
   })
 
   it('keeps a move logged on its own as its own entry', () => {
@@ -100,14 +88,14 @@ describe('Timeline', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(2)
   })
 
-  it('removes every event behind a grouped row', async () => {
+  it('hands the move over with the potty it was logged with', async () => {
     const at = todayAt(9)
-    const group = [potty(DOG_A, at), potty(DOG_B, at)]
-    render(<Timeline dogs={DOGS} events={group} />)
-    await userEvent.click(screen.getByRole('button', { name: /^remove:/i }))
+    const group = [potty(DOG_A, at), moved(DOG_A, at)]
+    const onEdit = vi.fn()
+    render(<Timeline dogs={DOGS} events={group} onEdit={onEdit} />)
+    await userEvent.click(screen.getByRole('button', { name: /^Edit:/ }))
 
-    expect(undo).toHaveBeenCalledTimes(2)
-    expect(undo.mock.calls.flat()).toEqual(group.map((event) => event.id))
+    expect(onEdit.mock.calls[0]![0]).toHaveLength(2)
   })
 
   it('shows a recorded note', () => {
@@ -115,7 +103,7 @@ describe('Timeline', () => {
     expect(screen.getByText('ate grass')).toBeInTheDocument()
   })
 
-  it('hands the whole entry to the deck when the pencil is pressed', async () => {
+  it('hands the whole entry to the deck when the row is tapped', async () => {
     const at = todayAt(9)
     const group = [potty(DOG_A, at), potty(DOG_B, at)]
     const onEdit = vi.fn()
@@ -128,19 +116,13 @@ describe('Timeline', () => {
     )
   })
 
-  it('writes nothing itself when the pencil is pressed', async () => {
-    render(<Timeline dogs={DOGS} events={[potty(DOG_A, todayAt(9))]} onEdit={vi.fn()} />)
-    await userEvent.click(screen.getByRole('button', { name: /^Edit:/ }))
-    expect(undo).not.toHaveBeenCalled()
-  })
-
   it('marks only the row being edited', () => {
     const one = potty(DOG_A, todayAt(9))
     const two = potty(DOG_A, todayAt(10))
     render(<Timeline dogs={DOGS} events={[one, two]} editing={[two]} />)
 
-    const rows = screen.getAllByRole('listitem')
-    const marked = rows.filter((row) => row.className.includes('bg-surface'))
+    const rows = screen.getAllByRole('button', { name: /^Edit:/ })
+    const marked = rows.filter((row) => row.className.includes('ring-line'))
     expect(marked).toHaveLength(1)
     expect(marked[0]).toHaveTextContent(clockLabel(two.occurredAt))
   })

@@ -43,12 +43,18 @@ export const POTTY_GLYPHS: Record<PottyKind, string> = {
 const isoDate = z.iso.datetime({ offset: true })
 const nullableIso = isoDate.nullish().transform((v) => v ?? null)
 
+/**
+ * Notes ride along a timeline row rather than sitting under it, so they have to
+ * fit one. Short enough to read at a glance is the point, not the limit.
+ */
+export const NOTE_MAX = 30
+
 const eventBase = {
   /** Minted on the device so replaying a queued write is idempotent. */
   id: z.uuid(),
   dogId: z.uuid(),
   occurredAt: isoDate,
-  note: z.string().trim().max(500).nullish().transform((v) => v || null),
+  note: z.string().trim().max(NOTE_MAX).nullish().transform((v) => v || null),
   deletedAt: nullableIso,
 }
 
