@@ -19,6 +19,7 @@ public enum PupluvShared {
         static let detailOpen = "detailOpen"
         static let skipped = "skippedDogs"
         static let picks = "picks"
+        static let barked = "barked"
         static let pendingPlace = "pendingPlace"
     }
 
@@ -32,9 +33,15 @@ public enum PupluvShared {
     }
 
     /// An event the widget minted. Mirrors the shape the API expects, so a
-    /// queued one can be posted verbatim later. A potty kind is what separates
-    /// the two types, exactly as it does in the Zod union.
+    /// queued one can be posted verbatim later. The arm of the Zod union is
+    /// named rather than inferred: a bark and a move carry the same fields.
     public struct PendingEvent: Codable, Equatable {
+        public enum Kind: String {
+            case location
+            case potty
+            case bark
+        }
+
         public let id: String
         public let dogId: String
         public let type: String
@@ -46,16 +53,17 @@ public enum PupluvShared {
 
         public init(
             dogId: String,
+            kind: Kind,
             location: String,
             pottyKind: String? = nil,
             occurredAt: Date = Date()
         ) {
             self.id = UUID().uuidString.lowercased()
             self.dogId = dogId
-            self.type = pottyKind == nil ? "location" : "potty"
+            self.type = kind.rawValue
             self.occurredAt = ISO8601DateFormatter.pupluv.string(from: occurredAt)
             self.location = location
-            self.pottyKind = pottyKind
+            self.pottyKind = kind == .potty ? pottyKind : nil
             self.note = nil
             self.deletedAt = nil
         }
@@ -113,6 +121,12 @@ public enum PupluvShared {
         set { encode(newValue, Key.picks) }
     }
 
+    /// Its own event rather than a third pick: a bark is never an accident.
+    public static var barked: Bool {
+        get { defaults?.bool(forKey: Key.barked) ?? false }
+        set { defaults?.set(newValue, forKey: Key.barked) }
+    }
+
     /// Where the entry is being filed. Only set while the row is open: closed,
     /// a place button writes immediately instead.
     public static var pendingPlace: String? {
@@ -139,6 +153,7 @@ public enum PupluvShared {
         detailOpen = false
         skipped = []
         picks = []
+        barked = false
         defaults?.removeObject(forKey: Key.pendingPlace)
     }
 
