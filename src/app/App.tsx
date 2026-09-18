@@ -20,6 +20,16 @@ export default function App() {
     return () => stop?.()
   }, [])
 
+  // Safari holds :active back until it has decided a touch is not the start of a
+  // scroll, which lands as a button that lights up after you have let go. A
+  // touch listener anywhere on the document is what tells it to stop waiting; it
+  // does nothing else, and there is no other way to ask.
+  useEffect(() => {
+    const wake = () => {}
+    document.addEventListener('touchstart', wake, { passive: true })
+    return () => document.removeEventListener('touchstart', wake)
+  }, [])
+
   if (!ready) {
     return <div className="grid h-full place-items-center text-ink-faint">Loading…</div>
   }
