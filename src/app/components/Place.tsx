@@ -1,14 +1,5 @@
-import { LOCATION_LABELS, type Location } from '@/lib/domain'
-
-// Emoji throughout, so places and dogs speak one visual language — a line icon
-// beside a full-colour emoji reads as a stray mark whatever size it is.
-const GLYPHS: Record<Location, string> = {
-  pen: '🛖',
-  outside: '🌳',
-  inside: '🏠',
-  crate: '📦',
-  bed: '🛏️',
-}
+import { LOCATION_GLYPHS, LOCATION_LABELS, type Location } from '@/lib/domain'
+import { GLYPH_STYLE, glyphParts, glyphSrc } from '../lib/glyphs'
 
 /** The dog emoji in a timeline row. */
 export const DOG_GLYPH_PX = 18
@@ -26,14 +17,35 @@ export function Glyph({
   label: string
   size?: number
 }) {
+  if (GLYPH_STYLE === 'native') {
+    return (
+      <span
+        className="inline-flex shrink-0 items-center"
+        style={{ fontSize: size, lineHeight: 1 }}
+        title={label}
+        aria-hidden
+      >
+        {text}
+      </span>
+    )
+  }
+
+  // One image per emoji: a pair like 💧💩 is two glyphs in one string, and the
+  // vendored artwork is filed one to a code point. The alt is the character it
+  // stands for, so a glyph with no artwork still draws something.
   return (
-    <span
-      className="inline-flex shrink-0 items-center"
-      style={{ fontSize: size, lineHeight: 1 }}
-      title={label}
-      aria-hidden
-    >
-      {text}
+    <span className="inline-flex shrink-0 items-center" title={label} aria-hidden>
+      {glyphParts(text).map((part, index) => (
+        <img
+          key={`${part}-${index}`}
+          src={glyphSrc(part)}
+          alt={part}
+          width={size}
+          height={size}
+          style={{ width: size, height: size }}
+          draggable={false}
+        />
+      ))}
     </span>
   )
 }
@@ -45,5 +57,5 @@ export function PlaceGlyph({
   location: Location
   size?: number
 }) {
-  return <Glyph text={GLYPHS[location]} label={LOCATION_LABELS[location]} size={size} />
+  return <Glyph text={LOCATION_GLYPHS[location]} label={LOCATION_LABELS[location]} size={size} />
 }

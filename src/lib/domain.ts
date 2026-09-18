@@ -33,6 +33,20 @@ export const POTTY_LABELS: Record<PottyKind, string> = {
   both: 'Pee + Poo',
 }
 
+/**
+ * Emoji throughout, so places and dogs speak one visual language — a line icon
+ * beside a full-colour emoji reads as a stray mark whatever size it is. Kept
+ * here with the labels rather than in the component that draws them, so the
+ * script that vendors their artwork can read the same list.
+ */
+export const LOCATION_GLYPHS: Record<Location, string> = {
+  pen: '🛖',
+  outside: '🌳',
+  inside: '🏠',
+  crate: '📦',
+  bed: '🛏️',
+}
+
 /** The timeline is glyphs; the words stay on the deck buttons and in a11y names. */
 export const POTTY_GLYPHS: Record<PottyKind, string> = {
   pee: '💧',
