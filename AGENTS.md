@@ -197,6 +197,26 @@ Icons come from `pnpm icons` like every other one. macOS draws no mask, so the
 rounded tile is part of the art: an 824pt tile on a clear 1024 canvas, per
 Apple's grid, then `iconutil` for the `.icns`.
 
+## Glyphs
+
+Emoji are drawn either by the system font or by vendored Twemoji artwork, and
+`GLYPH_STYLE` in `src/app/lib/glyphs.ts` picks which. Images exist so a glyph can
+be replaced by a better one — the cookie wants to be an Oreo — without every dog
+on the phone having to agree it is a cookie.
+
+`pnpm glyphs` copies what the app draws out of `@twemoji/svg` into
+`public/glyphs/`, named for the code points with the variation selector dropped,
+which is Twemoji's own convention. It reads the vocabulary from `domain.ts` and
+the dogs' own emoji from the committed backup, and fails rather than leaving a
+blank space if a glyph has no artwork. Vendored, never fetched: this app has to
+work with no signal.
+
+A glyph string can hold more than one emoji — `both` is `💧💩`, and a potty with
+a bark is another — so `Glyph` splits on graphemes and draws one image each.
+
+The widget carries the same switch separately; they are different builds and
+cannot share a constant.
+
 ## Backups
 
 `backups/pupluv.json` is a full dump of both tables, committed to the repo. A

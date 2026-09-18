@@ -50,13 +50,19 @@ function moved(dogId: string, occurredAt: string, location = 'pen'): PupEvent {
   })
 }
 
+/** What a glyph draws, whether it draws characters or vendored artwork. */
+function drawn(element: HTMLElement): string {
+  const images = [...element.querySelectorAll('img')]
+  return images.length ? images.map((image) => image.alt).join('') : element.textContent!
+}
+
 beforeEach(() => {
 })
 
 describe('Timeline', () => {
   it('identifies dogs by emoji rather than name', () => {
     render(<Timeline dogs={DOGS} events={[potty(DOG_A, todayAt(9))]} />)
-    expect(screen.getByRole('img', { name: 'Oreo' })).toHaveTextContent('🍪')
+    expect(drawn(screen.getByRole('img', { name: 'Oreo' }))).toBe('🍪')
     expect(screen.queryByText('Oreo')).not.toBeInTheDocument()
   })
 
@@ -78,7 +84,7 @@ describe('Timeline', () => {
     render(<Timeline dogs={DOGS} events={[potty(DOG_A, at), potty(DOG_B, at)]} />)
 
     expect(screen.getAllByRole('listitem')).toHaveLength(1)
-    expect(screen.getByRole('img', { name: 'Oreo and Ramen' })).toHaveTextContent('🍪🍜')
+    expect(drawn(screen.getByRole('img', { name: 'Oreo and Ramen' }))).toBe('🍪🍜')
   })
 
   it('keeps entries logged at different times apart', () => {
@@ -110,7 +116,7 @@ describe('Timeline', () => {
     render(<Timeline dogs={DOGS} events={[potty(DOG_A, at), bark]} />)
 
     // One glyph carrying both, not two glyphs a column apart.
-    expect(screen.getByTitle('Poo and Barked')).toHaveTextContent('💩🗯️')
+    expect(drawn(screen.getByTitle('Poo and Barked'))).toBe('💩🗯️')
     expect(screen.queryByTitle('Barked')).not.toBeInTheDocument()
   })
 
@@ -125,7 +131,7 @@ describe('Timeline', () => {
     render(<Timeline dogs={DOGS} events={[bark]} />)
 
     expect(screen.getByTitle('Outside')).toBeInTheDocument()
-    expect(screen.getByTitle('Barked')).toHaveTextContent('🗯️')
+    expect(drawn(screen.getByTitle('Barked'))).toBe('🗯️')
   })
 
   it('shows a recorded note', () => {
@@ -207,7 +213,7 @@ describe('Timeline days', () => {
     const at = daysBack(2)
     render(<Timeline dogs={DOGS} events={[potty(DOG_A, at), potty(DOG_B, at)]} />)
     expect(screen.getAllByRole('listitem')).toHaveLength(1)
-    expect(screen.getByRole('img', { name: 'Oreo and Ramen' })).toHaveTextContent('🍪🍜')
+    expect(drawn(screen.getByRole('img', { name: 'Oreo and Ramen' }))).toBe('🍪🍜')
   })
 
   it('says nothing is logged when there is nothing at all', () => {
@@ -221,7 +227,7 @@ describe('Timeline row layout', () => {
     const at = todayAt(9)
     // Ramen's event first; the row should still follow the dog list.
     render(<Timeline dogs={DOGS} events={[potty(DOG_B, at), potty(DOG_A, at)]} />)
-    expect(screen.getByRole('img', { name: 'Oreo and Ramen' })).toHaveTextContent('🍪🍜')
+    expect(drawn(screen.getByRole('img', { name: 'Oreo and Ramen' }))).toBe('🍪🍜')
   })
 
   it('keeps a pair the same way round on every row', () => {
