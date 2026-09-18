@@ -45,7 +45,8 @@ export function Shell({ dogs, events }: Props) {
       </header>
 
       <main ref={list} className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-        <div className="mx-auto w-full max-w-sm px-4 pb-6">
+        {/* Room below the last entry so it never crowds the button under it. */}
+          <div className="mx-auto w-full max-w-sm px-4 pb-10">
           <Timeline dogs={dogs} events={events} editing={editing} onEdit={setEditing} />
         </div>
       </main>
