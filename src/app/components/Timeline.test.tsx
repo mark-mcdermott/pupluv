@@ -147,15 +147,24 @@ describe('Timeline days', () => {
       />,
     )
     const headings = screen.getAllByRole('heading').map((h) => h.textContent)
-    expect(headings[0]).toBe('Today')
-    expect(headings[1]).toBe('Yesterday')
     // e.g. "Fri 9/11" — weekday then a numeric date, no comma.
-    expect(headings[2]).toMatch(/^[A-Za-z]{3,4} \d{1,2}\/\d{1,2}$/)
+    expect(headings[0]).toMatch(/^[A-Za-z]{3,4} \d{1,2}\/\d{1,2}$/)
+    expect(headings[1]).toBe('Yesterday')
+    expect(headings[2]).toBe('Today')
   })
 
-  it('keeps the newest day first', () => {
-    render(<Timeline dogs={DOGS} events={[potty(DOG_A, daysBack(3)), potty(DOG_A, todayAt(9))]} />)
-    expect(screen.getAllByRole('heading')[0]).toHaveTextContent('Today')
+  // Oldest first: the list reads the way the day happened, and the newest entry
+  // is the one nearest the deck.
+  it('keeps today last, whatever order sync hands them over in', () => {
+    render(<Timeline dogs={DOGS} events={[potty(DOG_A, todayAt(9)), potty(DOG_A, daysBack(3))]} />)
+    const headings = screen.getAllByRole('heading')
+    expect(headings.at(-1)).toHaveTextContent('Today')
+  })
+
+  it('puts the newest entry of a day at the bottom of it', () => {
+    render(<Timeline dogs={DOGS} events={[potty(DOG_A, todayAt(17)), potty(DOG_A, todayAt(9))]} />)
+    const rows = screen.getAllByRole('button', { name: /^Edit:/ })
+    expect(rows.at(-1)).toHaveTextContent(clockLabel(todayAt(17)))
   })
 
   it('files entries under the day they happened on', () => {
