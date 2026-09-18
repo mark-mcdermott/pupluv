@@ -53,7 +53,7 @@ const pottied = (
   })
 
 const button = (name: string) => screen.getByRole('button', { name })
-const openDetails = () => userEvent.click(button('Add details'))
+const openDetails = () => userEvent.click(button('Add entry'))
 const send = () => userEvent.click(button('Submit'))
 
 let minted = 0
@@ -70,10 +70,10 @@ beforeEach(() => {
 })
 
 describe('Deck closed', () => {
-  it('shows only the places plus the eye', () => {
+  it('shows only the places plus the way in', () => {
     setup(bothOutside)
     expect(button('Pen')).toBeInTheDocument()
-    expect(button('Add details')).toBeInTheDocument()
+    expect(button('Add entry')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Submit' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Pee' })).not.toBeInTheDocument()
   })
@@ -105,13 +105,13 @@ describe('Deck closed', () => {
 })
 
 describe('Deck open', () => {
-  it('turns the eye into a way back out', async () => {
+  it('puts the way in away while it is open', async () => {
     setup(bothOutside)
     await openDetails()
-    expect(button('Hide details')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Add entry' })).not.toBeInTheDocument()
 
-    await userEvent.click(button('Hide details'))
-    expect(button('Add details')).toBeInTheDocument()
+    await userEvent.click(button('Cancel'))
+    expect(button('Add entry')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Submit' })).not.toBeInTheDocument()
   })
 
@@ -154,7 +154,7 @@ describe('Deck open', () => {
     await userEvent.click(button('Cancel'))
 
     expect(log).not.toHaveBeenCalled()
-    expect(button('Add details')).toBeInTheDocument()
+    expect(button('Add entry')).toBeInTheDocument()
   })
 
   it('has no Delete until there is something to delete', async () => {
