@@ -159,6 +159,14 @@ export function Timeline({ dogs, events, editing = null, onEdit }: Props) {
               const potty = group.find((event) => event.type === 'potty')
               const barked = group.some((event) => event.type === 'bark')
               const lead = potty ?? group.find((event) => event.type === 'bark') ?? group[0]!
+              // One column for what happened, however much of it happened. Two
+              // glyphs side by side would put a bark a column further right than
+              // a pee, and `both` is already a pair in one glyph.
+              const marks =
+                (potty ? POTTY_GLYPHS[potty.pottyKind] : '') + (barked ? BARK_GLYPH : '')
+              const marksLabel = [potty ? POTTY_LABELS[potty.pottyKind] : '', barked ? BARK_LABEL : '']
+                .filter(Boolean)
+                .join(' and ')
               const accident = isAccident(lead)
               const beingEdited = Boolean(
                 editing?.some((event) => group.some((member) => member.id === event.id)),
@@ -167,8 +175,12 @@ export function Timeline({ dogs, events, editing = null, onEdit }: Props) {
               // reads the same way round, and the same way as the deck.
               const who = dogs.filter((dog) => group.some((event) => event.dogId === dog.id))
               const label = `${who.map((dog) => dog.name).join(' and ')}: ${describe(lead)}`
+              // A bark carries a place like the other two. Leaving it out here is
+              // what put a lone bark in the place column instead of beside it.
               const place =
-                lead.type === 'location' || lead.type === 'potty' ? lead.location : null
+                lead.type === 'location' || lead.type === 'potty' || lead.type === 'bark'
+                  ? lead.location
+                  : null
 
               return (
                 <li key={key} className="relative">
@@ -223,13 +235,7 @@ export function Timeline({ dogs, events, editing = null, onEdit }: Props) {
                       }`}
                     >
                       {place ? <PlaceGlyph location={place} /> : null}
-                      {potty ? (
-                        <Glyph
-                          text={POTTY_GLYPHS[potty.pottyKind]}
-                          label={POTTY_LABELS[potty.pottyKind]}
-                        />
-                      ) : null}
-                      {barked ? <Glyph text={BARK_GLYPH} label={BARK_LABEL} /> : null}
+                      {marks ? <Glyph text={marks} label={marksLabel} /> : null}
                       {lead.type !== 'location' && lead.type !== 'potty' && lead.type !== 'bark' ? (
                         <span className="truncate">{describe(lead)}</span>
                       ) : null}
