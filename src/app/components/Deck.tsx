@@ -2,6 +2,8 @@ import { useEffect, useState, type CSSProperties } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
 import {
+  BARK_GLYPH,
+  BARK_LABEL,
   DEFAULT_LOCATION,
   LOCATIONS,
   LOCATION_LABELS,
@@ -75,6 +77,10 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
   const [open, setOpen] = useState(false)
   const [pendingLocation, setPendingLocation] = useState<Location | null>(null)
   const [picks, setPicks] = useState<PottyPick[]>([])
+  /** Its own event, not a kind of potty: never an accident, and about time and
+   *  place rather than house-training. It sits with the picks because that is
+   *  where "what happened" lives. */
+  const [barked, setBarked] = useState(false)
   const [note, setNote] = useState('')
   // Held as the dogs left out rather than the ones taken, so every dog — including
   // one that only syncs down later — starts an entry selected.
@@ -91,6 +97,7 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
     setSkipped(
       dogs.filter((dog) => !editing.some((event) => event.dogId === dog.id)).map((dog) => dog.id),
     )
+    setBarked(editing.some((event) => event.type === 'bark'))
     setPicks(
       lead.type === 'potty'
         ? lead.pottyKind === 'both'
@@ -98,7 +105,11 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
           : [lead.pottyKind]
         : [],
     )
-    setPendingLocation(lead.type === 'potty' || lead.type === 'location' ? lead.location : null)
+    setPendingLocation(
+      lead.type === 'potty' || lead.type === 'location' || lead.type === 'bark'
+        ? lead.location
+        : null,
+    )
     setNote(lead.note ?? '')
     setAt(toLocalInput(lead.occurredAt))
     // Only the entry, deliberately. Every sync hands down a fresh dogs array,
@@ -144,6 +155,7 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
   function reset() {
     setPendingLocation(null)
     setPicks([])
+    setBarked(false)
     setNote('')
     setSkipped([])
     setAt('')
@@ -226,8 +238,9 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
       (lead.type === 'potty' || lead.type === 'location' ? lead.location : DEFAULT_LOCATION)
     const occurredAt = fromLocalInput(at) ?? lead.occurredAt
     const text = note.trim() || null
-    // An entry always has a place, so a row left with no potty on it is a move.
-    const asMove = !pottyKind || editing.some((event) => event.type === 'location')
+    // An entry always has a place, so a row left with nothing on it is a move.
+    const asMove =
+      (!pottyKind && !barked) || editing.some((event) => event.type === 'location')
 
     await Promise.all(editing.map((event) => undo(event.id)))
     await Promise.all(
@@ -245,6 +258,17 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
             }),
           )
         }
+        if (barked) {
+          writes.push(
+            log({
+              type: 'bark',
+              dogId: dog.id,
+              occurredAt,
+              location: place,
+              note: pottyKind ? null : text,
+            }),
+          )
+        }
         if (asMove) {
           writes.push(
             log({
@@ -252,7 +276,7 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
               dogId: dog.id,
               occurredAt,
               location: place,
-              note: pottyKind ? null : text,
+              note: pottyKind || barked ? null : text,
             }),
           )
         }
@@ -274,7 +298,7 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
   const locationChanges = pendingLocation
     ? targets.some((dog) => where(dog) !== pendingLocation)
     : false
-  const canSubmit = targets.length > 0 && (Boolean(pottyKind) || locationChanges)
+  const canSubmit = targets.length > 0 && (Boolean(pottyKind) || barked || locationChanges)
 
   async function submit() {
     // Live whenever the row is open, so with nothing picked it is simply the way
@@ -306,15 +330,37 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
       ids.push(...created.map((event) => event.id))
     }
 
+    if (barked) {
+      const created = await Promise.all(
+        targets.map((dog) =>
+          log({
+            type: 'bark',
+            dogId: dog.id,
+            occurredAt,
+            location: pendingLocation ?? where(dog),
+            note: pottyKind ? null : text,
+          }),
+        ),
+      )
+      ids.push(...created.map((event) => event.id))
+    }
+
     if (pendingLocation) {
-      const moved = await moveTo(pendingLocation, targets, pottyKind ? null : text, occurredAt)
+      const moved = await moveTo(
+        pendingLocation,
+        targets,
+        pottyKind || barked ? null : text,
+        occurredAt,
+      )
       ids.push(...moved.map((entry) => entry.id))
     }
 
     const place = pendingLocation ?? shared
     const summary = pottyKind
       ? `${POTTY_PAST[pottyKind]}${place ? ` ${PLACE_PAST[place]}` : ''}`
-      : LOCATION_LABELS[pendingLocation!]
+      : barked
+        ? `${BARK_LABEL}${place ? ` ${PLACE_PAST[place]}` : ''}`
+        : LOCATION_LABELS[pendingLocation!]
     announce(`${listNames(targets)} · ${summary}`, ids)
     reset()
   }
@@ -419,6 +465,17 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
                     </button>
                   )
                 })}
+                <button
+                  type="button"
+                  aria-pressed={barked}
+                  aria-label={BARK_LABEL}
+                  onClick={() => setBarked(!barked)}
+                  data-on={barked}
+                  className="press deck-tile grid size-12 shrink-0 place-items-center rounded-full border"
+                  style={tile(barked, TILE_FILL, hint)}
+                >
+                  <Glyph text={BARK_GLYPH} label={BARK_LABEL} size={DETAIL_GLYPH_PX} />
+                </button>
               </div>
 
               <span className="flex-1" />

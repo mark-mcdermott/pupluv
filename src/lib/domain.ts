@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 export const LOCATIONS = ['pen', 'outside', 'inside', 'crate', 'bed'] as const
 export const POTTY_KINDS = ['pee', 'poo', 'both'] as const
-export const EVENT_TYPES = ['location', 'potty', 'meal', 'water', 'sleep'] as const
+export const EVENT_TYPES = ['location', 'potty', 'bark', 'meal', 'water', 'sleep'] as const
 
 export type Location = (typeof LOCATIONS)[number]
 export type PottyKind = (typeof POTTY_KINDS)[number]
@@ -40,6 +40,14 @@ export const POTTY_GLYPHS: Record<PottyKind, string> = {
   both: '💧💩',
 }
 
+/**
+ * Barking is its own kind of event, not a kind of potty: it is never an
+ * accident, it has no relationship to being house-trained, and what matters
+ * about it is when and where — 6am on a Saturday, 11pm on a weekday.
+ */
+export const BARK_GLYPH = '🗯️'
+export const BARK_LABEL = 'Barked'
+
 const isoDate = z.iso.datetime({ offset: true })
 const nullableIso = isoDate.nullish().transform((v) => v ?? null)
 
@@ -71,6 +79,7 @@ export const eventSchema = z.discriminatedUnion('type', [
     location: z.enum(LOCATIONS),
     pottyKind: z.enum(POTTY_KINDS),
   }),
+  z.object({ ...eventBase, type: z.literal('bark'), location: z.enum(LOCATIONS) }),
   z.object({ ...eventBase, type: z.literal('meal'), amount: z.number().positive().max(100) }),
   z.object({ ...eventBase, type: z.literal('water'), amount: z.number().positive().max(500) }),
   z.object({ ...eventBase, type: z.literal('sleep'), endedAt: nullableIso }),
