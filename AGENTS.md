@@ -45,11 +45,15 @@ dogs, pee, poo, send — over a note field, and once that row is open nothing is
 written, not even a place, until send. Anything that blurs that line will make
 the deck lie about what a tap does, which is the exact confusion this replaced.
 
-The third state is an edit. A pencil in the timeline hands its entry down and
-the deck wears it: the row lights the place that was logged, the dogs and picks
-it covered, its note, and a time above the places that can be corrected. Send
-goes, Cancel and Submit take its place, and `Shell` holds the entry because the
-timeline starts the edit and the deck finishes it.
+The third state is an edit. **The timeline row is the control** — there are no
+per-row buttons — and tapping one hands its entry down for the deck to wear: the
+place that was logged, the dogs and picks it covered, its note. Delete joins
+Cancel and Submit, and `Shell` holds the entry because the timeline starts the
+edit and the deck finishes it.
+
+Open and editing are otherwise the same screen. Both carry an editable time above
+the places, both end in the same buttons, and there is no send glyph — a row of
+circles ending in one more circle never said which of them wrote the entry.
 
 **An edit replaces rather than updates.** Submitting tombstones every event in
 the entry and writes the row as it stands. Nothing else could change which dogs

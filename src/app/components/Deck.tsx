@@ -5,6 +5,7 @@ import {
   DEFAULT_LOCATION,
   LOCATIONS,
   LOCATION_LABELS,
+  NOTE_MAX,
   POTTY_GLYPHS,
   POTTY_LABELS,
   currentLocation,
@@ -30,9 +31,6 @@ type Props = {
 /** Pee and poo are picked independently; picking both is the `both` kind. */
 const PICKS = ['pee', 'poo'] as const
 type PottyPick = (typeof PICKS)[number]
-
-/** No paper plane exists in the emoji set; the outbox tray is the send glyph. */
-const SEND = '📤'
 
 /** One fill for every button in the detail row — see --color-tile. */
 const TILE_FILL = 'var(--color-tile)'
@@ -81,7 +79,7 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
   // Held as the dogs left out rather than the ones taken, so every dog — including
   // one that only syncs down later — starts an entry selected.
   const [skipped, setSkipped] = useState<string[]>([])
-  /** Only an edit shows a time, and only an edit can change one. */
+  /** The instant the entry will carry, editable whenever the row is open. */
   const [at, setAt] = useState('')
 
   // The pencil hands the entry over; the deck takes its shape on so the buttons
@@ -137,6 +135,11 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
   // One hover trace for the whole deck, taken from the places' gradient — a
   // trace of the detail row's own deep fill would barely show.
   const hint = across(softened.map(trace))
+
+  function openDetails() {
+    setAt(toLocalInput(new Date().toISOString()))
+    setOpen(true)
+  }
 
   function reset() {
     setPendingLocation(null)
@@ -261,6 +264,13 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
     reset()
   }
 
+  async function remove() {
+    if (!editing?.length) return
+    tapped()
+    await Promise.all(editing.map((event) => undo(event.id)))
+    reset()
+  }
+
   const locationChanges = pendingLocation
     ? targets.some((dog) => where(dog) !== pendingLocation)
     : false
@@ -277,7 +287,8 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
 
     const text = note.trim() || null
     const ids: string[] = []
-    const occurredAt = new Date().toISOString()
+    // What the field says is what gets written — it is on screen either way.
+    const occurredAt = fromLocalInput(at) ?? new Date().toISOString()
 
     if (pottyKind) {
       const created = await Promise.all(
@@ -320,13 +331,17 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
     >
       {/* The home indicator sits over the last row otherwise. */}
       <div className="mx-auto w-full max-w-sm px-4 pt-3 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
-        {editing ? (
+        {open ? (
           <input
             type="datetime-local"
             value={at}
             onChange={(event) => setAt(event.target.value)}
             aria-label="When this happened"
-            className="mb-2 rounded-xl border border-line bg-surface px-3 py-1.5 text-sm text-ink outline-none focus-visible:border-ink"
+            // Full width like the note below it. A date field lays its own parts
+            // out and will not shrink to them, so any width short of this leaves
+            // a gap between the text and the picker that reads as lopsided
+            // padding; filling the row makes the space deliberate instead.
+            className="mb-2 w-full rounded-xl border border-line bg-surface px-3 py-1.5 text-sm text-ink outline-none focus-visible:border-ink"
           />
         ) : null}
 
@@ -407,25 +422,12 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
               </div>
 
               <span className="flex-1" />
-
-              {editing ? null : (
-                <button
-                  type="button"
-                  onClick={() => void submit()}
-                  aria-label="Log it"
-                  data-on={false}
-                  className="press deck-tile fill-on-press grid size-12 shrink-0 place-items-center rounded-full border"
-                  style={tile(false, TILE_FILL, hint)}
-                >
-                  <Glyph text={SEND} label="Log it" size={DETAIL_GLYPH_PX} />
-                </button>
-              )}
             </>
           ) : null}
 
           <button
             type="button"
-            onClick={() => (open ? reset() : setOpen(true))}
+            onClick={() => (open ? reset() : openDetails())}
             aria-expanded={open}
             aria-label={open ? 'Hide details' : 'Add details'}
             // No padding on the right, so the icon ends on the same line as the
@@ -440,25 +442,37 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
           <input
             value={note}
             onChange={(event) => setNote(event.target.value)}
-            maxLength={500}
+            maxLength={NOTE_MAX}
             aria-label="Note for this entry"
             className="mt-1.5 h-12 w-full rounded-2xl border border-line bg-surface px-4 text-sm outline-none focus-visible:border-ink"
           />
         ) : null}
 
-        {editing ? (
+        {open ? (
+          // Delete keeps to this group rather than the far left, where a thumb
+          // reaching for the start of the note would find it. Wide padding so
+          // the three are hard to confuse under a thumb.
           <div className="mt-1.5 flex justify-end gap-2">
+            {editing ? (
+              <button
+                type="button"
+                onClick={() => void remove()}
+                className="press h-11 rounded-xl border border-line px-5 text-sm font-semibold text-ink-muted hover:text-ink"
+              >
+                Delete
+              </button>
+            ) : null}
             <button
               type="button"
               onClick={reset}
-              className="press h-11 rounded-xl border border-line px-4 text-sm font-semibold text-ink-muted hover:text-ink"
+              className="press h-11 rounded-xl border border-line px-5 text-sm font-semibold text-ink-muted hover:text-ink"
             >
               Cancel
             </button>
             <button
               type="button"
-              onClick={() => void submitEdit()}
-              disabled={!targets.length}
+              onClick={() => void (editing ? submitEdit() : submit())}
+              disabled={editing ? !targets.length : !canSubmit}
               // White rather than --color-on-accent: the tile fill is deep in
               // both themes, and that token flips to a dark ink in the dark one.
               className="press h-11 rounded-xl px-5 text-sm font-bold text-white disabled:opacity-40"
