@@ -377,9 +377,9 @@
       "pottyKind": null,
       "amount": null,
       "note": null,
-      "deletedAt": null,
+      "deletedAt": "2026-09-18T13:52:48.264Z",
       "createdAt": "2026-09-16T20:35:21.315Z",
-      "updatedAt": "2026-09-16T23:05:37.085Z"
+      "updatedAt": "2026-09-18T14:38:02.136Z"
     },
     {
       "id": "45eda78d-5a2f-4bfb-a7ec-9409f7523a4c",
@@ -391,9 +391,9 @@
       "pottyKind": null,
       "amount": null,
       "note": null,
-      "deletedAt": null,
+      "deletedAt": "2026-09-18T13:52:48.264Z",
       "createdAt": "2026-09-16T20:35:24.751Z",
-      "updatedAt": "2026-09-16T23:05:37.085Z"
+      "updatedAt": "2026-09-18T14:38:02.136Z"
     },
     {
       "id": "3c666941-9fda-4316-aa23-f25ad68cb679",
@@ -405,9 +405,9 @@
       "pottyKind": null,
       "amount": null,
       "note": null,
-      "deletedAt": null,
+      "deletedAt": "2026-09-18T13:52:47.777Z",
       "createdAt": "2026-09-16T22:13:32.093Z",
-      "updatedAt": "2026-09-16T23:05:37.085Z"
+      "updatedAt": "2026-09-18T13:52:47.890Z"
     },
     {
       "id": "e746403d-15e3-483a-bd0c-e8416ba56486",
@@ -419,9 +419,9 @@
       "pottyKind": null,
       "amount": null,
       "note": null,
-      "deletedAt": null,
+      "deletedAt": "2026-09-18T13:52:47.777Z",
       "createdAt": "2026-09-16T22:13:29.872Z",
-      "updatedAt": "2026-09-16T23:05:37.085Z"
+      "updatedAt": "2026-09-18T14:38:02.132Z"
     },
     {
       "id": "0085d4a6-4d91-400a-ac55-2197a8f73a43",
@@ -461,9 +461,9 @@
       "pottyKind": null,
       "amount": null,
       "note": null,
-      "deletedAt": null,
+      "deletedAt": "2026-09-18T13:52:47.331Z",
       "createdAt": "2026-09-16T22:44:58.673Z",
-      "updatedAt": "2026-09-16T23:05:37.085Z"
+      "updatedAt": "2026-09-18T13:52:47.413Z"
     },
     {
       "id": "b09f94af-796c-4f80-869f-56a71fa14020",
@@ -475,9 +475,9 @@
       "pottyKind": null,
       "amount": null,
       "note": null,
-      "deletedAt": null,
+      "deletedAt": "2026-09-18T13:52:47.331Z",
       "createdAt": "2026-09-16T22:44:58.673Z",
-      "updatedAt": "2026-09-16T23:05:37.085Z"
+      "updatedAt": "2026-09-18T13:52:47.890Z"
     },
     {
       "id": "796f37a5-4399-439e-946a-1b76e414d47a",
@@ -489,9 +489,9 @@
       "pottyKind": null,
       "amount": null,
       "note": null,
-      "deletedAt": null,
+      "deletedAt": "2026-09-18T13:52:46.897Z",
       "createdAt": "2026-09-17T01:09:04.047Z",
-      "updatedAt": "2026-09-17T01:09:04.047Z"
+      "updatedAt": "2026-09-18T13:52:47.411Z"
     },
     {
       "id": "7b380dcf-964c-44b0-9afa-7742ec1af4d3",
@@ -503,9 +503,9 @@
       "pottyKind": null,
       "amount": null,
       "note": null,
-      "deletedAt": null,
+      "deletedAt": "2026-09-18T13:52:46.897Z",
       "createdAt": "2026-09-17T01:08:54.970Z",
-      "updatedAt": "2026-09-17T01:08:54.970Z"
+      "updatedAt": "2026-09-18T13:52:47.411Z"
     },
     {
       "id": "060dffac-9b1e-4f4b-a237-5eb2f4d426d3",
@@ -517,9 +517,9 @@
       "pottyKind": null,
       "amount": null,
       "note": null,
-      "deletedAt": null,
+      "deletedAt": "2026-09-18T13:52:46.415Z",
       "createdAt": "2026-09-17T01:09:15.478Z",
-      "updatedAt": "2026-09-17T01:09:15.479Z"
+      "updatedAt": "2026-09-18T13:52:46.510Z"
     },
     {
       "id": "c1b9af6a-61d0-479f-a421-6d9a68dadb43",
@@ -531,9 +531,9 @@
       "pottyKind": null,
       "amount": null,
       "note": null,
-      "deletedAt": null,
+      "deletedAt": "2026-09-18T13:52:46.415Z",
       "createdAt": "2026-09-17T01:09:04.047Z",
-      "updatedAt": "2026-09-17T01:09:04.047Z"
+      "updatedAt": "2026-09-18T13:52:47.411Z"
     },
     {
       "id": "52d78400-249e-4052-9324-c720ea35dc87",
@@ -573,9 +573,9 @@
       "pottyKind": null,
       "amount": null,
       "note": null,
-      "deletedAt": null,
+      "deletedAt": "2026-09-18T13:52:45.578Z",
       "createdAt": "2026-09-18T01:44:43.467Z",
-      "updatedAt": "2026-09-18T01:44:43.467Z"
+      "updatedAt": "2026-09-18T13:52:45.762Z"
     },
     {
       "id": "cce40266-281b-4e5a-a98e-694ecc9b699e",
@@ -587,9 +587,37 @@
       "pottyKind": null,
       "amount": null,
       "note": null,
-      "deletedAt": null,
+      "deletedAt": "2026-09-18T13:52:45.578Z",
       "createdAt": "2026-09-18T01:44:43.467Z",
-      "updatedAt": "2026-09-18T01:44:43.467Z"
+      "updatedAt": "2026-09-18T13:52:46.510Z"
+    },
+    {
+      "id": "8c7b2968-d976-4631-beb1-6a823a44086e",
+      "dogId": "535f55a3-12b8-4b5c-b4c3-1a419430dac3",
+      "type": "location",
+      "occurredAt": "2026-09-18T13:52:39.391Z",
+      "endedAt": null,
+      "location": "pen",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-18T13:52:42.208Z",
+      "updatedAt": "2026-09-18T13:52:42.209Z"
+    },
+    {
+      "id": "fdbea7ad-2166-4bde-9e0c-1c4dc68b6592",
+      "dogId": "aaf65796-a7fa-4f1c-91cb-89dd6f4b2de5",
+      "type": "location",
+      "occurredAt": "2026-09-18T13:52:39.391Z",
+      "endedAt": null,
+      "location": "pen",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-18T13:52:42.208Z",
+      "updatedAt": "2026-09-18T13:52:42.209Z"
     }
   ]
 }
