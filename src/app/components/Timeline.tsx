@@ -68,20 +68,23 @@ type Day = { key: string; label: string; entries: Entry[] }
 
 /**
  * Collapses a both-dogs batch into one row, then files rows under their day.
- * Sorts rather than trusting the caller: sync happens to hand these over newest
- * first, but a list that renders out of order when it is not is a trap.
+ *
+ * Oldest first, and the day headings with them, so the list reads the way the
+ * day happened and the newest entry is the one nearest the deck. Sorts rather
+ * than trusting the caller: sync happens to hand these over newest first, and a
+ * list that renders out of order when it is not is a trap.
  */
 function byDay(events: PupEvent[]): Day[] {
   const days: Day[] = []
   const dayAt = new Map<string, number>()
   const entryAt = new Map<string, number>()
 
-  const newestFirst = events
+  const oldestFirst = events
     .filter(isLive)
     .slice()
-    .sort((a, b) => b.occurredAt.localeCompare(a.occurredAt))
+    .sort((a, b) => a.occurredAt.localeCompare(b.occurredAt))
 
-  for (const event of newestFirst) {
+  for (const event of oldestFirst) {
 
     const key = dayKey(event.occurredAt)
     let index = dayAt.get(key)

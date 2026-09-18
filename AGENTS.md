@@ -62,6 +62,12 @@ Open and editing are otherwise the same screen. Both carry an editable time abov
 the places, both end in the same buttons, and there is no send glyph — a row of
 circles ending in one more circle never said which of them wrote the entry.
 
+**The timeline runs oldest first**, so it reads the way the day happened and the
+newest entry is the one nearest the deck. `Shell` scrolls the list to the bottom
+whenever the event count changes, which is what keeps that entry in view. The way
+in is a named `Add entry` above the rule rather than an eye: catching up on five
+entries at once is ordinary, and an eye never said that was possible.
+
 **An edit replaces rather than updates.** Submitting tombstones every event in
 the entry and writes the row as it stands. Nothing else could change which dogs
 a row covers or when it happened, and it keeps events immutable, which the sync

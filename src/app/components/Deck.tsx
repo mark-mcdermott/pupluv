@@ -1,5 +1,4 @@
 import { useEffect, useState, type CSSProperties } from 'react'
-import { Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   BARK_GLYPH,
@@ -368,61 +367,74 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
   return (
     // Full-bleed background and gradient rule; the controls stay on the same
     // column grid as the timeline above.
-    <div
-      // A band of the layout now rather than something stuck over it: the
-      // timeline above scrolls inside its own box, so there is nothing to stick
-      // to and nothing to overlap.
-      className="shrink-0 border-t bg-surface shadow-[0_-12px_32px_-24px_rgba(0,0,0,0.45)]"
-      style={{ borderTopWidth: 3, borderImage: `${spread} 1` }}
-    >
-      {/* The home indicator sits over the last row otherwise. */}
-      <div className="mx-auto w-full max-w-sm px-4 pt-3 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
-        {open ? (
-          <input
-            type="datetime-local"
-            value={at}
-            onChange={(event) => setAt(event.target.value)}
-            aria-label="When this happened"
-            // Full width like the note below it. A date field lays its own parts
-            // out and will not shrink to them, so any width short of this leaves
-            // a gap between the text and the picker that reads as lopsided
-            // padding; filling the row makes the space deliberate instead.
-            className="mb-2 w-full rounded-xl border border-line bg-surface px-3 py-1.5 text-sm text-ink outline-none focus-visible:border-ink"
-          />
-        ) : null}
-
-        <div
-          // Five places across: at 375px that is ~62px each, comfortably past the
-          // 44px a thumb needs.
-          className="grid grid-cols-5 gap-1.5"
-          role={open ? 'radiogroup' : undefined}
-          aria-label={open ? 'Where' : undefined}
-        >
-          {LOCATIONS.map((option) => {
-            const on = option === lit
-            return (
-              <button
-                key={option}
-                type="button"
-                role={open ? 'radio' : undefined}
-                aria-checked={open ? on : undefined}
-                aria-label={LOCATION_LABELS[option]}
-                onClick={() => void tapLocation(option)}
-                data-on={on}
-                className="press deck-tile grid h-16 place-items-center rounded-2xl border"
-                style={tile(on, fill, hint)}
-              >
-                <PlaceGlyph location={option} size={MAIN_GLYPH_PX} />
-              </button>
-            )
-          })}
+    <div className="shrink-0">
+      {/* Above the rule and outside the deck, because it is the way in rather
+          than part of the form. Named, too: catching up on five entries at
+          once is ordinary, and an eye never said that was possible. */}
+      {open ? null : (
+        <div className="mx-auto w-full max-w-sm px-4 pb-1.5 text-right">
+          <button
+            type="button"
+            onClick={openDetails}
+            className="press text-xs font-semibold text-ink-muted hover:text-ink"
+          >
+            Add entry
+          </button>
         </div>
+      )}
 
-        {/* The eye is the only thing on this line until it is opened, and it holds
-            its place at the right edge while the form fills in to its left. */}
-        <div className="mt-1.5 flex items-center justify-end gap-3.5">
+      <div
+        // A band of the layout rather than something stuck over it: the
+        // timeline above scrolls inside its own box, so there is nothing to
+        // stick to and nothing to overlap.
+        className="border-t bg-surface shadow-[0_-12px_32px_-24px_rgba(0,0,0,0.45)]"
+        style={{ borderTopWidth: 3, borderImage: `${spread} 1` }}
+      >
+        {/* The home indicator sits over the last row otherwise. */}
+        <div className="mx-auto w-full max-w-sm px-4 pt-3 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
           {open ? (
-            <>
+            <input
+              type="datetime-local"
+              value={at}
+              onChange={(event) => setAt(event.target.value)}
+              aria-label="When this happened"
+              // Full width like the note below it. A date field lays its own parts
+              // out and will not shrink to them, so any width short of this leaves
+              // a gap between the text and the picker that reads as lopsided
+              // padding; filling the row makes the space deliberate instead.
+              className="mb-2 w-full rounded-xl border border-line bg-surface px-3 py-1.5 text-sm text-ink outline-none focus-visible:border-ink"
+            />
+          ) : null}
+
+          <div
+            // Five places across: at 375px that is ~62px each, comfortably past the
+            // 44px a thumb needs.
+            className="grid grid-cols-5 gap-1.5"
+            role={open ? 'radiogroup' : undefined}
+            aria-label={open ? 'Where' : undefined}
+          >
+            {LOCATIONS.map((option) => {
+              const on = option === lit
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  role={open ? 'radio' : undefined}
+                  aria-checked={open ? on : undefined}
+                  aria-label={LOCATION_LABELS[option]}
+                  onClick={() => void tapLocation(option)}
+                  data-on={on}
+                  className="press deck-tile grid h-16 place-items-center rounded-2xl border"
+                  style={tile(on, fill, hint)}
+                >
+                  <PlaceGlyph location={option} size={MAIN_GLYPH_PX} />
+                </button>
+              )
+            })}
+          </div>
+
+          {open ? (
+            <div className="mt-1.5 flex items-center gap-3.5">
               <div className="flex gap-1.5" role="group" aria-label="Which dog">
                 {dogs.map((dog) => {
                   const on = !skipped.includes(dog.id)
@@ -478,67 +490,54 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
                 </button>
               </div>
 
-              <span className="flex-1" />
-            </>
+            </div>
           ) : null}
 
-          <button
-            type="button"
-            onClick={() => (open ? reset() : openDetails())}
-            aria-expanded={open}
-            aria-label={open ? 'Hide details' : 'Add details'}
-            // No padding on the right, so the icon ends on the same line as the
-            // last place button above it.
-            className="press grid h-12 shrink-0 place-items-center pl-2 text-ink-faint hover:text-ink"
-          >
-            {open ? <EyeOff size={22} /> : <Eye size={22} />}
-          </button>
-        </div>
+          {open ? (
+            <input
+              value={note}
+              onChange={(event) => setNote(event.target.value)}
+              maxLength={NOTE_MAX}
+              aria-label="Note for this entry"
+              className="mt-1.5 h-12 w-full rounded-2xl border border-line bg-surface px-4 text-sm outline-none focus-visible:border-ink"
+            />
+          ) : null}
 
-        {open ? (
-          <input
-            value={note}
-            onChange={(event) => setNote(event.target.value)}
-            maxLength={NOTE_MAX}
-            aria-label="Note for this entry"
-            className="mt-1.5 h-12 w-full rounded-2xl border border-line bg-surface px-4 text-sm outline-none focus-visible:border-ink"
-          />
-        ) : null}
-
-        {open ? (
-          // Delete keeps to this group rather than the far left, where a thumb
-          // reaching for the start of the note would find it. Wide padding so
-          // the three are hard to confuse under a thumb.
-          <div className="mt-1.5 flex justify-end gap-2">
-            {editing ? (
+          {open ? (
+            // Delete keeps to this group rather than the far left, where a thumb
+            // reaching for the start of the note would find it. Wide padding so
+            // the three are hard to confuse under a thumb.
+            <div className="mt-1.5 flex justify-end gap-2">
+              {editing ? (
+                <button
+                  type="button"
+                  onClick={() => void remove()}
+                  className="press h-11 rounded-xl border border-line px-5 text-sm font-semibold text-ink-muted hover:text-ink"
+                >
+                  Delete
+                </button>
+              ) : null}
               <button
                 type="button"
-                onClick={() => void remove()}
+                onClick={reset}
                 className="press h-11 rounded-xl border border-line px-5 text-sm font-semibold text-ink-muted hover:text-ink"
               >
-                Delete
+                Cancel
               </button>
-            ) : null}
-            <button
-              type="button"
-              onClick={reset}
-              className="press h-11 rounded-xl border border-line px-5 text-sm font-semibold text-ink-muted hover:text-ink"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={() => void (editing ? submitEdit() : submit())}
-              disabled={editing ? !targets.length : !canSubmit}
-              // White rather than --color-on-accent: the tile fill is deep in
-              // both themes, and that token flips to a dark ink in the dark one.
-              className="press h-11 rounded-xl px-5 text-sm font-bold text-white disabled:opacity-40"
-              style={{ background: TILE_FILL }}
-            >
-              Submit
-            </button>
-          </div>
-        ) : null}
+              <button
+                type="button"
+                onClick={() => void (editing ? submitEdit() : submit())}
+                disabled={editing ? !targets.length : !canSubmit}
+                // White rather than --color-on-accent: the tile fill is deep in
+                // both themes, and that token flips to a dark ink in the dark one.
+                className="press h-11 rounded-xl px-5 text-sm font-bold text-white disabled:opacity-40"
+                style={{ background: TILE_FILL }}
+              >
+                Submit
+              </button>
+            </div>
+          ) : null}
+        </div>
       </div>
     </div>
   )
