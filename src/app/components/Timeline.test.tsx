@@ -98,6 +98,36 @@ describe('Timeline', () => {
     expect(onEdit.mock.calls[0]![0]).toHaveLength(2)
   })
 
+  it('puts a bark in the same column a potty would use', () => {
+    const at = todayAt(9)
+    const bark = eventSchema.parse({
+      id: '44444444-4444-4444-8444-000000000001',
+      dogId: DOG_A,
+      type: 'bark',
+      occurredAt: at,
+      location: 'pen',
+    })
+    render(<Timeline dogs={DOGS} events={[potty(DOG_A, at), bark]} />)
+
+    // One glyph carrying both, not two glyphs a column apart.
+    expect(screen.getByTitle('Poo and Barked')).toHaveTextContent('💩🗯️')
+    expect(screen.queryByTitle('Barked')).not.toBeInTheDocument()
+  })
+
+  it('gives a bark on its own the place glyph the others get', () => {
+    const bark = eventSchema.parse({
+      id: '44444444-4444-4444-8444-000000000002',
+      dogId: DOG_A,
+      type: 'bark',
+      occurredAt: todayAt(9),
+      location: 'outside',
+    })
+    render(<Timeline dogs={DOGS} events={[bark]} />)
+
+    expect(screen.getByTitle('Outside')).toBeInTheDocument()
+    expect(screen.getByTitle('Barked')).toHaveTextContent('🗯️')
+  })
+
   it('shows a recorded note', () => {
     render(<Timeline dogs={DOGS} events={[potty(DOG_A, todayAt(9), 'ate grass')]} />)
     expect(screen.getByText('ate grass')).toBeInTheDocument()

@@ -376,7 +376,7 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
           <button
             type="button"
             onClick={openDetails}
-            className="press text-xs font-semibold text-ink-muted hover:text-ink"
+            className="press h-11 rounded-xl border border-line px-5 text-sm font-semibold text-ink-muted hover:text-ink"
           >
             Add entry
           </button>
