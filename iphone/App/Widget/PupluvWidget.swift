@@ -34,6 +34,9 @@ private let pickKinds = [
     Pick(id: "poo", glyph: "💩", label: "Poo"),
 ]
 
+private let barkGlyph = "🗯️"
+private let barkLabel = "Barked"
+
 /// No paper plane exists in the emoji set; the outbox tray is the send glyph.
 private let sendGlyph = "📤"
 
@@ -71,6 +74,7 @@ struct PlaceEntry: TimelineEntry {
     let detailOpen: Bool
     let skipped: [String]
     let picked: [String]
+    let barked: Bool
     let pending: String?
 }
 
@@ -84,6 +88,7 @@ struct PlaceProvider: TimelineProvider {
             detailOpen: false,
             skipped: [],
             picked: [],
+            barked: false,
             pending: nil
         )
     }
@@ -107,6 +112,7 @@ struct PlaceProvider: TimelineProvider {
             detailOpen: PupluvShared.detailOpen,
             skipped: PupluvShared.skipped,
             picked: PupluvShared.picks,
+            barked: PupluvShared.barked,
             pending: PupluvShared.pendingPlace
         )
     }
@@ -161,9 +167,9 @@ private struct DetailRow: View {
     /// The place tile above, which everything here is measured against.
     let side: CGFloat
 
-    /// Three quarters of a place. Half read as an afterthought under buttons
-    /// that size.
-    private var small: CGFloat { side * 0.75 }
+    /// A bark makes six circles and the eye where five and the eye fitted at
+    /// three quarters, so they come down to what a medium widget will hold.
+    private var small: CGFloat { side * 0.65 }
     /// Half the tile, so it stays a circle whatever the tile grows to.
     private var radius: CGFloat { small / 2 }
 
@@ -206,6 +212,17 @@ private struct DetailRow: View {
                         .buttonStyle(.plain)
                         .accessibilityLabel(pick.label)
                     }
+                    Button(intent: ToggleBarkIntent()) {
+                        Tile(
+                            glyph: barkGlyph,
+                            side: small,
+                            radius: radius,
+                            on: entry.barked,
+                            fill: tileFill
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(barkLabel)
                 }
 
                 Spacer(minLength: between)

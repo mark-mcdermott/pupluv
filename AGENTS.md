@@ -140,7 +140,14 @@ a free personal team gets. There is no App Store involvement and none is planned
 `iphone/App/Widget` is a WidgetKit extension: the deck, on the home screen. The
 same five square places, the same eye holding the right edge beneath them, the
 same row of circles behind it — minus the note, because a widget cannot take
-typed input. Five across is about 20pt each on a small widget, so it
+typed input.
+
+Two things it cannot mirror and does not try to. It keeps the **send circle**
+the web replaced with a Submit button: there is no room for a row of labelled
+buttons under the circles, and something has to write the entry. And it keeps
+the **eye**, which the web replaced with `Add entry`, because a word does not fit
+where the eye sits. Six circles and the eye are what a medium widget holds, which
+is why they sit at 0.65 of a place there against 0.75 on the web. Five across is about 20pt each on a small widget, so it
 wraps to two rows there and the detail row only opens where it fits. Buttons in a
 widget are App Intents, which is why everything targets iOS 17.
 

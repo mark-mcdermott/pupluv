@@ -31,7 +31,12 @@ struct LogPlaceIntent: AppIntent {
 
         let occurredAt = Date()
         let events = moving.map {
-            PupluvShared.PendingEvent(dogId: $0.id, location: place, occurredAt: occurredAt)
+            PupluvShared.PendingEvent(
+                dogId: $0.id,
+                kind: .location,
+                location: place,
+                occurredAt: occurredAt
+            )
         }
 
         // Reflect the tap before the network answers — the widget should redraw
