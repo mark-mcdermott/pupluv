@@ -84,6 +84,7 @@ struct SubmitIntent: AppIntent {
     func perform() async throws -> some IntentResult {
         let targets = PupluvShared.takenDogs
         let kind = PupluvShared.pottyKind
+        let barked = PupluvShared.barked
         let pending = PupluvShared.pendingPlace
         let placements = PupluvShared.placements
 
@@ -102,6 +103,7 @@ struct SubmitIntent: AppIntent {
             events += targets.map { dog in
                 PupluvShared.PendingEvent(
                     dogId: dog.id,
+                    kind: .potty,
                     // The dog's own place when none was chosen, which is what
                     // makes filing a potty one tap.
                     location: pending ?? placements[dog.id] ?? PupluvShared.defaultLocation,
@@ -111,10 +113,26 @@ struct SubmitIntent: AppIntent {
             }
         }
 
+        if barked {
+            events += targets.map { dog in
+                PupluvShared.PendingEvent(
+                    dogId: dog.id,
+                    kind: .bark,
+                    location: pending ?? placements[dog.id] ?? PupluvShared.defaultLocation,
+                    occurredAt: occurredAt
+                )
+            }
+        }
+
         if let pending {
             let moving = targets.filter { placements[$0.id] != pending }
             events += moving.map {
-                PupluvShared.PendingEvent(dogId: $0.id, location: pending, occurredAt: occurredAt)
+                PupluvShared.PendingEvent(
+                    dogId: $0.id,
+                    kind: .location,
+                    location: pending,
+                    occurredAt: occurredAt
+                )
             }
             var next = placements
             for dog in moving { next[dog.id] = pending }
@@ -132,6 +150,21 @@ struct SubmitIntent: AppIntent {
         // the pause you feel.
         WidgetRefresh.reload()
         await PupluvAPI.send(events)
+        WidgetRefresh.reload()
+        return .result()
+    }
+}
+
+/// Its own toggle rather than a third pick: a bark is a different kind of event,
+/// and picking pee and poo together already means something.
+struct ToggleBarkIntent: AppIntent {
+    static var title: LocalizedStringResource = "Note a bark"
+    static var isDiscoverable = false
+
+    init() {}
+
+    func perform() async throws -> some IntentResult {
+        PupluvShared.barked.toggle()
         WidgetRefresh.reload()
         return .result()
     }
