@@ -1,6 +1,4 @@
-import { Pencil, X } from 'lucide-react'
 import { POTTY_GLYPHS, POTTY_LABELS, isAccident, isLive, type Dog, type PupEvent } from '@/lib/domain'
-import { undo } from '../lib/sync'
 import { clockLabel, dayKey, dayLabel } from '../lib/time'
 import { DOG_GLYPH_PX, Glyph, PlaceGlyph } from './Place'
 
@@ -110,6 +108,11 @@ export function Timeline({ dogs, events, editing = null, onEdit }: Props) {
   const anyPotty = days.some((day) =>
     day.entries.some((entry) => entry.events.some((event) => event.type === 'potty')),
   )
+  // A note needs room to sit in, and the same rule applies: reserve it only when
+  // something on screen has one.
+  const anyNote = days.some((day) =>
+    day.entries.some((entry) => entry.events.some((event) => event.note)),
+  )
 
   if (days.length === 0) {
     return (
@@ -149,12 +152,7 @@ export function Timeline({ dogs, events, editing = null, onEdit }: Props) {
                 lead.type === 'location' || lead.type === 'potty' ? lead.location : null
 
               return (
-                <li
-                  key={key}
-                  // Lifted off the ground while the deck below holds it, so the
-                  // controls down there plainly belong to this row.
-                  className={`relative py-2 ${beingEdited ? 'rounded-xl bg-surface' : ''}`}
-                >
+                <li key={key} className="relative">
                   {accident ? (
                     <span
                       className="absolute -left-[1.1875rem] top-4 size-1.5 rounded-full bg-clay"
@@ -163,7 +161,22 @@ export function Timeline({ dogs, events, editing = null, onEdit }: Props) {
                     />
                   ) : null}
 
-                  <div className="flex items-baseline gap-2">
+                  {/* The row is the control. Tapping it hands the entry to the
+                      deck, which is where every field of it can be changed —
+                      including the two things a pencil and a cross could not,
+                      the dogs it covers and when it happened. The highlight runs
+                      wider than the content so the hit area reads as a row. */}
+                  <button
+                    type="button"
+                    onClick={() => onEdit?.(group)}
+                    aria-label={`Edit: ${label}`}
+                    // A button is shrink-to-fit even as a flex container, so the
+                    // width is spelled out: the row plus the 12px it reaches out
+                    // on either side.
+                    className={`-mx-3 flex w-[calc(100%+1.5rem)] items-baseline gap-2 rounded-[0.5rem] px-3 py-2 text-left transition-colors hover:bg-surface ${
+                      beingEdited ? 'bg-surface ring-1 ring-line' : ''
+                    }`}
+                  >
                     <time
                       className="w-[4.5rem] shrink-0 whitespace-nowrap text-sm text-ink-faint"
                       dateTime={lead.occurredAt}
@@ -187,7 +200,7 @@ export function Timeline({ dogs, events, editing = null, onEdit }: Props) {
                       // margin would. Set to match the gap the time leaves before
                       // the dogs.
                       className={`mx-2.5 flex min-w-0 items-center gap-1.5 text-sm text-ink ${
-                        anyPotty ? 'flex-1' : ''
+                        anyPotty || anyNote ? 'flex-1' : ''
                       }`}
                     >
                       {place ? <PlaceGlyph location={place} /> : null}
@@ -199,36 +212,11 @@ export function Timeline({ dogs, events, editing = null, onEdit }: Props) {
                       ) : lead.type !== 'location' ? (
                         <span className="truncate">{describe(lead)}</span>
                       ) : null}
+                      {lead.note ? (
+                        <span className="truncate text-xs text-ink-muted">{lead.note}</span>
+                      ) : null}
                     </span>
-
-                    {/* The pair sits as close as the two dogs do. Only the facing
-                        edges are trimmed — the outer padding keeps both tap
-                        targets full height and near full width. */}
-                    <span className="flex shrink-0 items-center">
-                      <button
-                        type="button"
-                        onClick={() => onEdit?.(group)}
-                        aria-label={`Edit: ${label}`}
-                        title="Edit"
-                        className="press grid h-7 place-items-center pl-2 pr-[3px] text-ink-faint hover:text-ink"
-                      >
-                        <Pencil size={13} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => group.forEach((event) => void undo(event.id))}
-                        aria-label={`Remove: ${label}`}
-                        title="Remove"
-                        className="press grid h-7 place-items-center pl-px pr-2 text-ink-faint hover:text-ink"
-                      >
-                        <X size={14} />
-                      </button>
-                    </span>
-                  </div>
-
-                  {lead.note ? (
-                    <p className="ml-20 mt-0.5 text-xs leading-snug text-ink-muted">{lead.note}</p>
-                  ) : null}
+                  </button>
                 </li>
               )
             })}

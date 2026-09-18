@@ -104,6 +104,15 @@
     font-variant-numeric: tabular-nums;
   }
 
+  /* A date field's parts each carry their own spacing, which lands on top of the
+     field's padding and leaves one side looking wider than the other. */
+  ::-webkit-datetime-edit,
+  ::-webkit-datetime-edit-fields-wrapper,
+  ::-webkit-calendar-picker-indicator {
+    margin: 0;
+    padding: 0;
+  }
+
   /* Tailwind's reset leaves buttons on the default arrow. Every button in this
      app is a real action, so they all get the hand. */
   button:not(:disabled),
