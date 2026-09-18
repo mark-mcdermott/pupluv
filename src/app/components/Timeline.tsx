@@ -215,13 +215,17 @@ export function Timeline({ dogs, events, editing = null, onEdit }: Props) {
                       {clockLabel(lead.occurredAt)}
                     </time>
                     <span
-                      className="flex w-[3.1875rem] shrink-0 gap-1 leading-none"
-                      style={{ fontSize: DOG_GLYPH_PX }}
+                      className="flex w-[3.1875rem] shrink-0 items-center gap-2 leading-none"
                       role="img"
                       aria-label={who.map((dog) => dog.name).join(' and ')}
                     >
                       {who.map((dog) => (
-                        <span key={dog.id}>{dog.emoji}</span>
+                        <Glyph
+                          key={dog.id}
+                          text={dog.emoji}
+                          label={dog.name}
+                          size={DOG_GLYPH_PX}
+                        />
                       ))}
                     </span>
 
@@ -230,7 +234,7 @@ export function Timeline({ dogs, events, editing = null, onEdit }: Props) {
                       // drift apart the way a dog-column width and a control
                       // margin would. Set to match the gap the time leaves before
                       // the dogs.
-                      className={`mx-2.5 flex min-w-0 items-center gap-1.5 text-sm text-ink ${
+                      className={`mx-3 flex min-w-0 items-center gap-1.5 text-sm text-ink ${
                         anyGlyph || anyNote ? 'flex-1' : ''
                       }`}
                     >
