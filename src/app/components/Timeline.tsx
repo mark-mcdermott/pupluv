@@ -1,4 +1,13 @@
-import { POTTY_GLYPHS, POTTY_LABELS, isAccident, isLive, type Dog, type PupEvent } from '@/lib/domain'
+import {
+  BARK_GLYPH,
+  BARK_LABEL,
+  POTTY_GLYPHS,
+  POTTY_LABELS,
+  isAccident,
+  isLive,
+  type Dog,
+  type PupEvent,
+} from '@/lib/domain'
 import { clockLabel, dayKey, dayLabel } from '../lib/time'
 import { DOG_GLYPH_PX, Glyph, PlaceGlyph } from './Place'
 
@@ -27,6 +36,7 @@ function signature(event: PupEvent): string {
   switch (event.type) {
     case 'location':
     case 'potty':
+    case 'bark':
       return `${event.occurredAt}|place|${event.location}`
     case 'meal':
     case 'water':
@@ -42,6 +52,8 @@ function describe(event: PupEvent): string {
       return `${POTTY_LABELS[event.pottyKind]} ${AT[event.location]}`
     case 'location':
       return MOVED[event.location]
+    case 'bark':
+      return `${BARK_LABEL} ${AT[event.location]}`
     case 'meal':
       return `Ate ${event.amount} cups`
     case 'water':
@@ -105,8 +117,10 @@ export function Timeline({ dogs, events, editing = null, onEdit }: Props) {
 
   // With nothing but moves on screen there is no potty column to line up, and
   // reserving one strands the controls out at the right edge.
-  const anyPotty = days.some((day) =>
-    day.entries.some((entry) => entry.events.some((event) => event.type === 'potty')),
+  const anyGlyph = days.some((day) =>
+    day.entries.some((entry) =>
+      entry.events.some((event) => event.type === 'potty' || event.type === 'bark'),
+    ),
   )
   // A note needs room to sit in, and the same rule applies: reserve it only when
   // something on screen has one.
@@ -139,7 +153,9 @@ export function Timeline({ dogs, events, editing = null, onEdit }: Props) {
             {day.entries.map(({ key, events: group }) => {
               // A move logged with a potty is in this group too; the potty is
               // the one that describes it.
-              const lead = group.find((event) => event.type === 'potty') ?? group[0]!
+              const potty = group.find((event) => event.type === 'potty')
+              const barked = group.some((event) => event.type === 'bark')
+              const lead = potty ?? group.find((event) => event.type === 'bark') ?? group[0]!
               const accident = isAccident(lead)
               const beingEdited = Boolean(
                 editing?.some((event) => group.some((member) => member.id === event.id)),
@@ -200,16 +216,18 @@ export function Timeline({ dogs, events, editing = null, onEdit }: Props) {
                       // margin would. Set to match the gap the time leaves before
                       // the dogs.
                       className={`mx-2.5 flex min-w-0 items-center gap-1.5 text-sm text-ink ${
-                        anyPotty || anyNote ? 'flex-1' : ''
+                        anyGlyph || anyNote ? 'flex-1' : ''
                       }`}
                     >
                       {place ? <PlaceGlyph location={place} /> : null}
-                      {lead.type === 'potty' ? (
+                      {potty ? (
                         <Glyph
-                          text={POTTY_GLYPHS[lead.pottyKind]}
-                          label={POTTY_LABELS[lead.pottyKind]}
+                          text={POTTY_GLYPHS[potty.pottyKind]}
+                          label={POTTY_LABELS[potty.pottyKind]}
                         />
-                      ) : lead.type !== 'location' ? (
+                      ) : null}
+                      {barked ? <Glyph text={BARK_GLYPH} label={BARK_LABEL} /> : null}
+                      {lead.type !== 'location' && lead.type !== 'potty' && lead.type !== 'bark' ? (
                         <span className="truncate">{describe(lead)}</span>
                       ) : null}
                       {lead.note ? (
