@@ -40,6 +40,23 @@ function potty(dogId: string, occurredAt: string, note: string | null = null): P
   })
 }
 
+/** The kinds that share the glyph column: present or absent, no other detail. */
+function mark(
+  type: 'bark' | 'meal' | 'sleep',
+  dogId: string,
+  occurredAt: string,
+  location = 'crate',
+): PupEvent {
+  return eventSchema.parse({
+    id: `77777777-7777-4777-8777-${String(++uid).padStart(12, '0')}`,
+    dogId,
+    type,
+    occurredAt,
+    location,
+    ...(type === 'meal' ? { amount: null } : {}),
+  })
+}
+
 function moved(dogId: string, occurredAt: string, location = 'pen'): PupEvent {
   return eventSchema.parse({
     id: `88888888-8888-4888-8888-${String(++uid).padStart(12, '0')}`,
@@ -241,5 +258,26 @@ describe('Timeline row layout', () => {
     )
     const pairs = screen.getAllByRole('img', { name: 'Oreo and Ramen' }).map((n) => n.textContent)
     expect(new Set(pairs).size).toBe(1)
+  })
+
+  it('files a sleep at its place, and says so with glyphs rather than words', () => {
+    render(<Timeline dogs={DOGS} events={[mark('sleep', DOG_A, todayAt(21))]} />)
+
+    // The place shows beside the mark rather than the mark standing in for it.
+    expect(drawn(screen.getByTitle('Crate'))).toBe('📦')
+    expect(drawn(screen.getByTitle('Slept'))).toBe('😴')
+    expect(screen.queryByText(/Slept in/)).not.toBeInTheDocument()
+  })
+
+  it('puts every mark in one column, in a fixed order', () => {
+    const at = todayAt(21)
+    render(
+      <Timeline
+        dogs={DOGS}
+        events={[mark('sleep', DOG_A, at), mark('bark', DOG_A, at), mark('meal', DOG_A, at)]}
+      />,
+    )
+
+    expect(drawn(screen.getByTitle('Barked and Ate and Slept'))).toBe('🗯️🦴😴')
   })
 })

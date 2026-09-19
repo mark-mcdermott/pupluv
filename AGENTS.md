@@ -235,6 +235,12 @@ is the one list that decides both the order and who gets the note.
 `meal` carries an optional amount for a UI that one day cares about cups. Nothing
 requires it: that a bowl went down, and when, is the whole entry today.
 
+One list, in `domain.ts`, holds the kinds that share the glyph column: `MARKS`.
+Five separate places used to name those types inline — what groups a row, what
+reserves the column, what draws it, where it is filed, how it reads aloud — and
+every one of them was missed when a fourth kind arrived. `placeOf` answers the
+place question once; water is the only kind without one.
+
 `sleep` is marked, not timed. It once carried an `ended_at` for an interval and
 never used it — the next entry closes the stretch anyway, which is how a move to
 the crate at 9pm already reads as ten hours. The column is gone.
