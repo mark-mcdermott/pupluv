@@ -3,6 +3,8 @@ import { toast } from 'sonner'
 import {
   BARK_GLYPH,
   BARK_LABEL,
+  MEAL_GLYPH,
+  MEAL_LABEL,
   DEFAULT_LOCATION,
   LOCATIONS,
   LOCATION_LABELS,
@@ -11,6 +13,7 @@ import {
   POTTY_LABELS,
   currentLocation,
   type Dog,
+  type DraftEvent,
   type Location,
   type PottyKind,
   type PupEvent,
@@ -80,6 +83,7 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
    *  place rather than house-training. It sits with the picks because that is
    *  where "what happened" lives. */
   const [barked, setBarked] = useState(false)
+  const [ate, setAte] = useState(false)
   const [note, setNote] = useState('')
   // Held as the dogs left out rather than the ones taken, so every dog — including
   // one that only syncs down later — starts an entry selected.
@@ -97,6 +101,7 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
       dogs.filter((dog) => !editing.some((event) => event.dogId === dog.id)).map((dog) => dog.id),
     )
     setBarked(editing.some((event) => event.type === 'bark'))
+    setAte(editing.some((event) => event.type === 'meal'))
     setPicks(
       lead.type === 'potty'
         ? lead.pottyKind === 'both'
@@ -105,9 +110,7 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
         : [],
     )
     setPendingLocation(
-      lead.type === 'potty' || lead.type === 'location' || lead.type === 'bark'
-        ? lead.location
-        : null,
+      lead.type === 'sleep' || lead.type === 'water' ? null : lead.location,
     )
     setNote(lead.note ?? '')
     setAt(toLocalInput(lead.occurredAt))
@@ -155,6 +158,7 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
     setPendingLocation(null)
     setPicks([])
     setBarked(false)
+    setAte(false)
     setNote('')
     setSkipped([])
     setAt('')
@@ -234,53 +238,25 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
     const lead = editing.find((event) => event.type === 'potty') ?? editing[0]!
     const place =
       pendingLocation ??
-      (lead.type === 'potty' || lead.type === 'location' ? lead.location : DEFAULT_LOCATION)
+      (lead.type === 'sleep' || lead.type === 'water' ? DEFAULT_LOCATION : lead.location)
     const occurredAt = fromLocalInput(at) ?? lead.occurredAt
     const text = note.trim() || null
+    const marked = marks()
     // An entry always has a place, so a row left with nothing on it is a move.
-    const asMove =
-      (!pottyKind && !barked) || editing.some((event) => event.type === 'location')
+    const asMove = !marked.length || editing.some((event) => event.type === 'location')
+    const writes = asMove
+      ? [
+          ...marked,
+          (dogId: string, occurredAt: string, location: Location, note: string | null) =>
+            ({ type: 'location', dogId, occurredAt, location, note }) as DraftEvent,
+        ]
+      : marked
 
     await Promise.all(editing.map((event) => undo(event.id)))
     await Promise.all(
-      targets.flatMap((dog) => {
-        const writes = []
-        if (pottyKind) {
-          writes.push(
-            log({
-              type: 'potty',
-              dogId: dog.id,
-              occurredAt,
-              location: place,
-              pottyKind,
-              note: text,
-            }),
-          )
-        }
-        if (barked) {
-          writes.push(
-            log({
-              type: 'bark',
-              dogId: dog.id,
-              occurredAt,
-              location: place,
-              note: pottyKind ? null : text,
-            }),
-          )
-        }
-        if (asMove) {
-          writes.push(
-            log({
-              type: 'location',
-              dogId: dog.id,
-              occurredAt,
-              location: place,
-              note: pottyKind || barked ? null : text,
-            }),
-          )
-        }
-        return writes
-      }),
+      targets.flatMap((dog) =>
+        writes.map((build, index) => log(build(dog.id, occurredAt, place, index ? null : text))),
+      ),
     )
 
     toast(`Updated · ${listNames(targets)}`)
@@ -294,10 +270,51 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
     reset()
   }
 
+  /**
+   * What the row adds to an entry beyond the move itself, in the order it reads.
+   * The note belongs to the entry rather than to any one event in it, so it
+   * rides on the first written and the rest carry null — whatever is picked.
+   */
+  type Mark = (dogId: string, occurredAt: string, place: Location, note: string | null) => DraftEvent
+
+  function marks(): Mark[] {
+    const list: Mark[] = []
+    if (pottyKind) {
+      list.push((dogId, occurredAt, location, note) => ({
+        type: 'potty',
+        dogId,
+        occurredAt,
+        location,
+        pottyKind,
+        note,
+      }))
+    }
+    if (barked) {
+      list.push((dogId, occurredAt, location, note) => ({
+        type: 'bark',
+        dogId,
+        occurredAt,
+        location,
+        note,
+      }))
+    }
+    if (ate) {
+      list.push((dogId, occurredAt, location, note) => ({
+        type: 'meal',
+        dogId,
+        occurredAt,
+        location,
+        amount: null,
+        note,
+      }))
+    }
+    return list
+  }
+
   const locationChanges = pendingLocation
     ? targets.some((dog) => where(dog) !== pendingLocation)
     : false
-  const canSubmit = targets.length > 0 && (Boolean(pottyKind) || barked || locationChanges)
+  const canSubmit = targets.length > 0 && (marks().length > 0 || locationChanges)
 
   async function submit() {
     // Live whenever the row is open, so with nothing picked it is simply the way
@@ -313,44 +330,20 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
     // What the field says is what gets written — it is on screen either way.
     const occurredAt = fromLocalInput(at) ?? new Date().toISOString()
 
-    if (pottyKind) {
-      const created = await Promise.all(
-        targets.map((dog) =>
-          log({
-            type: 'potty',
-            dogId: dog.id,
-            occurredAt,
-            location: pendingLocation ?? where(dog),
-            pottyKind,
-            note: text,
-          }),
+    const marked = marks()
+    const created = await Promise.all(
+      targets.flatMap((dog) =>
+        marked.map((build, index) =>
+          log(build(dog.id, occurredAt, pendingLocation ?? where(dog), index ? null : text)),
         ),
-      )
-      ids.push(...created.map((event) => event.id))
-    }
-
-    if (barked) {
-      const created = await Promise.all(
-        targets.map((dog) =>
-          log({
-            type: 'bark',
-            dogId: dog.id,
-            occurredAt,
-            location: pendingLocation ?? where(dog),
-            note: pottyKind ? null : text,
-          }),
-        ),
-      )
-      ids.push(...created.map((event) => event.id))
-    }
+      ),
+    )
+    ids.push(...created.map((event) => event.id))
 
     if (pendingLocation) {
-      const moved = await moveTo(
-        pendingLocation,
-        targets,
-        pottyKind || barked ? null : text,
-        occurredAt,
-      )
+      // moveTo skips a dog already there, which is why the move is not just
+      // another mark: a redundant row is worse than none.
+      const moved = await moveTo(pendingLocation, targets, marked.length ? null : text, occurredAt)
       ids.push(...moved.map((entry) => entry.id))
     }
 
@@ -359,7 +352,9 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
       ? `${POTTY_PAST[pottyKind]}${place ? ` ${PLACE_PAST[place]}` : ''}`
       : barked
         ? `${BARK_LABEL}${place ? ` ${PLACE_PAST[place]}` : ''}`
-        : LOCATION_LABELS[pendingLocation!]
+        : ate
+          ? `${MEAL_LABEL}${place ? ` ${PLACE_PAST[place]}` : ''}`
+          : LOCATION_LABELS[pendingLocation!]
     announce(`${listNames(targets)} · ${summary}`, ids)
     reset()
   }
@@ -487,6 +482,18 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
                   style={tile(barked, TILE_FILL, hint)}
                 >
                   <Glyph text={BARK_GLYPH} label={BARK_LABEL} size={DETAIL_GLYPH_PX} />
+                </button>
+
+                <button
+                  type="button"
+                  aria-pressed={ate}
+                  aria-label={MEAL_LABEL}
+                  onClick={() => setAte(!ate)}
+                  data-on={ate}
+                  className="press deck-tile grid size-12 shrink-0 place-items-center rounded-full border"
+                  style={tile(ate, TILE_FILL, hint)}
+                >
+                  <Glyph text={MEAL_GLYPH} label={MEAL_LABEL} size={DETAIL_GLYPH_PX} />
                 </button>
               </div>
 

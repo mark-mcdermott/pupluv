@@ -85,6 +85,7 @@ struct SubmitIntent: AppIntent {
         let targets = PupluvShared.takenDogs
         let kind = PupluvShared.pottyKind
         let barked = PupluvShared.barked
+        let ate = PupluvShared.ate
         let pending = PupluvShared.pendingPlace
         let placements = PupluvShared.placements
 
@@ -113,11 +114,12 @@ struct SubmitIntent: AppIntent {
             }
         }
 
-        if barked {
+        for (marked, kind) in [(barked, PupluvShared.PendingEvent.Kind.bark), (ate, .meal)]
+        where marked {
             events += targets.map { dog in
                 PupluvShared.PendingEvent(
                     dogId: dog.id,
-                    kind: .bark,
+                    kind: kind,
                     location: pending ?? placements[dog.id] ?? PupluvShared.defaultLocation,
                     occurredAt: occurredAt
                 )
@@ -155,8 +157,8 @@ struct SubmitIntent: AppIntent {
     }
 }
 
-/// Its own toggle rather than a third pick: a bark is a different kind of event,
-/// and picking pee and poo together already means something.
+/// Their own toggles rather than further picks: neither is a kind of potty, and
+/// picking pee and poo together already means something.
 struct ToggleBarkIntent: AppIntent {
     static var title: LocalizedStringResource = "Note a bark"
     static var isDiscoverable = false
@@ -165,6 +167,19 @@ struct ToggleBarkIntent: AppIntent {
 
     func perform() async throws -> some IntentResult {
         PupluvShared.barked.toggle()
+        WidgetRefresh.reload()
+        return .result()
+    }
+}
+
+struct ToggleAteIntent: AppIntent {
+    static var title: LocalizedStringResource = "Note a meal"
+    static var isDiscoverable = false
+
+    init() {}
+
+    func perform() async throws -> some IntentResult {
+        PupluvShared.ate.toggle()
         WidgetRefresh.reload()
         return .result()
     }

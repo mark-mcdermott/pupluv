@@ -97,8 +97,12 @@ export const events = pgTable(
     ),
     check('bark_event_has_place', sql`${t.type} <> 'bark' or ${t.location} is not null`),
     check(
-      'intake_event_has_amount',
-      sql`${t.type} not in ('meal', 'water') or ${t.amount} is not null`,
+      'meal_event_has_place',
+      sql`${t.type} <> 'meal' or ${t.location} is not null`,
+    ),
+    check(
+      'water_event_has_amount',
+      sql`${t.type} <> 'water' or ${t.amount} is not null`,
     ),
     check(
       'sleep_ends_after_it_starts',

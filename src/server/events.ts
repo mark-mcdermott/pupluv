@@ -12,12 +12,14 @@ export function toRow(event: PupEvent): NewEvent {
     deletedAt: event.deletedAt ? new Date(event.deletedAt) : null,
     endedAt: event.type === 'sleep' && event.endedAt ? new Date(event.endedAt) : null,
     location:
-      event.type === 'location' || event.type === 'potty' || event.type === 'bark'
-        ? event.location
-        : null,
+      event.type === 'sleep' || event.type === 'water' ? null : event.location,
     pottyKind: event.type === 'potty' ? event.pottyKind : null,
     amount:
-      event.type === 'meal' || event.type === 'water' ? event.amount.toFixed(2) : null,
+      event.type === 'water'
+        ? event.amount.toFixed(2)
+        : event.type === 'meal' && event.amount !== null
+          ? event.amount.toFixed(2)
+          : null,
   }
 }
 
@@ -37,7 +39,12 @@ export function fromRow(row: EventRow): PupEvent {
     case 'bark':
       return { ...base, type: 'bark', location: row.location! }
     case 'meal':
-      return { ...base, type: 'meal', amount: Number(row.amount) }
+      return {
+        ...base,
+        type: 'meal',
+        location: row.location!,
+        amount: row.amount === null ? null : Number(row.amount),
+      }
     case 'water':
       return { ...base, type: 'water', amount: Number(row.amount) }
     case 'sleep':

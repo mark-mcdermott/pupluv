@@ -224,6 +224,17 @@ glyph has no artwork — a dog renamed on the phone still shows something.
 The switch is carried separately there; they are different builds and cannot
 share a constant.
 
+### Marks
+
+A potty, a bark and a meal are separate arms of the union that share an entry:
+one tap can write all three plus the move, and the timeline folds them back into
+a single row. The note belongs to the entry rather than to any one event in it,
+so it rides on the first written and the rest carry null — `marks()` in the deck
+is the one list that decides both the order and who gets the note.
+
+`meal` carries an optional amount for a UI that one day cares about cups. Nothing
+requires it: that a bowl went down, and when, is the whole entry today.
+
 ## Backups
 
 `backups/pupluv.json` is a full dump of both tables, committed to the repo. A
