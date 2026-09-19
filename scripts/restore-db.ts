@@ -58,7 +58,6 @@ if (events.length) {
         pottyKind: sql`excluded.potty_kind`,
         amount: sql`excluded.amount`,
         note: sql`excluded.note`,
-        endedAt: sql`excluded.ended_at`,
         deletedAt: sql`excluded.deleted_at`,
         // Bumped so every device pulls the restored state.
         updatedAt: sql`clock_timestamp()`,

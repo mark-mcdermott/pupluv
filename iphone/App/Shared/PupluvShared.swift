@@ -21,6 +21,7 @@ public enum PupluvShared {
         static let picks = "picks"
         static let barked = "barked"
         static let ate = "ate"
+        static let slept = "slept"
         static let pendingPlace = "pendingPlace"
     }
 
@@ -42,6 +43,7 @@ public enum PupluvShared {
             case potty
             case bark
             case meal
+            case sleep
         }
 
         public let id: String
@@ -136,6 +138,13 @@ public enum PupluvShared {
         set { defaults?.set(newValue, forKey: Key.ate) }
     }
 
+    /// Marked, not timed. The next entry closes the stretch, which is how a move
+    /// to the crate at 9pm already reads as ten hours.
+    public static var slept: Bool {
+        get { defaults?.bool(forKey: Key.slept) ?? false }
+        set { defaults?.set(newValue, forKey: Key.slept) }
+    }
+
     /// Where the entry is being filed. Only set while the row is open: closed,
     /// a place button writes immediately instead.
     public static var pendingPlace: String? {
@@ -164,6 +173,7 @@ public enum PupluvShared {
         picks = []
         barked = false
         ate = false
+        slept = false
         defaults?.removeObject(forKey: Key.pendingPlace)
     }
 

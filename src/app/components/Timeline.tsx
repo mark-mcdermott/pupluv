@@ -3,6 +3,8 @@ import {
   BARK_LABEL,
   MEAL_GLYPH,
   MEAL_LABEL,
+  SLEEP_GLYPH,
+  SLEEP_LABEL,
   POTTY_GLYPHS,
   POTTY_LABELS,
   isAccident,
@@ -44,7 +46,7 @@ function signature(event: PupEvent): string {
     case 'water':
       return `${event.occurredAt}|${event.type}|${event.amount}`
     case 'sleep':
-      return `${event.occurredAt}|sleep|${event.endedAt ?? ''}`
+      return `${event.occurredAt}|sleep|${event.location}`
   }
 }
 
@@ -61,7 +63,7 @@ function describe(event: PupEvent): string {
     case 'water':
       return `Drank ${event.amount} oz`
     case 'sleep':
-      return 'Crated to sleep'
+      return `${SLEEP_LABEL} ${AT[event.location]}`
   }
 }
 
@@ -161,6 +163,7 @@ export function Timeline({ dogs, events, editing = null, onEdit }: Props) {
               const potty = group.find((event) => event.type === 'potty')
               const barked = group.some((event) => event.type === 'bark')
               const ate = group.some((event) => event.type === 'meal')
+              const slept = group.some((event) => event.type === 'sleep')
               const lead = potty ?? group.find((event) => event.type === 'bark') ?? group[0]!
               // One column for what happened, however much of it happened. Two
               // glyphs side by side would put a bark a column further right than
@@ -168,11 +171,13 @@ export function Timeline({ dogs, events, editing = null, onEdit }: Props) {
               const marks =
                 (potty ? POTTY_GLYPHS[potty.pottyKind] : '') +
                 (barked ? BARK_GLYPH : '') +
-                (ate ? MEAL_GLYPH : '')
+                (ate ? MEAL_GLYPH : '') +
+                (slept ? SLEEP_GLYPH : '')
               const marksLabel = [
                 potty ? POTTY_LABELS[potty.pottyKind] : '',
                 barked ? BARK_LABEL : '',
                 ate ? MEAL_LABEL : '',
+                slept ? SLEEP_LABEL : '',
               ]
                 .filter(Boolean)
                 .join(' and ')
