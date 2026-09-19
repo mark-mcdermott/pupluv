@@ -718,6 +718,20 @@
       "updatedAt": "2026-09-18T22:01:43.525Z"
     },
     {
+      "id": "21f231e3-7339-4712-ac94-64ba11378531",
+      "dogId": "535f55a3-12b8-4b5c-b4c3-1a419430dac3",
+      "type": "bark",
+      "occurredAt": "2026-09-18T17:01:00.000Z",
+      "endedAt": null,
+      "location": "outside",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-18T22:34:12.887Z",
+      "updatedAt": "2026-09-18T22:34:12.887Z"
+    },
+    {
       "id": "2c032c96-a1ac-44f1-883e-cca44be61a79",
       "dogId": "535f55a3-12b8-4b5c-b4c3-1a419430dac3",
       "type": "location",
@@ -727,9 +741,37 @@
       "pottyKind": null,
       "amount": null,
       "note": "barked",
-      "deletedAt": null,
+      "deletedAt": "2026-09-18T22:33:52.665Z",
       "createdAt": "2026-09-18T22:01:48.942Z",
-      "updatedAt": "2026-09-18T22:01:48.942Z"
+      "updatedAt": "2026-09-18T22:33:52.870Z"
+    },
+    {
+      "id": "34c5abe5-bef8-4f75-bea2-60086de6854d",
+      "dogId": "aaf65796-a7fa-4f1c-91cb-89dd6f4b2de5",
+      "type": "location",
+      "occurredAt": "2026-09-18T17:01:00.000Z",
+      "endedAt": null,
+      "location": "outside",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-18T22:34:12.887Z",
+      "updatedAt": "2026-09-18T22:34:12.887Z"
+    },
+    {
+      "id": "7df70906-c39c-4291-9498-243bdd7339e5",
+      "dogId": "aaf65796-a7fa-4f1c-91cb-89dd6f4b2de5",
+      "type": "bark",
+      "occurredAt": "2026-09-18T17:01:00.000Z",
+      "endedAt": null,
+      "location": "outside",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-18T22:34:12.887Z",
+      "updatedAt": "2026-09-18T22:34:12.887Z"
     },
     {
       "id": "92e22911-02aa-40ee-9420-f27f46db1538",
@@ -746,6 +788,20 @@
       "updatedAt": "2026-09-18T22:01:48.943Z"
     },
     {
+      "id": "935f76ab-04c5-4a87-83d7-bdda11da77fc",
+      "dogId": "535f55a3-12b8-4b5c-b4c3-1a419430dac3",
+      "type": "location",
+      "occurredAt": "2026-09-18T17:01:00.000Z",
+      "endedAt": null,
+      "location": "outside",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-18T22:34:12.887Z",
+      "updatedAt": "2026-09-18T22:34:12.887Z"
+    },
+    {
       "id": "b4f681ae-40c3-4198-a265-b63c6c43372b",
       "dogId": "aaf65796-a7fa-4f1c-91cb-89dd6f4b2de5",
       "type": "location",
@@ -755,9 +811,9 @@
       "pottyKind": null,
       "amount": null,
       "note": "barked",
-      "deletedAt": null,
+      "deletedAt": "2026-09-18T22:33:52.665Z",
       "createdAt": "2026-09-18T22:01:48.942Z",
-      "updatedAt": "2026-09-18T22:01:48.942Z"
+      "updatedAt": "2026-09-18T22:34:12.888Z"
     },
     {
       "id": "34f70ab4-30eb-4c37-af83-3816cceba1ae",
@@ -844,6 +900,62 @@
       "updatedAt": "2026-09-18T17:05:34.657Z"
     },
     {
+      "id": "a8fa5bda-fb0e-49b0-a04f-92686a5b59ee",
+      "dogId": "aaf65796-a7fa-4f1c-91cb-89dd6f4b2de5",
+      "type": "bark",
+      "occurredAt": "2026-09-18T18:38:00.000Z",
+      "endedAt": null,
+      "location": "outside",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-18T22:33:52.869Z",
+      "updatedAt": "2026-09-18T22:33:52.870Z"
+    },
+    {
+      "id": "c7125676-6aae-43e7-bde6-21d6e1e9a443",
+      "dogId": "535f55a3-12b8-4b5c-b4c3-1a419430dac3",
+      "type": "location",
+      "occurredAt": "2026-09-18T18:38:00.000Z",
+      "endedAt": null,
+      "location": "outside",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-18T22:33:52.869Z",
+      "updatedAt": "2026-09-18T22:33:52.870Z"
+    },
+    {
+      "id": "dc0a0019-013e-41a7-a5c8-8bf0db80bc06",
+      "dogId": "535f55a3-12b8-4b5c-b4c3-1a419430dac3",
+      "type": "bark",
+      "occurredAt": "2026-09-18T18:38:00.000Z",
+      "endedAt": null,
+      "location": "outside",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-18T22:33:52.869Z",
+      "updatedAt": "2026-09-18T22:33:52.870Z"
+    },
+    {
+      "id": "ecc65a4b-1a03-4f9d-9061-90e30525caf5",
+      "dogId": "aaf65796-a7fa-4f1c-91cb-89dd6f4b2de5",
+      "type": "location",
+      "occurredAt": "2026-09-18T18:38:00.000Z",
+      "endedAt": null,
+      "location": "outside",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-18T22:33:52.869Z",
+      "updatedAt": "2026-09-18T22:33:52.870Z"
+    },
+    {
       "id": "e4e91271-636e-4c26-b0f1-3a69ede074c1",
       "dogId": "aaf65796-a7fa-4f1c-91cb-89dd6f4b2de5",
       "type": "location",
@@ -853,9 +965,9 @@
       "pottyKind": null,
       "amount": null,
       "note": null,
-      "deletedAt": null,
+      "deletedAt": "2026-09-18T22:33:46.999Z",
       "createdAt": "2026-09-18T18:38:20.393Z",
-      "updatedAt": "2026-09-18T18:38:20.393Z"
+      "updatedAt": "2026-09-18T22:33:47.190Z"
     },
     {
       "id": "f4acd8fc-617b-4463-9bf7-8a6b33c548f0",
@@ -867,9 +979,9 @@
       "pottyKind": null,
       "amount": null,
       "note": null,
-      "deletedAt": null,
+      "deletedAt": "2026-09-18T22:33:46.999Z",
       "createdAt": "2026-09-18T18:38:20.393Z",
-      "updatedAt": "2026-09-18T18:38:20.393Z"
+      "updatedAt": "2026-09-18T22:33:52.870Z"
     },
     {
       "id": "abc584ea-4ba9-403f-b82a-3b58c11dbc5b",
@@ -951,9 +1063,9 @@
       "pottyKind": null,
       "amount": null,
       "note": "barked",
-      "deletedAt": null,
+      "deletedAt": "2026-09-18T22:33:31.132Z",
       "createdAt": "2026-09-18T22:02:00.220Z",
-      "updatedAt": "2026-09-18T22:02:00.220Z"
+      "updatedAt": "2026-09-18T22:33:31.341Z"
     },
     {
       "id": "548c9293-a6a2-4bdd-8433-734e058eabae",
@@ -968,6 +1080,20 @@
       "deletedAt": "2026-09-18T21:49:45.284Z",
       "createdAt": "2026-09-18T21:49:21.407Z",
       "updatedAt": "2026-09-18T21:49:45.553Z"
+    },
+    {
+      "id": "671984a5-b3ac-4294-b1a4-292f2b9d4c0b",
+      "dogId": "535f55a3-12b8-4b5c-b4c3-1a419430dac3",
+      "type": "bark",
+      "occurredAt": "2026-09-18T21:45:00.000Z",
+      "endedAt": null,
+      "location": "outside",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-18T22:33:42.906Z",
+      "updatedAt": "2026-09-18T22:33:42.906Z"
     },
     {
       "id": "6eaca37b-0202-4a6e-a6a1-bbe3ea75da12",
@@ -993,9 +1119,23 @@
       "pottyKind": null,
       "amount": null,
       "note": "barked",
-      "deletedAt": null,
+      "deletedAt": "2026-09-18T22:33:31.132Z",
       "createdAt": "2026-09-18T22:02:00.220Z",
-      "updatedAt": "2026-09-18T22:02:00.220Z"
+      "updatedAt": "2026-09-18T22:33:42.907Z"
+    },
+    {
+      "id": "a5d6c317-5d36-4b57-9192-f588ea6220dc",
+      "dogId": "aaf65796-a7fa-4f1c-91cb-89dd6f4b2de5",
+      "type": "location",
+      "occurredAt": "2026-09-18T21:45:00.000Z",
+      "endedAt": null,
+      "location": "outside",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-18T22:33:42.906Z",
+      "updatedAt": "2026-09-18T22:33:42.906Z"
     },
     {
       "id": "aa42215e-1012-4508-83c5-3f38ec54ce58",
@@ -1010,6 +1150,34 @@
       "deletedAt": "2026-09-18T21:49:45.284Z",
       "createdAt": "2026-09-18T21:49:21.407Z",
       "updatedAt": "2026-09-18T21:49:51.429Z"
+    },
+    {
+      "id": "ddd87690-88af-4f16-b33f-635e630674a2",
+      "dogId": "aaf65796-a7fa-4f1c-91cb-89dd6f4b2de5",
+      "type": "bark",
+      "occurredAt": "2026-09-18T21:45:00.000Z",
+      "endedAt": null,
+      "location": "outside",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-18T22:33:42.906Z",
+      "updatedAt": "2026-09-18T22:33:42.906Z"
+    },
+    {
+      "id": "ee457c1b-22ef-4545-9240-9475b0dc59bd",
+      "dogId": "535f55a3-12b8-4b5c-b4c3-1a419430dac3",
+      "type": "location",
+      "occurredAt": "2026-09-18T21:45:00.000Z",
+      "endedAt": null,
+      "location": "outside",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-18T22:33:42.906Z",
+      "updatedAt": "2026-09-18T22:33:42.906Z"
     },
     {
       "id": "670e828a-e0a8-49e6-bdd1-74ac91b5d635",
@@ -1150,6 +1318,202 @@
       "deletedAt": null,
       "createdAt": "2026-09-18T21:59:19.278Z",
       "updatedAt": "2026-09-18T21:59:19.279Z"
+    },
+    {
+      "id": "5d071cf1-f808-4bf0-be80-9c1e0648ff29",
+      "dogId": "aaf65796-a7fa-4f1c-91cb-89dd6f4b2de5",
+      "type": "location",
+      "occurredAt": "2026-09-18T23:55:00.000Z",
+      "endedAt": null,
+      "location": "outside",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-19T01:24:27.803Z",
+      "updatedAt": "2026-09-19T01:24:27.804Z"
+    },
+    {
+      "id": "7d3b1b43-9251-40e3-8631-1d8228608b85",
+      "dogId": "535f55a3-12b8-4b5c-b4c3-1a419430dac3",
+      "type": "location",
+      "occurredAt": "2026-09-18T23:55:00.000Z",
+      "endedAt": null,
+      "location": "outside",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": "2026-09-19T01:24:17.441Z",
+      "createdAt": "2026-09-19T00:03:29.066Z",
+      "updatedAt": "2026-09-19T01:24:17.601Z"
+    },
+    {
+      "id": "a480a23b-01d2-4569-83f3-f1457fe526b4",
+      "dogId": "535f55a3-12b8-4b5c-b4c3-1a419430dac3",
+      "type": "location",
+      "occurredAt": "2026-09-18T23:55:00.000Z",
+      "endedAt": null,
+      "location": "outside",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-19T01:24:27.803Z",
+      "updatedAt": "2026-09-19T01:24:27.804Z"
+    },
+    {
+      "id": "c85d6666-fff5-44fd-b74f-34689d9a8fc5",
+      "dogId": "aaf65796-a7fa-4f1c-91cb-89dd6f4b2de5",
+      "type": "location",
+      "occurredAt": "2026-09-18T23:55:00.000Z",
+      "endedAt": null,
+      "location": "outside",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": "2026-09-19T00:03:44.160Z",
+      "createdAt": "2026-09-19T00:03:31.714Z",
+      "updatedAt": "2026-09-19T00:03:44.266Z"
+    },
+    {
+      "id": "3034404a-5160-4adc-9b3b-4daa34072124",
+      "dogId": "535f55a3-12b8-4b5c-b4c3-1a419430dac3",
+      "type": "location",
+      "occurredAt": "2026-09-19T00:03:31.622Z",
+      "endedAt": null,
+      "location": "inside",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-19T00:03:31.714Z",
+      "updatedAt": "2026-09-19T00:03:31.714Z"
+    },
+    {
+      "id": "5ac7f450-afc8-4295-a790-7a5378d49a4d",
+      "dogId": "aaf65796-a7fa-4f1c-91cb-89dd6f4b2de5",
+      "type": "location",
+      "occurredAt": "2026-09-19T00:03:31.622Z",
+      "endedAt": null,
+      "location": "inside",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-19T00:03:39.303Z",
+      "updatedAt": "2026-09-19T00:03:39.304Z"
+    },
+    {
+      "id": "56ab734f-01fd-4087-a958-c2214c4fabcd",
+      "dogId": "aaf65796-a7fa-4f1c-91cb-89dd6f4b2de5",
+      "type": "location",
+      "occurredAt": "2026-09-19T00:10:00.000Z",
+      "endedAt": null,
+      "location": "bed",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-19T01:23:27.822Z",
+      "updatedAt": "2026-09-19T01:23:27.822Z"
+    },
+    {
+      "id": "cb22500f-99e8-40da-b7dc-9b0100924d29",
+      "dogId": "535f55a3-12b8-4b5c-b4c3-1a419430dac3",
+      "type": "location",
+      "occurredAt": "2026-09-19T00:10:00.000Z",
+      "endedAt": null,
+      "location": "bed",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-19T01:23:16.074Z",
+      "updatedAt": "2026-09-19T01:23:16.074Z"
+    },
+    {
+      "id": "0a2bcec7-c31b-488f-879b-5d20e00ae028",
+      "dogId": "535f55a3-12b8-4b5c-b4c3-1a419430dac3",
+      "type": "location",
+      "occurredAt": "2026-09-19T01:00:00.000Z",
+      "endedAt": null,
+      "location": "crate",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-19T01:23:52.132Z",
+      "updatedAt": "2026-09-19T01:23:52.132Z"
+    },
+    {
+      "id": "a7172e41-7846-420e-846a-0878aa5cb72a",
+      "dogId": "aaf65796-a7fa-4f1c-91cb-89dd6f4b2de5",
+      "type": "location",
+      "occurredAt": "2026-09-19T01:00:00.000Z",
+      "endedAt": null,
+      "location": "crate",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-19T01:23:57.821Z",
+      "updatedAt": "2026-09-19T01:23:57.822Z"
+    },
+    {
+      "id": "633db806-b6c3-4b29-a10f-cde2bbb5cdc4",
+      "dogId": "aaf65796-a7fa-4f1c-91cb-89dd6f4b2de5",
+      "type": "location",
+      "occurredAt": "2026-09-19T01:05:00.000Z",
+      "endedAt": null,
+      "location": "outside",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-19T01:24:07.225Z",
+      "updatedAt": "2026-09-19T01:24:07.225Z"
+    },
+    {
+      "id": "88a1bc03-efac-4e9e-b6d1-886b6bb70750",
+      "dogId": "535f55a3-12b8-4b5c-b4c3-1a419430dac3",
+      "type": "location",
+      "occurredAt": "2026-09-19T01:05:00.000Z",
+      "endedAt": null,
+      "location": "outside",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-19T01:23:59.648Z",
+      "updatedAt": "2026-09-19T01:23:59.648Z"
+    },
+    {
+      "id": "23442de3-e4df-4003-a66f-3d519d778a6a",
+      "dogId": "aaf65796-a7fa-4f1c-91cb-89dd6f4b2de5",
+      "type": "location",
+      "occurredAt": "2026-09-19T01:15:00.000Z",
+      "endedAt": null,
+      "location": "crate",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-19T01:24:17.600Z",
+      "updatedAt": "2026-09-19T01:24:17.600Z"
+    },
+    {
+      "id": "5a25a48d-ad1d-4a86-ae1c-bccd28f262ee",
+      "dogId": "535f55a3-12b8-4b5c-b4c3-1a419430dac3",
+      "type": "location",
+      "occurredAt": "2026-09-19T01:15:00.000Z",
+      "endedAt": null,
+      "location": "crate",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-19T01:24:07.225Z",
+      "updatedAt": "2026-09-19T01:24:07.225Z"
     }
   ]
 }
