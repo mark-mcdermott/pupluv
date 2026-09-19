@@ -78,6 +78,26 @@ export const MEAL_LABEL = 'Ate'
 export const SLEEP_GLYPH = '😴'
 export const SLEEP_LABEL = 'Slept'
 
+/**
+ * The kinds of entry that share one glyph column with a potty, in the order they
+ * read there. A potty is not among them because its glyph depends on which kind
+ * it was; everything here is simply present or absent.
+ *
+ * Listed once because three separate places used to name these types inline, and
+ * every one of them was missed when a fourth arrived.
+ */
+export const MARKS = {
+  bark: { glyph: BARK_GLYPH, label: BARK_LABEL },
+  meal: { glyph: MEAL_GLYPH, label: MEAL_LABEL },
+  sleep: { glyph: SLEEP_GLYPH, label: SLEEP_LABEL },
+} as const
+
+export type MarkType = keyof typeof MARKS
+
+export function isMark(type: PupEvent['type']): type is MarkType {
+  return type in MARKS
+}
+
 const isoDate = z.iso.datetime({ offset: true })
 const nullableIso = isoDate.nullish().transform((v) => v ?? null)
 
@@ -146,6 +166,11 @@ export type Dog = z.infer<typeof dogSchema>
  * kind of record, it is any elimination that did not happen outside. Logging
  * the successes too is what turns this into a training signal.
  */
+/** Everything but a drink is filed at a place. */
+export function placeOf(event: PupEvent): Location | null {
+  return event.type === 'water' ? null : event.location
+}
+
 export function isAccident(event: PupEvent): boolean {
   return event.type === 'potty' && event.location !== 'outside'
 }
