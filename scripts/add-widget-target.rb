@@ -60,6 +60,17 @@ existing = widget.source_build_phase.files_references
   widget.add_file_references([ref]) unless existing.include?(ref)
 end
 
+# The artwork goes in as a folder reference rather than file by file, so a new
+# glyph from `pnpm glyphs` is bundled without touching the project again.
+glyphs_path = File.join(ROOT, DIR, 'Glyphs')
+if Dir.exist?(glyphs_path)
+  ref = group.files.find { |f| f.display_name == 'Glyphs' } ||
+        group.new_reference('Glyphs').tap { |r| r.last_known_file_type = 'folder' }
+  resources = widget.resources_build_phase
+  resources.add_file_reference(ref) unless resources.files_references.include?(ref)
+  puts 'resources: Glyphs/'
+end
+
 # The extension has to be copied into the app bundle's PlugIns directory, and
 # re-signed on the way in, or it simply will not appear on the home screen.
 embed = app.build_phases.find { |p|

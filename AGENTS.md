@@ -214,8 +214,15 @@ work with no signal.
 A glyph string can hold more than one emoji — `both` is `💧💩`, and a potty with
 a bark is another — so `Glyph` splits on graphemes and draws one image each.
 
-The widget carries the same switch separately; they are different builds and
-cannot share a constant.
+The widget draws the same artwork as PNGs, since SwiftUI reads an SVG only out of
+an asset catalog. They live in `iphone/App/Widget/Glyphs` as a **folder
+reference**, so a glyph that arrives from `pnpm glyphs` is bundled without the
+Xcode project being touched again. Swift iterates grapheme clusters natively,
+which is the same split the web makes, and falls back to the character when a
+glyph has no artwork — a dog renamed on the phone still shows something.
+
+The switch is carried separately there; they are different builds and cannot
+share a constant.
 
 ## Backups
 
