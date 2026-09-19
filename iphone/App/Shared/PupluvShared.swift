@@ -20,6 +20,7 @@ public enum PupluvShared {
         static let skipped = "skippedDogs"
         static let picks = "picks"
         static let barked = "barked"
+        static let ate = "ate"
         static let pendingPlace = "pendingPlace"
     }
 
@@ -40,6 +41,7 @@ public enum PupluvShared {
             case location
             case potty
             case bark
+            case meal
         }
 
         public let id: String
@@ -127,6 +129,13 @@ public enum PupluvShared {
         set { defaults?.set(newValue, forKey: Key.barked) }
     }
 
+    /// Marked the same way, and for the same reason: what matters is that it
+    /// happened and when. The `meal` arm carries an amount for a future UI.
+    public static var ate: Bool {
+        get { defaults?.bool(forKey: Key.ate) ?? false }
+        set { defaults?.set(newValue, forKey: Key.ate) }
+    }
+
     /// Where the entry is being filed. Only set while the row is open: closed,
     /// a place button writes immediately instead.
     public static var pendingPlace: String? {
@@ -154,6 +163,7 @@ public enum PupluvShared {
         skipped = []
         picks = []
         barked = false
+        ate = false
         defaults?.removeObject(forKey: Key.pendingPlace)
     }
 

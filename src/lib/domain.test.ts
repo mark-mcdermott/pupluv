@@ -124,9 +124,31 @@ describe('eventSchema', () => {
       dogId: DOG,
       type: 'meal',
       occurredAt: '2026-09-16T10:00:00Z',
+      location: 'inside',
       amount: 1.5,
     })
-    expect(meal).toMatchObject({ type: 'meal', amount: 1.5 })
+    expect(meal).toMatchObject({ type: 'meal', location: 'inside', amount: 1.5 })
+  })
+
+  it('takes a meal with no amount — a bowl went down is the whole entry', () => {
+    const meal = eventSchema.parse({
+      id: id(),
+      dogId: DOG,
+      type: 'meal',
+      occurredAt: '2026-09-16T10:00:00Z',
+      location: 'inside',
+    })
+    expect(meal).toMatchObject({ type: 'meal', amount: null })
+  })
+
+  it('still requires a place for a meal', () => {
+    const result = eventSchema.safeParse({
+      id: id(),
+      dogId: DOG,
+      type: 'meal',
+      occurredAt: '2026-09-16T10:00:00Z',
+    })
+    expect(result.success).toBe(false)
   })
 })
 

@@ -31,8 +31,21 @@ describe('toRow / fromRow', () => {
       dogId: DOG,
       type: 'meal',
       occurredAt: '2026-09-16T10:00:00.000Z',
+      location: 'inside',
       amount: 1.25,
     })
+    expect(fromRow(asRow(event))).toEqual(event)
+  })
+
+  it('round-trips a meal with no amount', () => {
+    const event = eventSchema.parse({
+      id: ID,
+      dogId: DOG,
+      type: 'meal',
+      occurredAt: '2026-09-16T10:00:00.000Z',
+      location: 'inside',
+    })
+    expect(toRow(event).amount).toBeNull()
     expect(fromRow(asRow(event))).toEqual(event)
   })
 
