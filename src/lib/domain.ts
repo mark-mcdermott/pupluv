@@ -70,6 +70,14 @@ export const BARK_LABEL = 'Barked'
 export const MEAL_GLYPH = '🦴'
 export const MEAL_LABEL = 'Ate'
 
+/**
+ * Sleep is marked, not timed. Nothing ends it explicitly because nothing has to:
+ * location is a mode and the next entry closes the stretch, which is how a move
+ * to the crate at 9pm already reads as ten hours.
+ */
+export const SLEEP_GLYPH = '😴'
+export const SLEEP_LABEL = 'Slept'
+
 const isoDate = z.iso.datetime({ offset: true })
 const nullableIso = isoDate.nullish().transform((v) => v ?? null)
 
@@ -109,7 +117,7 @@ export const eventSchema = z.discriminatedUnion('type', [
     amount: z.number().positive().max(100).nullish().transform((v) => v ?? null),
   }),
   z.object({ ...eventBase, type: z.literal('water'), amount: z.number().positive().max(500) }),
-  z.object({ ...eventBase, type: z.literal('sleep'), endedAt: nullableIso }),
+  z.object({ ...eventBase, type: z.literal('sleep'), location: z.enum(LOCATIONS) }),
 ])
 
 export type PupEvent = z.infer<typeof eventSchema>

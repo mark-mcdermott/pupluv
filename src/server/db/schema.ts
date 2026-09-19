@@ -58,8 +58,6 @@ export const events = pgTable(
     type: eventType('type').notNull(),
     /** When it happened — set on the device, which may be hours before sync. */
     occurredAt: timestamp('occurred_at', { withTimezone: true }).notNull(),
-    /** Sleep only; null while a nap is still in progress. */
-    endedAt: timestamp('ended_at', { withTimezone: true }),
     location: location('location'),
     pottyKind: pottyKind('potty_kind'),
     /** Meal in cups, water in ounces. */
@@ -105,8 +103,8 @@ export const events = pgTable(
       sql`${t.type} <> 'water' or ${t.amount} is not null`,
     ),
     check(
-      'sleep_ends_after_it_starts',
-      sql`${t.endedAt} is null or ${t.endedAt} >= ${t.occurredAt}`,
+      'sleep_event_has_place',
+      sql`${t.type} <> 'sleep' or ${t.location} is not null`,
     ),
   ],
 )

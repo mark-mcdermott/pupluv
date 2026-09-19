@@ -5,6 +5,8 @@ import {
   BARK_LABEL,
   MEAL_GLYPH,
   MEAL_LABEL,
+  SLEEP_GLYPH,
+  SLEEP_LABEL,
   DEFAULT_LOCATION,
   LOCATIONS,
   LOCATION_LABELS,
@@ -44,7 +46,12 @@ const trace = (colour: string) => `color-mix(in oklab, ${colour} 16%, transparen
 
 /** The places, and the detail row beneath them at three quarters the size. */
 const MAIN_GLYPH_PX = 24
-const DETAIL_GLYPH_PX = Math.round(MAIN_GLYPH_PX * 0.75)
+/**
+ * Seven circles no longer fit at three quarters of a place tile. The gaps give
+ * way before the circles do: 44px is the smallest a thumb should be asked for,
+ * and group separation survives at a 3:1 ratio where a touch target does not.
+ */
+const DETAIL_GLYPH_PX = Math.round(MAIN_GLYPH_PX * 0.7)
 
 const POTTY_PAST = { pee: 'Peed', poo: 'Pooed', both: 'Peed and pooed' } as const
 const PLACE_PAST = {
@@ -84,6 +91,7 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
    *  where "what happened" lives. */
   const [barked, setBarked] = useState(false)
   const [ate, setAte] = useState(false)
+  const [slept, setSlept] = useState(false)
   const [note, setNote] = useState('')
   // Held as the dogs left out rather than the ones taken, so every dog — including
   // one that only syncs down later — starts an entry selected.
@@ -102,6 +110,7 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
     )
     setBarked(editing.some((event) => event.type === 'bark'))
     setAte(editing.some((event) => event.type === 'meal'))
+    setSlept(editing.some((event) => event.type === 'sleep'))
     setPicks(
       lead.type === 'potty'
         ? lead.pottyKind === 'both'
@@ -110,7 +119,7 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
         : [],
     )
     setPendingLocation(
-      lead.type === 'sleep' || lead.type === 'water' ? null : lead.location,
+      lead.type === 'water' ? null : lead.location,
     )
     setNote(lead.note ?? '')
     setAt(toLocalInput(lead.occurredAt))
@@ -159,6 +168,7 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
     setPicks([])
     setBarked(false)
     setAte(false)
+    setSlept(false)
     setNote('')
     setSkipped([])
     setAt('')
@@ -238,7 +248,7 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
     const lead = editing.find((event) => event.type === 'potty') ?? editing[0]!
     const place =
       pendingLocation ??
-      (lead.type === 'sleep' || lead.type === 'water' ? DEFAULT_LOCATION : lead.location)
+      (lead.type === 'water' ? DEFAULT_LOCATION : lead.location)
     const occurredAt = fromLocalInput(at) ?? lead.occurredAt
     const text = note.trim() || null
     const marked = marks()
@@ -308,6 +318,15 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
         note,
       }))
     }
+    if (slept) {
+      list.push((dogId, occurredAt, location, note) => ({
+        type: 'sleep',
+        dogId,
+        occurredAt,
+        location,
+        note,
+      }))
+    }
     return list
   }
 
@@ -354,7 +373,9 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
         ? `${BARK_LABEL}${place ? ` ${PLACE_PAST[place]}` : ''}`
         : ate
           ? `${MEAL_LABEL}${place ? ` ${PLACE_PAST[place]}` : ''}`
-          : LOCATION_LABELS[pendingLocation!]
+          : slept
+            ? `${SLEEP_LABEL}${place ? ` ${PLACE_PAST[place]}` : ''}`
+            : LOCATION_LABELS[pendingLocation!]
     announce(`${listNames(targets)} · ${summary}`, ids)
     reset()
   }
@@ -429,8 +450,8 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
           </div>
 
           {open ? (
-            <div className="mt-1.5 flex items-center gap-3.5">
-              <div className="flex gap-1.5" role="group" aria-label="Which dog">
+            <div className="mt-1.5 flex items-center gap-3">
+              <div className="flex gap-1" role="group" aria-label="Which dog">
                 {dogs.map((dog) => {
                   const on = !skipped.includes(dog.id)
                   return (
@@ -441,7 +462,7 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
                       aria-label={dog.name}
                       onClick={() => toggleDog(dog.id)}
                       data-on={on}
-                      className="press deck-tile grid size-12 shrink-0 place-items-center rounded-full border"
+                      className="press deck-tile grid size-11 shrink-0 place-items-center rounded-full border"
                       style={tile(on, TILE_FILL, hint)}
                     >
                       <Glyph text={dog.emoji} label={dog.name} size={DETAIL_GLYPH_PX} />
@@ -450,7 +471,7 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
                 })}
               </div>
 
-              <div className="flex gap-1.5" role="group" aria-label="What happened">
+              <div className="flex gap-1" role="group" aria-label="What happened">
                 {PICKS.map((pick) => {
                   const on = picks.includes(pick)
                   return (
@@ -461,7 +482,7 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
                       aria-label={POTTY_LABELS[pick]}
                       onClick={() => togglePick(pick)}
                       data-on={on}
-                      className="press deck-tile grid size-12 shrink-0 place-items-center rounded-full border"
+                      className="press deck-tile grid size-11 shrink-0 place-items-center rounded-full border"
                       style={tile(on, TILE_FILL, hint)}
                     >
                       <Glyph
@@ -478,7 +499,7 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
                   aria-label={BARK_LABEL}
                   onClick={() => setBarked(!barked)}
                   data-on={barked}
-                  className="press deck-tile grid size-12 shrink-0 place-items-center rounded-full border"
+                  className="press deck-tile grid size-11 shrink-0 place-items-center rounded-full border"
                   style={tile(barked, TILE_FILL, hint)}
                 >
                   <Glyph text={BARK_GLYPH} label={BARK_LABEL} size={DETAIL_GLYPH_PX} />
@@ -490,10 +511,22 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
                   aria-label={MEAL_LABEL}
                   onClick={() => setAte(!ate)}
                   data-on={ate}
-                  className="press deck-tile grid size-12 shrink-0 place-items-center rounded-full border"
+                  className="press deck-tile grid size-11 shrink-0 place-items-center rounded-full border"
                   style={tile(ate, TILE_FILL, hint)}
                 >
                   <Glyph text={MEAL_GLYPH} label={MEAL_LABEL} size={DETAIL_GLYPH_PX} />
+                </button>
+
+                <button
+                  type="button"
+                  aria-pressed={slept}
+                  aria-label={SLEEP_LABEL}
+                  onClick={() => setSlept(!slept)}
+                  data-on={slept}
+                  className="press deck-tile grid size-11 shrink-0 place-items-center rounded-full border"
+                  style={tile(slept, TILE_FILL, hint)}
+                >
+                  <Glyph text={SLEEP_GLYPH} label={SLEEP_LABEL} size={DETAIL_GLYPH_PX} />
                 </button>
               </div>
 

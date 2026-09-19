@@ -9,7 +9,7 @@
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import sharp from 'sharp'
-import { BARK_GLYPH, LOCATION_GLYPHS, MEAL_GLYPH, POTTY_GLYPHS } from '../src/lib/domain'
+import { BARK_GLYPH, LOCATION_GLYPHS, MEAL_GLYPH, POTTY_GLYPHS, SLEEP_GLYPH } from '../src/lib/domain'
 import { glyphName, glyphParts } from '../src/app/lib/glyphs'
 
 const SOURCE = 'node_modules/@twemoji/svg'
@@ -36,6 +36,7 @@ const used = [
   ...Object.values(POTTY_GLYPHS),
   BARK_GLYPH,
   MEAL_GLYPH,
+  SLEEP_GLYPH,
   ...dogGlyphs(),
 ].flatMap(glyphParts)
 

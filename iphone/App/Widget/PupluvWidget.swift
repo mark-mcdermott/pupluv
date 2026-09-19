@@ -38,6 +38,8 @@ private let barkGlyph = "🗯️"
 private let barkLabel = "Barked"
 private let mealGlyph = "🦴"
 private let mealLabel = "Ate"
+private let sleepGlyph = "😴"
+private let sleepLabel = "Slept"
 
 /// No paper plane exists in the emoji set; the outbox tray is the send glyph.
 private let sendGlyph = "📤"
@@ -78,6 +80,7 @@ struct PlaceEntry: TimelineEntry {
     let picked: [String]
     let barked: Bool
     let ate: Bool
+    let slept: Bool
     let pending: String?
 }
 
@@ -93,6 +96,7 @@ struct PlaceProvider: TimelineProvider {
             picked: [],
             barked: false,
             ate: false,
+            slept: false,
             pending: nil
         )
     }
@@ -118,6 +122,7 @@ struct PlaceProvider: TimelineProvider {
             picked: PupluvShared.picks,
             barked: PupluvShared.barked,
             ate: PupluvShared.ate,
+            slept: PupluvShared.slept,
             pending: PupluvShared.pendingPlace
         )
     }
@@ -235,16 +240,16 @@ private struct DetailRow: View {
     /// The place tile above, which everything here is measured against.
     let side: CGFloat
 
-    /// Seven circles and the eye now, where five and the eye fitted at three
-    /// quarters. The row costs about 9.4 circles laid end to end once the gaps
+    /// Eight circles and the eye now, where five and the eye fitted at three
+    /// quarters. The row costs about 10.5 circles laid end to end once the gaps
     /// are counted, against a budget of five tiles and their gutters — which
-    /// puts the ceiling near 0.57 on the widest phone, so this sits under it.
-    private var small: CGFloat { side * 0.55 }
+    /// puts the ceiling near 0.51 on the widest phone, so this sits under it.
+    private var small: CGFloat { side * 0.48 }
     /// Half the tile, so it stays a circle whatever the tile grows to.
     private var radius: CGFloat { small / 2 }
 
     /// Tight inside a group, loose between them, so dogs / what happened / send
-    /// / the eye read as four things rather than one run of seven. Both measured
+    /// / the eye read as four things rather than one run of eight. Both measured
     /// against the circle, which is what the eye is comparing them to.
     private var within: CGFloat { small * 0.125 }
     private var between: CGFloat { small * 0.29 }
@@ -304,6 +309,17 @@ private struct DetailRow: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(mealLabel)
+                    Button(intent: ToggleSleptIntent()) {
+                        Tile(
+                            glyph: sleepGlyph,
+                            side: small,
+                            radius: radius,
+                            on: entry.slept,
+                            fill: tileFill
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(sleepLabel)
                 }
 
                 Spacer(minLength: between)
