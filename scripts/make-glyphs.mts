@@ -8,12 +8,21 @@
  */
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
+import sharp from 'sharp'
 import { BARK_GLYPH, LOCATION_GLYPHS, POTTY_GLYPHS } from '../src/lib/domain'
 import { glyphName, glyphParts } from '../src/app/lib/glyphs'
 
 const SOURCE = 'node_modules/@twemoji/svg'
 const OUT = 'public/glyphs'
+/** A folder reference in the widget target, so a new glyph needs no Xcode edit. */
+const WIDGET_OUT = 'iphone/App/Widget/Glyphs'
 const BACKUP = 'backups/pupluv.json'
+
+/**
+ * Big enough for the largest a widget draws one — a place tile on a medium
+ * widget is about 21pt of glyph, which is 63px at 3x.
+ */
+const WIDGET_PX = 144
 
 /** The dogs' emoji are data, not code, so they come from the committed dump. */
 function dogGlyphs(): string[] {
@@ -31,8 +40,10 @@ const used = [
 
 const wanted = [...new Set(used.map(glyphName))].sort()
 
-rmSync(OUT, { recursive: true, force: true })
-mkdirSync(OUT, { recursive: true })
+for (const folder of [OUT, WIDGET_OUT]) {
+  rmSync(folder, { recursive: true, force: true })
+  mkdirSync(folder, { recursive: true })
+}
 
 const missing: string[] = []
 for (const name of wanted) {
@@ -42,6 +53,9 @@ for (const name of wanted) {
     continue
   }
   copyFileSync(from, join(OUT, `${name}.svg`))
+  // The widget takes raster: SwiftUI reads an SVG only out of an asset catalog,
+  // and a folder of files is what lets a new glyph arrive without an Xcode edit.
+  await sharp(from).resize(WIDGET_PX, WIDGET_PX).png().toFile(join(WIDGET_OUT, `${name}.png`))
 }
 
 if (missing.length) {
@@ -49,5 +63,6 @@ if (missing.length) {
   process.exit(1)
 }
 
-console.log(`${OUT}: ${readdirSync(OUT).length} glyphs`)
+console.log(`${OUT}: ${readdirSync(OUT).length} svg`)
+console.log(`${WIDGET_OUT}: ${readdirSync(WIDGET_OUT).length} png at ${WIDGET_PX}px`)
 console.log(wanted.join(' '))

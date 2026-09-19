@@ -118,6 +118,72 @@ struct PlaceProvider: TimelineProvider {
     }
 }
 
+/// Emoji are drawn either by the system font or by the Twemoji artwork bundled
+/// beside this file. The web carries the same switch in
+/// `src/app/lib/glyphs.ts`; they are separate builds and cannot share a
+/// constant.
+private enum GlyphStyle {
+    case native
+    case twemoji
+}
+
+private let glyphStyle = GlyphStyle.twemoji
+
+/**
+ Twemoji files are named for their code points in hex, joined by dashes, with the
+ variation selector dropped — 🗯️ is U+1F5EF U+FE0F and lives in 1f5ef.png.
+ */
+private func glyphName(_ emoji: String) -> String {
+    emoji.unicodeScalars
+        .filter { $0.value != 0xFE0F }
+        .map { String($0.value, radix: 16) }
+        .joined(separator: "-")
+}
+
+private func glyphImage(_ emoji: String) -> Image? {
+    guard
+        let url = Bundle.main.url(
+            forResource: glyphName(emoji),
+            withExtension: "png",
+            subdirectory: "Glyphs"
+        ),
+        let raster = UIImage(contentsOfFile: url.path)
+    else { return nil }
+    return Image(uiImage: raster).renderingMode(.original)
+}
+
+/// One image per emoji: a pair like 💧💩 is two glyphs in one string, and the
+/// artwork is filed one to a code point. Swift iterates grapheme clusters, which
+/// is exactly the split wanted. Falls back to the character when a glyph has no
+/// artwork, so a dog renamed on the phone still shows something.
+private struct Glyph: View {
+    let text: String
+    let size: CGFloat
+
+    var body: some View {
+        if glyphStyle == .native {
+            characters
+        } else {
+            HStack(spacing: 0) {
+                ForEach(Array(text.enumerated()), id: \.offset) { _, character in
+                    if let image = glyphImage(String(character)) {
+                        image.resizable().frame(width: size, height: size)
+                    } else {
+                        Text(String(character)).font(.system(size: size))
+                    }
+                }
+            }
+        }
+    }
+
+    private var characters: some View {
+        Text(text)
+            .font(.system(size: size))
+            .minimumScaleFactor(0.5)
+            .lineLimit(1)
+    }
+}
+
 /// The deck's one button shape: a bordered tile that fills in when it is on. The
 /// places take a rounded square; the row below them takes half its own side, so
 /// it stays a circle exactly as it does on the web.
@@ -129,10 +195,7 @@ private struct Tile: View {
     let fill: AnyShapeStyle
 
     var body: some View {
-        Text(glyph)
-            .font(.system(size: side * 0.375))
-            .minimumScaleFactor(0.5)
-            .lineLimit(1)
+        Glyph(text: glyph, size: side * 0.375)
             .frame(width: side, height: side)
             .background(
                 RoundedRectangle(cornerRadius: radius, style: .continuous)
