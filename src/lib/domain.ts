@@ -62,6 +62,14 @@ export const POTTY_GLYPHS: Record<PottyKind, string> = {
 export const BARK_GLYPH = '🗯️'
 export const BARK_LABEL = 'Barked'
 
+/**
+ * Eating is marked the same way, and for the same reason: what matters is that
+ * it happened and when. The amount stays on the type for a future UI that cares
+ * about cups, but nothing is required to say a bowl went down.
+ */
+export const MEAL_GLYPH = '🦴'
+export const MEAL_LABEL = 'Ate'
+
 const isoDate = z.iso.datetime({ offset: true })
 const nullableIso = isoDate.nullish().transform((v) => v ?? null)
 
@@ -94,7 +102,12 @@ export const eventSchema = z.discriminatedUnion('type', [
     pottyKind: z.enum(POTTY_KINDS),
   }),
   z.object({ ...eventBase, type: z.literal('bark'), location: z.enum(LOCATIONS) }),
-  z.object({ ...eventBase, type: z.literal('meal'), amount: z.number().positive().max(100) }),
+  z.object({
+    ...eventBase,
+    type: z.literal('meal'),
+    location: z.enum(LOCATIONS),
+    amount: z.number().positive().max(100).nullish().transform((v) => v ?? null),
+  }),
   z.object({ ...eventBase, type: z.literal('water'), amount: z.number().positive().max(500) }),
   z.object({ ...eventBase, type: z.literal('sleep'), endedAt: nullableIso }),
 ])

@@ -36,6 +36,8 @@ private let pickKinds = [
 
 private let barkGlyph = "🗯️"
 private let barkLabel = "Barked"
+private let mealGlyph = "🦴"
+private let mealLabel = "Ate"
 
 /// No paper plane exists in the emoji set; the outbox tray is the send glyph.
 private let sendGlyph = "📤"
@@ -75,6 +77,7 @@ struct PlaceEntry: TimelineEntry {
     let skipped: [String]
     let picked: [String]
     let barked: Bool
+    let ate: Bool
     let pending: String?
 }
 
@@ -89,6 +92,7 @@ struct PlaceProvider: TimelineProvider {
             skipped: [],
             picked: [],
             barked: false,
+            ate: false,
             pending: nil
         )
     }
@@ -113,6 +117,7 @@ struct PlaceProvider: TimelineProvider {
             skipped: PupluvShared.skipped,
             picked: PupluvShared.picks,
             barked: PupluvShared.barked,
+            ate: PupluvShared.ate,
             pending: PupluvShared.pendingPlace
         )
     }
@@ -230,14 +235,16 @@ private struct DetailRow: View {
     /// The place tile above, which everything here is measured against.
     let side: CGFloat
 
-    /// A bark makes six circles and the eye where five and the eye fitted at
-    /// three quarters, so they come down to what a medium widget will hold.
-    private var small: CGFloat { side * 0.65 }
+    /// Seven circles and the eye now, where five and the eye fitted at three
+    /// quarters. The row costs about 9.4 circles laid end to end once the gaps
+    /// are counted, against a budget of five tiles and their gutters — which
+    /// puts the ceiling near 0.57 on the widest phone, so this sits under it.
+    private var small: CGFloat { side * 0.55 }
     /// Half the tile, so it stays a circle whatever the tile grows to.
     private var radius: CGFloat { small / 2 }
 
-    /// Tight inside a group, loose between them, so dogs / pee and poo / send /
-    /// the eye read as four things rather than one run of six. Both measured
+    /// Tight inside a group, loose between them, so dogs / what happened / send
+    /// / the eye read as four things rather than one run of seven. Both measured
     /// against the circle, which is what the eye is comparing them to.
     private var within: CGFloat { small * 0.125 }
     private var between: CGFloat { small * 0.29 }
@@ -286,6 +293,17 @@ private struct DetailRow: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(barkLabel)
+                    Button(intent: ToggleAteIntent()) {
+                        Tile(
+                            glyph: mealGlyph,
+                            side: small,
+                            radius: radius,
+                            on: entry.ate,
+                            fill: tileFill
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(mealLabel)
                 }
 
                 Spacer(minLength: between)
