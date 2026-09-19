@@ -13,6 +13,8 @@ import { BARK_GLYPH, LOCATION_GLYPHS, MEAL_GLYPH, POTTY_GLYPHS, SLEEP_GLYPH } fr
 import { glyphName, glyphParts } from '../src/app/lib/glyphs'
 
 const SOURCE = 'node_modules/@twemoji/svg'
+/** Drawn here rather than taken from Twemoji, and preferred over it. */
+const OVERRIDES = 'brand/glyphs'
 const OUT = 'public/glyphs'
 /** A folder reference in the widget target, so a new glyph needs no Xcode edit. */
 const WIDGET_OUT = 'iphone/App/Widget/Glyphs'
@@ -49,7 +51,8 @@ for (const folder of [OUT, WIDGET_OUT]) {
 
 const missing: string[] = []
 for (const name of wanted) {
-  const from = join(SOURCE, `${name}.svg`)
+  const drawn = join(OVERRIDES, `${name}.svg`)
+  const from = existsSync(drawn) ? drawn : join(SOURCE, `${name}.svg`)
   if (!existsSync(from)) {
     missing.push(name)
     continue
@@ -65,6 +68,8 @@ if (missing.length) {
   process.exit(1)
 }
 
+const drawn = existsSync(OVERRIDES) ? readdirSync(OVERRIDES).filter((f) => f.endsWith('.svg')) : []
+if (drawn.length) console.log(`${OVERRIDES}: ${drawn.map((f) => f.replace('.svg', '')).join(' ')}`)
 console.log(`${OUT}: ${readdirSync(OUT).length} svg`)
 console.log(`${WIDGET_OUT}: ${readdirSync(WIDGET_OUT).length} png at ${WIDGET_PX}px`)
 console.log(wanted.join(' '))
