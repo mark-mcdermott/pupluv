@@ -388,7 +388,7 @@ export function Deck({ dogs, events, editing = null, onDone }: Props) {
           than part of the form. Named, too: catching up on five entries at
           once is ordinary, and an eye never said that was possible. */}
       {open ? null : (
-        <div className="mx-auto w-full max-w-sm px-4 pb-1.5 text-right">
+        <div className="mx-auto w-full max-w-sm px-4 pb-[1.125rem] text-right">
           <button
             type="button"
             onClick={openDetails}
