@@ -21,6 +21,7 @@
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
 		5E523D0149A84140080AC01E /* PupluvShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = 375B1BFD8084C0B48F12B99D /* PupluvShared.swift */; };
 		7BD46F2928F13AF914AEF03F /* PupluvAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1149D20DA77B8D7B73508AE5 /* PupluvAPI.swift */; };
+		7D850A1B29B903C92DDCCEF7 /* Glyphs in Resources */ = {isa = PBXBuildFile; fileRef = 33E296C61BF4909BAF272AA7 /* Glyphs */; };
 		9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9582B6822FE993A50072D4E8 /* SceneDelegate.swift */; };
 		ABB9E79330E9B36325F45AE1 /* PupluvWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29E21A5769CE24A9DEFF1AD5 /* PupluvWidget.swift */; };
 		ACE3D99E9A6ED94C1A16D3EA /* PupluvShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = 375B1BFD8084C0B48F12B99D /* PupluvShared.swift */; };
@@ -60,6 +61,7 @@
 		29E21A5769CE24A9DEFF1AD5 /* PupluvWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PupluvWidget.swift; sourceTree = "<group>"; };
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
 		3039CA923D5051281B46103C /* ViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		33E296C61BF4909BAF272AA7 /* Glyphs */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder; path = Glyphs; sourceTree = "<group>"; };
 		375B1BFD8084C0B48F12B99D /* PupluvShared.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PupluvShared.swift; sourceTree = "<group>"; };
 		50379B222058CBB4000EE86E /* capacitor.config.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = capacitor.config.json; sourceTree = "<group>"; };
 		504EC3041FED79650016851F /* App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = App.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -152,6 +154,7 @@
 				B1910E6386C2C2CBBE791148 /* LogPlaceIntent.swift */,
 				29E21A5769CE24A9DEFF1AD5 /* PupluvWidget.swift */,
 				EF39797EFFF869DD68775450 /* DetailIntents.swift */,
+				33E296C61BF4909BAF272AA7 /* Glyphs */,
 			);
 			name = Widget;
 			path = Widget;
@@ -261,6 +264,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7D850A1B29B903C92DDCCEF7 /* Glyphs in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
