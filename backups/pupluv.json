@@ -2137,6 +2137,71 @@
       "updatedAt": "2026-09-19T17:57:27.565Z"
     },
     {
+      "id": "624af3c4-cbb1-400c-8bb6-9404b55f0a5d",
+      "dogId": "aaf65796-a7fa-4f1c-91cb-89dd6f4b2de5",
+      "type": "location",
+      "occurredAt": "2026-09-19T17:57:00.000Z",
+      "location": "inside",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-19T20:26:38.626Z",
+      "updatedAt": "2026-09-19T20:26:38.627Z"
+    },
+    {
+      "id": "20455f78-897d-4ac8-8610-f799fa4d1303",
+      "dogId": "aaf65796-a7fa-4f1c-91cb-89dd6f4b2de5",
+      "type": "sleep",
+      "occurredAt": "2026-09-19T18:18:00.000Z",
+      "location": "pen",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-19T20:26:59.324Z",
+      "updatedAt": "2026-09-19T20:26:59.324Z"
+    },
+    {
+      "id": "8e6fb88d-0c64-4d09-aa4e-84e424c79785",
+      "dogId": "535f55a3-12b8-4b5c-b4c3-1a419430dac3",
+      "type": "location",
+      "occurredAt": "2026-09-19T18:18:00.000Z",
+      "location": "pen",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-19T20:26:59.324Z",
+      "updatedAt": "2026-09-19T20:26:59.324Z"
+    },
+    {
+      "id": "b8b979a2-864b-4d4e-bffc-edd531192eab",
+      "dogId": "aaf65796-a7fa-4f1c-91cb-89dd6f4b2de5",
+      "type": "location",
+      "occurredAt": "2026-09-19T18:18:00.000Z",
+      "location": "pen",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-19T20:26:59.324Z",
+      "updatedAt": "2026-09-19T20:26:59.324Z"
+    },
+    {
+      "id": "e60ef07c-1944-4f14-bed1-3fda0cdb4b67",
+      "dogId": "535f55a3-12b8-4b5c-b4c3-1a419430dac3",
+      "type": "sleep",
+      "occurredAt": "2026-09-19T18:18:00.000Z",
+      "location": "pen",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-19T20:26:59.324Z",
+      "updatedAt": "2026-09-19T20:26:59.324Z"
+    },
+    {
       "id": "91660449-1449-457b-82f2-1703f79c3e7b",
       "dogId": "aaf65796-a7fa-4f1c-91cb-89dd6f4b2de5",
       "type": "location",
@@ -2145,9 +2210,9 @@
       "pottyKind": null,
       "amount": null,
       "note": null,
-      "deletedAt": null,
+      "deletedAt": "2026-09-19T20:26:49.419Z",
       "createdAt": "2026-09-19T18:18:37.738Z",
-      "updatedAt": "2026-09-19T18:18:37.739Z"
+      "updatedAt": "2026-09-19T20:26:59.325Z"
     },
     {
       "id": "a59b39ec-078b-425a-b152-40b2010c3c0f",
@@ -2158,9 +2223,35 @@
       "pottyKind": null,
       "amount": null,
       "note": null,
-      "deletedAt": null,
+      "deletedAt": "2026-09-19T20:26:49.419Z",
       "createdAt": "2026-09-19T18:18:37.738Z",
-      "updatedAt": "2026-09-19T18:18:37.739Z"
+      "updatedAt": "2026-09-19T20:26:49.653Z"
+    },
+    {
+      "id": "08e5798d-c6fd-4825-a323-dbd3c5348046",
+      "dogId": "aaf65796-a7fa-4f1c-91cb-89dd6f4b2de5",
+      "type": "location",
+      "occurredAt": "2026-09-19T20:26:00.000Z",
+      "location": "outside",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-19T20:27:05.140Z",
+      "updatedAt": "2026-09-19T20:27:05.141Z"
+    },
+    {
+      "id": "64582f53-e51b-4415-9d26-d4bb2058e8a9",
+      "dogId": "535f55a3-12b8-4b5c-b4c3-1a419430dac3",
+      "type": "location",
+      "occurredAt": "2026-09-19T20:26:00.000Z",
+      "location": "outside",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-19T20:26:59.324Z",
+      "updatedAt": "2026-09-19T20:26:59.324Z"
     }
   ]
 }
