@@ -10,9 +10,8 @@ export function toRow(event: PupEvent): NewEvent {
     occurredAt: new Date(event.occurredAt),
     note: event.note,
     deletedAt: event.deletedAt ? new Date(event.deletedAt) : null,
-    endedAt: event.type === 'sleep' && event.endedAt ? new Date(event.endedAt) : null,
     location:
-      event.type === 'sleep' || event.type === 'water' ? null : event.location,
+      event.type === 'water' ? null : event.location,
     pottyKind: event.type === 'potty' ? event.pottyKind : null,
     amount:
       event.type === 'water'
@@ -48,6 +47,6 @@ export function fromRow(row: EventRow): PupEvent {
     case 'water':
       return { ...base, type: 'water', amount: Number(row.amount) }
     case 'sleep':
-      return { ...base, type: 'sleep', endedAt: row.endedAt?.toISOString() ?? null }
+      return { ...base, type: 'sleep', location: row.location! }
   }
 }

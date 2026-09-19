@@ -37,6 +37,17 @@ describe('toRow / fromRow', () => {
     expect(fromRow(asRow(event))).toEqual(event)
   })
 
+  it('round-trips a sleep, which is a place and a moment and nothing else', () => {
+    const event = eventSchema.parse({
+      id: ID,
+      dogId: DOG,
+      type: 'sleep',
+      occurredAt: '2026-09-16T10:00:00.000Z',
+      location: 'crate',
+    })
+    expect(fromRow(asRow(event))).toEqual(event)
+  })
+
   it('round-trips a meal with no amount', () => {
     const event = eventSchema.parse({
       id: ID,
@@ -59,6 +70,6 @@ describe('toRow / fromRow', () => {
         location: 'outside',
       }),
     )
-    expect(row).toMatchObject({ pottyKind: null, amount: null, endedAt: null })
+    expect(row).toMatchObject({ pottyKind: null, amount: null })
   })
 })
