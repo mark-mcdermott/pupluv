@@ -214,11 +214,17 @@ work with no signal.
 A glyph string can hold more than one emoji — `both` is `💧💩`, and a potty with
 a bark is another — so `Glyph` splits on graphemes and draws one image each.
 
-`brand/glyphs/<codepoint>.svg` overrides Twemoji for that glyph — drawn here and
-preferred over the package, so `pnpm glyphs` will not overwrite it. Oreo is one:
-the cookie emoji is a brown disc that all but vanishes on the dark ground, and no
-sandwich cookie exists in the emoji set to swap it for. The database still stores
-🍪; only the artwork changes.
+`brand/glyphs/<codepoint>.svg` overrides Twemoji for that glyph — kept here and
+preferred over the package, so `pnpm glyphs` will not overwrite it. The database
+is untouched by any of this: it stores the emoji, and only the artwork changes.
+
+- **🍪** is drawn from scratch. The cookie emoji is a brown disc that all but
+  vanishes on the dark ground, and no sandwich cookie exists in the emoji set to
+  swap it for. Every measurement is a proportion of the radius, so resizing it is
+  one number.
+- **💧** is Twemoji's own droplet with the fill changed and nothing else. Its blue
+  reads as water, and this is not water; the shape has to keep matching the poo
+  beside it.
 
 The widget draws the same artwork as PNGs, since SwiftUI reads an SVG only out of
 an asset catalog. They live in `iphone/App/Widget/Glyphs` as a **folder
