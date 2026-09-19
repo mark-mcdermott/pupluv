@@ -1,19 +1,20 @@
 import {
-  BARK_GLYPH,
-  BARK_LABEL,
-  MEAL_GLYPH,
-  MEAL_LABEL,
-  SLEEP_GLYPH,
-  SLEEP_LABEL,
+  MARKS,
   POTTY_GLYPHS,
   POTTY_LABELS,
   isAccident,
   isLive,
+  isMark,
+  placeOf,
   type Dog,
+  type MarkType,
   type PupEvent,
 } from '@/lib/domain'
 import { clockLabel, dayKey, dayLabel } from '../lib/time'
 import { DOG_GLYPH_PX, Glyph, PlaceGlyph } from './Place'
+
+/** Fixed order, so a row with two of them always reads the same way round. */
+const markTypes = Object.keys(MARKS) as MarkType[]
 
 const MOVED = {
   pen: 'Moved to the pen',
@@ -37,17 +38,12 @@ const AT = {
  * pixel apart saying nearly the same thing is not what happened.
  */
 function signature(event: PupEvent): string {
-  switch (event.type) {
-    case 'location':
-    case 'potty':
-    case 'bark':
-      return `${event.occurredAt}|place|${event.location}`
-    case 'meal':
-    case 'water':
-      return `${event.occurredAt}|${event.type}|${event.amount}`
-    case 'sleep':
-      return `${event.occurredAt}|sleep|${event.location}`
-  }
+  // Everything filed at the same place and instant is one entry, however many
+  // kinds it took to say it — which is what folds a tap that logged a pee, a
+  // bark and a move back into a single row. A drink is the only kind with
+  // nowhere to be filed.
+  if (event.type === 'water') return `${event.occurredAt}|water|${event.amount}`
+  return `${event.occurredAt}|place|${event.location}`
 }
 
 function describe(event: PupEvent): string {
@@ -56,14 +52,15 @@ function describe(event: PupEvent): string {
       return `${POTTY_LABELS[event.pottyKind]} ${AT[event.location]}`
     case 'location':
       return MOVED[event.location]
-    case 'bark':
-      return `${BARK_LABEL} ${AT[event.location]}`
-    case 'meal':
-      return event.amount ? `${MEAL_LABEL} ${event.amount} cups` : `${MEAL_LABEL} ${AT[event.location]}`
     case 'water':
       return `Drank ${event.amount} oz`
+    case 'meal':
+      return event.amount
+        ? `${MARKS.meal.label} ${event.amount} cups`
+        : `${MARKS.meal.label} ${AT[event.location]}`
+    case 'bark':
     case 'sleep':
-      return `${SLEEP_LABEL} ${AT[event.location]}`
+      return `${MARKS[event.type].label} ${AT[event.location]}`
   }
 }
 
@@ -126,7 +123,7 @@ export function Timeline({ dogs, events, editing = null, onEdit }: Props) {
   // reserving one strands the controls out at the right edge.
   const anyGlyph = days.some((day) =>
     day.entries.some((entry) =>
-      entry.events.some((event) => event.type === 'potty' || event.type === 'bark'),
+      entry.events.some((event) => event.type === 'potty' || isMark(event.type)),
     ),
   )
   // A note needs room to sit in, and the same rule applies: reserve it only when
@@ -161,23 +158,19 @@ export function Timeline({ dogs, events, editing = null, onEdit }: Props) {
               // A move logged with a potty is in this group too; the potty is
               // the one that describes it.
               const potty = group.find((event) => event.type === 'potty')
-              const barked = group.some((event) => event.type === 'bark')
-              const ate = group.some((event) => event.type === 'meal')
-              const slept = group.some((event) => event.type === 'sleep')
-              const lead = potty ?? group.find((event) => event.type === 'bark') ?? group[0]!
+              const marked = markTypes.filter((type) =>
+                group.some((event) => event.type === type),
+              )
+              const lead = potty ?? group[0]!
               // One column for what happened, however much of it happened. Two
               // glyphs side by side would put a bark a column further right than
               // a pee, and `both` is already a pair in one glyph.
               const marks =
                 (potty ? POTTY_GLYPHS[potty.pottyKind] : '') +
-                (barked ? BARK_GLYPH : '') +
-                (ate ? MEAL_GLYPH : '') +
-                (slept ? SLEEP_GLYPH : '')
+                marked.map((type) => MARKS[type].glyph).join('')
               const marksLabel = [
                 potty ? POTTY_LABELS[potty.pottyKind] : '',
-                barked ? BARK_LABEL : '',
-                ate ? MEAL_LABEL : '',
-                slept ? SLEEP_LABEL : '',
+                ...marked.map((type) => MARKS[type].label),
               ]
                 .filter(Boolean)
                 .join(' and ')
@@ -189,12 +182,7 @@ export function Timeline({ dogs, events, editing = null, onEdit }: Props) {
               // reads the same way round, and the same way as the deck.
               const who = dogs.filter((dog) => group.some((event) => event.dogId === dog.id))
               const label = `${who.map((dog) => dog.name).join(' and ')}: ${describe(lead)}`
-              // A bark carries a place like the other two. Leaving it out here is
-              // what put a lone bark in the place column instead of beside it.
-              const place =
-                lead.type === 'location' || lead.type === 'potty' || lead.type === 'bark'
-                  ? lead.location
-                  : null
+              const place = placeOf(lead)
 
               return (
                 <li key={key} className="relative">
@@ -254,7 +242,7 @@ export function Timeline({ dogs, events, editing = null, onEdit }: Props) {
                     >
                       {place ? <PlaceGlyph location={place} /> : null}
                       {marks ? <Glyph text={marks} label={marksLabel} /> : null}
-                      {lead.type !== 'location' && lead.type !== 'potty' && lead.type !== 'bark' ? (
+                      {!place ? (
                         <span className="truncate">{describe(lead)}</span>
                       ) : null}
                       {lead.note ? (
