@@ -239,9 +239,15 @@ requires it: that a bowl went down, and when, is the whole entry today.
 never used it — the next entry closes the stretch anyway, which is how a move to
 the crate at 9pm already reads as ten hours. The column is gone.
 
-The row is at its limit: eight circles and the eye fit the widget at 0.48 of a
-place tile, and seven fit the web at 44px only because the gaps gave way first.
-A ninth needs the row to wrap, not to shrink again — 44px is the floor.
+The row is at its limit. On the web, seven circles fit at 44px only because the
+gaps gave way first — 44px is the floor, so an eighth mark has to wrap.
+
+The widget diverges from the deck on purpose. It has no fold and no eye: the row
+is always open, so a place tap only says where, and the paper plane is the one
+thing that writes. That costs the widget its one-tap move, and buys back the
+width the eye took — its eight circles are sized to fill the row rather than to a
+fraction of the tile above. Tapping the lit place again takes it back, which is
+the only way to undo a mis-tap now that nothing commits on its own.
 
 ## Backups
 

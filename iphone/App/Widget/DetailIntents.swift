@@ -5,24 +5,6 @@ import Foundation
 // tap writes to the App Group and asks for a redraw; the entry read back on the
 // next draw is what the row shows.
 
-/// The eye. Folding the row away drops everything in it.
-struct ToggleDetailIntent: AppIntent {
-    static var title: LocalizedStringResource = "Show or hide the details"
-    static var isDiscoverable = false
-
-    init() {}
-
-    func perform() async throws -> some IntentResult {
-        if PupluvShared.detailOpen {
-            PupluvShared.closeDetail()
-        } else {
-            PupluvShared.detailOpen = true
-        }
-        WidgetRefresh.reload()
-        return .result()
-    }
-}
-
 struct ToggleDogIntent: AppIntent {
     static var title: LocalizedStringResource = "Include or leave out a dog"
     static var isDiscoverable = false
@@ -93,7 +75,7 @@ struct SubmitIntent: AppIntent {
         // Live whenever the row is open, so with nothing picked this is simply
         // the way back out.
         guard !targets.isEmpty else {
-            PupluvShared.closeDetail()
+            PupluvShared.clearMarks()
             WidgetRefresh.reload()
             return .result()
         }
@@ -144,7 +126,7 @@ struct SubmitIntent: AppIntent {
             PupluvShared.placements = next
         }
 
-        PupluvShared.closeDetail()
+        PupluvShared.clearMarks()
         guard !events.isEmpty else {
             WidgetRefresh.reload()
             return .result()

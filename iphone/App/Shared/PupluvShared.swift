@@ -16,7 +16,6 @@ public enum PupluvShared {
         static let dogs = "dogs"
         static let placements = "placements"
         static let outbox = "outbox"
-        static let detailOpen = "detailOpen"
         static let skipped = "skippedDogs"
         static let picks = "picks"
         static let barked = "barked"
@@ -107,11 +106,6 @@ public enum PupluvShared {
 
     /// A widget view keeps no state of its own: every tap runs an intent that
     /// writes here and asks for a redraw. This is the deck's second row.
-    public static var detailOpen: Bool {
-        get { defaults?.bool(forKey: Key.detailOpen) ?? false }
-        set { defaults?.set(newValue, forKey: Key.detailOpen) }
-    }
-
     /// The dogs left out rather than the ones taken, so every entry starts with
     /// all of them — the same default the deck holds.
     public static var skipped: [String] {
@@ -167,8 +161,7 @@ public enum PupluvShared {
 
     /// Folds the row away and drops everything in it, so nothing carries into
     /// the next entry.
-    public static func closeDetail() {
-        detailOpen = false
+    public static func clearMarks() {
         skipped = []
         picks = []
         barked = false
