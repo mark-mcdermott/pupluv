@@ -1,13 +1,15 @@
 import AppIntents
 import Foundation
 
-/// The whole point of the widget: one tap moves every dog, without opening the
-/// app. Tapping the place they are already in is a no-op, same as in the deck.
-/// With the detail row open it only marks the place, and nothing is written
-/// until send — again, same as the deck.
+/// Chooses the place the entry will be filed at. Nothing is written here — the
+/// row is always open now, so a tap is a statement of intent and send is the
+/// only thing that commits, exactly as the deck behaves when its row is open.
+///
+/// Not discoverable: it no longer completes an action on its own, so offering it
+/// to Shortcuts would promise something it does not do.
 struct LogPlaceIntent: AppIntent {
-    static var title: LocalizedStringResource = "Log where the dogs are"
-    static var isDiscoverable = true
+    static var title: LocalizedStringResource = "Choose where the dogs are"
+    static var isDiscoverable = false
 
     @Parameter(title: "Place")
     var place: String
@@ -19,37 +21,10 @@ struct LogPlaceIntent: AppIntent {
     }
 
     func perform() async throws -> some IntentResult {
-        guard !PupluvShared.detailOpen else {
-            PupluvShared.pendingPlace = place
-            WidgetRefresh.reload()
-            return .result()
-        }
-
-        let dogs = PupluvShared.dogs
-        let moving = dogs.filter { PupluvShared.placements[$0.id] != place }
-        guard !moving.isEmpty else { return .result() }
-
-        let occurredAt = Date()
-        let events = moving.map {
-            PupluvShared.PendingEvent(
-                dogId: $0.id,
-                kind: .location,
-                location: place,
-                occurredAt: occurredAt
-            )
-        }
-
-        // Reflect the tap before the network answers — the widget should redraw
-        // instantly, and the event is queued if the request never lands.
-        var placements = PupluvShared.placements
-        for dog in moving { placements[dog.id] = place }
-        PupluvShared.placements = placements
-
-        // Redraw before the network, not after: the tap has already changed
-        // what the widget should show, and waiting on a round trip to say so is
-        // the pause you feel.
-        WidgetRefresh.reload()
-        await PupluvAPI.send(events)
+        // Tapping the lit place again takes it back. Without this there is no
+        // way to undo a mis-tap: the row would go on showing a place they are
+        // not in until something else was sent.
+        PupluvShared.pendingPlace = PupluvShared.pendingPlace == place ? nil : place
         WidgetRefresh.reload()
         return .result()
     }
