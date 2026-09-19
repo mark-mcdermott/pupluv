@@ -42,7 +42,8 @@ private let sleepGlyph = "😴"
 private let sleepLabel = "Slept"
 
 /// No paper plane exists in the emoji set; the outbox tray is the send glyph.
-private let sendGlyph = "📤"
+/// The action, not a thing — so the platform's own send mark rather than artwork.
+private let sendSymbol = "paperplane.fill"
 
 // Mirrors accent.ts over the tokens in global.css. These tiles hold emoji, not
 // text, so their background carries no contrast requirement.
@@ -75,7 +76,6 @@ struct PlaceEntry: TimelineEntry {
     let current: String?
     let dogs: [PupluvShared.Dog]
     let signedIn: Bool
-    let detailOpen: Bool
     let skipped: [String]
     let picked: [String]
     let barked: Bool
@@ -91,7 +91,6 @@ struct PlaceProvider: TimelineProvider {
             current: "outside",
             dogs: [],
             signedIn: true,
-            detailOpen: false,
             skipped: [],
             picked: [],
             barked: false,
@@ -117,7 +116,6 @@ struct PlaceProvider: TimelineProvider {
             current: PupluvShared.sharedPlace,
             dogs: PupluvShared.dogs,
             signedIn: PupluvShared.token != nil,
-            detailOpen: PupluvShared.detailOpen,
             skipped: PupluvShared.skipped,
             picked: PupluvShared.picks,
             barked: PupluvShared.barked,
@@ -198,14 +196,22 @@ private struct Glyph: View {
 /// places take a rounded square; the row below them takes half its own side, so
 /// it stays a circle exactly as it does on the web.
 private struct Tile: View {
-    let glyph: String
+    /// Artwork for the things being logged; a symbol for the action, which is
+    /// not one of them. No paper plane exists in the emoji set, but the tile
+    /// draws images now, so the send button was never bound by it.
+    enum Mark {
+        case glyph(String)
+        case symbol(String)
+    }
+
+    let mark: Mark
     let side: CGFloat
     let radius: CGFloat
     let on: Bool
     let fill: AnyShapeStyle
 
     var body: some View {
-        Glyph(text: glyph, size: side * 0.375)
+        face
             .frame(width: side, height: side)
             .background(
                 RoundedRectangle(cornerRadius: radius, style: .continuous)
@@ -215,6 +221,17 @@ private struct Tile: View {
                 RoundedRectangle(cornerRadius: radius, style: .continuous)
                     .strokeBorder(Color.primary.opacity(on ? 0 : 0.12))
             )
+    }
+
+    @ViewBuilder private var face: some View {
+        switch mark {
+        case let .glyph(text):
+            Glyph(text: text, size: side * 0.375)
+        case let .symbol(name):
+            Image(systemName: name)
+                .font(.system(size: side * 0.42, weight: .medium))
+                .foregroundStyle(Color.primary.opacity(0.75))
+        }
     }
 }
 
@@ -226,7 +243,7 @@ private struct PlaceButton: View {
 
     var body: some View {
         Button(intent: LogPlaceIntent(place: place.id)) {
-            Tile(glyph: place.glyph, side: side, radius: side / 4, on: selected, fill: fill)
+            Tile(mark: .glyph(place.glyph), side: side, radius: side / 4, on: selected, fill: fill)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(place.label)
@@ -237,122 +254,107 @@ private struct PlaceButton: View {
 /// here — a widget cannot take typed input.
 private struct DetailRow: View {
     let entry: PlaceEntry
-    /// The place tile above, which everything here is measured against.
-    let side: CGFloat
+    /// The whole row's width, which the circles are sized to fill.
+    let width: CGFloat
 
-    /// Eight circles and the eye now, where five and the eye fitted at three
-    /// quarters. The row costs about 10.5 circles laid end to end once the gaps
-    /// are counted, against a budget of five tiles and their gutters — which
-    /// puts the ceiling near 0.51 on the widest phone, so this sits under it.
-    private var small: CGFloat { side * 0.48 }
-    /// Half the tile, so it stays a circle whatever the tile grows to.
+    /// Eight circles across, sized to fill the row rather than to a fraction of
+    /// the tile above: five tight gaps inside the groups, one between the dogs
+    /// and the marks, and a wider one before send so it still reads as the
+    /// action rather than a ninth thing to pick. Solving that for the circle
+    /// gives the divisor; the spare tenth goes to the two spacers.
+    private var small: CGFloat { width / 9.4 }
     private var radius: CGFloat { small / 2 }
-
-    /// Tight inside a group, loose between them, so dogs / what happened / send
-    /// / the eye read as four things rather than one run of eight. Both measured
-    /// against the circle, which is what the eye is comparing them to.
-    private var within: CGFloat { small * 0.125 }
-    private var between: CGFloat { small * 0.29 }
+    private var within: CGFloat { small * 0.1 }
+    private var apart: CGFloat { small * 0.22 }
+    private var beforeSend: CGFloat { small * 0.4 }
 
     var body: some View {
-        HStack(spacing: between) {
-            if entry.detailOpen {
-                HStack(spacing: within) {
-                    ForEach(entry.dogs) { dog in
-                        Button(intent: ToggleDogIntent(dogId: dog.id)) {
-                            Tile(
-                                glyph: dog.emoji,
-                                side: small,
-                                radius: radius,
-                                on: !entry.skipped.contains(dog.id),
-                                fill: tileFill
-                            )
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel(dog.name)
+        HStack(spacing: 0) {
+            HStack(spacing: within) {
+                ForEach(entry.dogs) { dog in
+                    Button(intent: ToggleDogIntent(dogId: dog.id)) {
+                        Tile(
+                            mark: .glyph(dog.emoji),
+                            side: small,
+                            radius: radius,
+                            on: !entry.skipped.contains(dog.id),
+                            fill: tileFill
+                        )
                     }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(dog.name)
                 }
+            }
 
-                HStack(spacing: within) {
-                    ForEach(pickKinds) { pick in
-                        Button(intent: TogglePickIntent(pick: pick.id)) {
-                            Tile(
-                                glyph: pick.glyph,
-                                side: small,
-                                radius: radius,
-                                on: entry.picked.contains(pick.id),
-                                fill: tileFill
-                            )
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel(pick.label)
-                    }
-                    Button(intent: ToggleBarkIntent()) {
+            Spacer(minLength: apart)
+
+            HStack(spacing: within) {
+                ForEach(pickKinds) { pick in
+                    Button(intent: TogglePickIntent(pick: pick.id)) {
                         Tile(
-                            glyph: barkGlyph,
+                            mark: .glyph(pick.glyph),
                             side: small,
                             radius: radius,
-                            on: entry.barked,
+                            on: entry.picked.contains(pick.id),
                             fill: tileFill
                         )
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel(barkLabel)
-                    Button(intent: ToggleAteIntent()) {
-                        Tile(
-                            glyph: mealGlyph,
-                            side: small,
-                            radius: radius,
-                            on: entry.ate,
-                            fill: tileFill
-                        )
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(mealLabel)
-                    Button(intent: ToggleSleptIntent()) {
-                        Tile(
-                            glyph: sleepGlyph,
-                            side: small,
-                            radius: radius,
-                            on: entry.slept,
-                            fill: tileFill
-                        )
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(sleepLabel)
+                    .accessibilityLabel(pick.label)
                 }
-
-                Spacer(minLength: between)
-
-                // No standing fill: it is live the moment the row opens, and a
-                // filled tile would read as something already chosen. The system
-                // supplies the press highlight.
-                Button(intent: SubmitIntent()) {
+                Button(intent: ToggleBarkIntent()) {
                     Tile(
-                        glyph: sendGlyph,
+                        mark: .glyph(barkGlyph),
                         side: small,
                         radius: radius,
-                        on: false,
+                        on: entry.barked,
                         fill: tileFill
                     )
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Log it")
-            } else {
-                Spacer(minLength: 0)
+                .accessibilityLabel(barkLabel)
+                Button(intent: ToggleAteIntent()) {
+                    Tile(
+                        mark: .glyph(mealGlyph),
+                        side: small,
+                        radius: radius,
+                        on: entry.ate,
+                        fill: tileFill
+                    )
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(mealLabel)
+                Button(intent: ToggleSleptIntent()) {
+                    Tile(
+                        mark: .glyph(sleepGlyph),
+                        side: small,
+                        radius: radius,
+                        on: entry.slept,
+                        fill: tileFill
+                    )
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(sleepLabel)
             }
 
-            Button(intent: ToggleDetailIntent()) {
-                Image(systemName: entry.detailOpen ? "eye.slash" : "eye")
-                    .font(.system(size: small * 0.45))
-                    .foregroundStyle(.secondary)
-                    // Narrower than a circle — it is an icon, not a button face,
-                    // and the row has no width to spare. Trailing, so it ends on
-                    // the same line as the last place button above it.
-                    .frame(width: small * 0.7, height: small, alignment: .trailing)
+            // Wider than the gaps inside the row, so send reads as the action
+            // rather than a ninth thing to pick.
+            Spacer(minLength: beforeSend)
+
+            // No standing fill: it is live at all times now, and a filled tile
+            // would read as something already chosen. The system supplies the
+            // press highlight.
+            Button(intent: SubmitIntent()) {
+                Tile(
+                    mark: .symbol(sendSymbol),
+                    side: small,
+                    radius: radius,
+                    on: false,
+                    fill: tileFill
+                )
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(entry.detailOpen ? "Hide details" : "Add details")
+            .accessibilityLabel("Log it")
         }
     }
 }
@@ -362,12 +364,12 @@ struct PupluvWidgetView: View {
     var entry: PlaceEntry
 
     /// Five across a small widget is about 20pt each — well under a thumb. It
-    /// wraps there instead, and the detail row only opens where it fits.
+    /// wraps there instead, and the row of marks only fits where it does not.
     private var fitsOneRow: Bool { family != .systemSmall }
 
-    /// Closed, the lit place is where they are; open, it is the one about to be
-    /// written. Exactly what the deck does.
-    private var lit: String? { entry.detailOpen ? (entry.pending ?? entry.current) : entry.current }
+    /// The place about to be written, falling back to where they are. Nothing is
+    /// written by a tap any more, so this is always a statement of intent.
+    private var lit: String? { entry.pending ?? entry.current }
 
     var body: some View {
         if entry.signedIn {
@@ -385,7 +387,7 @@ struct PupluvWidgetView: View {
                         // places. The web carries a note field under this row
                         // and the widget does not, so without the extra air the
                         // two rows crowd the top and leave the rest empty.
-                        DetailRow(entry: entry, side: side)
+                        DetailRow(entry: entry, width: geo.size.width)
                             .padding(.top, gap * 1.5)
                     } else {
                         HStack(spacing: gap) {
