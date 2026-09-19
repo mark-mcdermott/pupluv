@@ -86,6 +86,7 @@ struct SubmitIntent: AppIntent {
         let kind = PupluvShared.pottyKind
         let barked = PupluvShared.barked
         let ate = PupluvShared.ate
+        let slept = PupluvShared.slept
         let pending = PupluvShared.pendingPlace
         let placements = PupluvShared.placements
 
@@ -114,7 +115,9 @@ struct SubmitIntent: AppIntent {
             }
         }
 
-        for (marked, kind) in [(barked, PupluvShared.PendingEvent.Kind.bark), (ate, .meal)]
+        for (marked, kind) in [
+            (barked, PupluvShared.PendingEvent.Kind.bark), (ate, .meal), (slept, .sleep),
+        ]
         where marked {
             events += targets.map { dog in
                 PupluvShared.PendingEvent(
@@ -180,6 +183,19 @@ struct ToggleAteIntent: AppIntent {
 
     func perform() async throws -> some IntentResult {
         PupluvShared.ate.toggle()
+        WidgetRefresh.reload()
+        return .result()
+    }
+}
+
+struct ToggleSleptIntent: AppIntent {
+    static var title: LocalizedStringResource = "Note a sleep"
+    static var isDiscoverable = false
+
+    init() {}
+
+    func perform() async throws -> some IntentResult {
+        PupluvShared.slept.toggle()
         WidgetRefresh.reload()
         return .result()
     }
