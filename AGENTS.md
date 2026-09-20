@@ -226,6 +226,17 @@ is untouched by any of this: it stores the emoji, and only the artwork changes.
   reads as water, and this is not water; the shape has to keep matching the poo
   beside it.
 
+`TUNING` in `Place.tsx` holds per-glyph optical corrections, and only the
+timeline asks for them. They are not artwork bugs: a row draws every glyph at one
+size edge to edge with its neighbours, and at that scale a few read a shade
+heavy, high or left against the rest. The deck draws the same art isolated inside
+a tile where none of it shows, and the widget is a separate build that never sees
+the file — which is why the correction lives there rather than in the SVG, where
+it would follow the glyph everywhere.
+
+A size correction never changes the box. The glyph is drawn smaller inside a slot
+of the full size, so the columns stay where they are.
+
 The widget draws the same artwork as PNGs, since SwiftUI reads an SVG only out of
 an asset catalog. They live in `iphone/App/Widget/Glyphs` as a **folder
 reference**, so a glyph that arrives from `pnpm glyphs` is bundled without the

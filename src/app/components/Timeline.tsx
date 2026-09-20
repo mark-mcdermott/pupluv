@@ -228,6 +228,7 @@ export function Timeline({ dogs, events, editing = null, onEdit }: Props) {
                           text={dog.emoji}
                           label={dog.name}
                           size={DOG_GLYPH_PX}
+                          tuned
                         />
                       ))}
                     </span>
@@ -243,14 +244,14 @@ export function Timeline({ dogs, events, editing = null, onEdit }: Props) {
                     >
                       {/* The place holds its column, so a glance down the list
                           answers where they were without reading a single row. */}
-                      {place ? <PlaceGlyph location={place} /> : null}
+                      {place ? <PlaceGlyph location={place} tuned /> : null}
                       {/* What happened sits in the middle of whatever is left
                           between the place and the note. Always rendered, empty
                           or not: it is what pushes the note to the far end, and
                           an auto margin there would swallow the space this needs
                           to centre in. */}
                       <span className="flex flex-1 items-center justify-center gap-1.5">
-                        {marks ? <Glyph text={marks} label={marksLabel} /> : null}
+                        {marks ? <Glyph text={marks} label={marksLabel} tuned /> : null}
                       </span>
                       {!place ? (
                         <span className="truncate">{describe(lead)}</span>
