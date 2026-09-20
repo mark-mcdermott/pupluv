@@ -240,23 +240,22 @@ export function Timeline({ dogs, events, editing = null, onEdit }: Props) {
                         anyGlyph || anyNote ? 'flex-1' : ''
                       }`}
                     >
-                      {/* A column of its own, wide enough for the common row and
-                          centred in it — left-aligned, a lone tree sat hard
-                          against a fence's left edge two rows down and the
-                          column read as ragged. Grows rather than clips on the
-                          rare row carrying every mark at once. */}
-                      <span className="flex min-w-24 items-center justify-center gap-1.5">
-                        {place ? <PlaceGlyph location={place} /> : null}
+                      {/* The place holds its column, so a glance down the list
+                          answers where they were without reading a single row. */}
+                      {place ? <PlaceGlyph location={place} /> : null}
+                      {/* What happened sits in the middle of whatever is left
+                          between the place and the note. Always rendered, empty
+                          or not: it is what pushes the note to the far end, and
+                          an auto margin there would swallow the space this needs
+                          to centre in. */}
+                      <span className="flex flex-1 items-center justify-center gap-1.5">
                         {marks ? <Glyph text={marks} label={marksLabel} /> : null}
                       </span>
                       {!place ? (
                         <span className="truncate">{describe(lead)}</span>
                       ) : null}
                       {lead.note ? (
-                        // Pushed to the far end of the entry rather than trailing
-                        // the glyphs, so notes line up with each other down the
-                        // column instead of starting wherever the row happens to.
-                        <span className="ml-auto truncate pl-3 pr-1 text-xs text-ink-muted">
+                        <span className="truncate pl-3 pr-1 text-xs text-ink-muted">
                           {lead.note}
                         </span>
                       ) : null}
