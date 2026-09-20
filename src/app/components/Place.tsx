@@ -24,8 +24,8 @@ const TUNING: Record<string, { dx?: number; dy?: number; size?: number }> = {
   '🍪': { dy: 1 },
   '📦': { dx: 1 },
   '🛖': { size: -1 },
-  '💧': { size: -2 },
-  '😴': { size: -2 },
+  '💧': { size: -3 },
+  '😴': { size: -3 },
 }
 
 /** Shared by places and potty kinds so one row reads at a single scale. */
