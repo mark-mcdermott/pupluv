@@ -246,7 +246,12 @@ export function Timeline({ dogs, events, editing = null, onEdit }: Props) {
                         <span className="truncate">{describe(lead)}</span>
                       ) : null}
                       {lead.note ? (
-                        <span className="truncate text-xs text-ink-muted">{lead.note}</span>
+                        // Pushed to the far end of the entry rather than trailing
+                        // the glyphs, so notes line up with each other down the
+                        // column instead of starting wherever the row happens to.
+                        <span className="ml-auto truncate pl-3 pr-1 text-xs text-ink-muted">
+                          {lead.note}
+                        </span>
                       ) : null}
                     </span>
                   </button>
