@@ -2644,6 +2644,32 @@
       "updatedAt": "2026-09-20T00:54:14.569Z"
     },
     {
+      "id": "8dcc3bff-f8a3-478e-88cb-1da585909f95",
+      "dogId": "535f55a3-12b8-4b5c-b4c3-1a419430dac3",
+      "type": "location",
+      "occurredAt": "2026-09-20T00:59:00.000Z",
+      "location": "bed",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-20T05:10:39.446Z",
+      "updatedAt": "2026-09-20T05:10:39.446Z"
+    },
+    {
+      "id": "df796c60-df9d-462d-a1fc-0b28b11b9b9b",
+      "dogId": "535f55a3-12b8-4b5c-b4c3-1a419430dac3",
+      "type": "sleep",
+      "occurredAt": "2026-09-20T00:59:00.000Z",
+      "location": "bed",
+      "pottyKind": null,
+      "amount": null,
+      "note": null,
+      "deletedAt": null,
+      "createdAt": "2026-09-20T05:10:39.446Z",
+      "updatedAt": "2026-09-20T05:10:39.446Z"
+    },
+    {
       "id": "fde37798-0075-4f12-bcaa-66c1749b0b3c",
       "dogId": "535f55a3-12b8-4b5c-b4c3-1a419430dac3",
       "type": "location",
@@ -2652,9 +2678,9 @@
       "pottyKind": null,
       "amount": null,
       "note": null,
-      "deletedAt": null,
+      "deletedAt": "2026-09-20T05:10:21.959Z",
       "createdAt": "2026-09-20T00:59:04.403Z",
-      "updatedAt": "2026-09-20T00:59:04.403Z"
+      "updatedAt": "2026-09-20T05:10:22.186Z"
     }
   ]
 }
