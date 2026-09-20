@@ -67,7 +67,7 @@ export const BARK_LABEL = 'Barked'
  * it happened and when. The amount stays on the type for a future UI that cares
  * about cups, but nothing is required to say a bowl went down.
  */
-export const MEAL_GLYPH = '🦴'
+export const MEAL_GLYPH = '🍗'
 export const MEAL_LABEL = 'Ate'
 
 /**

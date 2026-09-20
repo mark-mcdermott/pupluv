@@ -278,6 +278,6 @@ describe('Timeline row layout', () => {
       />,
     )
 
-    expect(drawn(screen.getByTitle('Barked and Ate and Slept'))).toBe('🗯️🦴😴')
+    expect(drawn(screen.getByTitle('Barked and Ate and Slept'))).toBe('🗯️🍗😴')
   })
 })
