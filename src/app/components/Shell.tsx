@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Dog, PupEvent } from '@/lib/domain'
 import { Deck } from './Deck'
+import { ExportButton } from './ExportButton'
 import { SyncDot } from './SyncDot'
 import { ThemeToggle } from './ThemeToggle'
 import { Timeline } from './Timeline'
@@ -39,6 +40,7 @@ export function Shell({ dogs, events }: Props) {
           <h1 className="text-2xl font-extrabold tracking-tight">pupluv</h1>
           <div className="flex items-center gap-3">
             <SyncDot />
+            <ExportButton dogs={dogs} events={events} />
             <ThemeToggle />
           </div>
         </div>
