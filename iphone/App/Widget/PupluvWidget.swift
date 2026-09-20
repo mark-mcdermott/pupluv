@@ -36,7 +36,7 @@ private let pickKinds = [
 
 private let barkGlyph = "🗯️"
 private let barkLabel = "Barked"
-private let mealGlyph = "🦴"
+private let mealGlyph = "🍗"
 private let mealLabel = "Ate"
 private let sleepGlyph = "😴"
 private let sleepLabel = "Slept"
