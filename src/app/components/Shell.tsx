@@ -38,10 +38,16 @@ export function Shell({ dogs, events }: Props) {
             covers the whole screen. */}
         <div className="mx-auto flex w-full max-w-sm items-center justify-between px-4 pb-1 pt-[calc(1rem+env(safe-area-inset-top))]">
           <h1 className="text-2xl font-extrabold tracking-tight">pupluv</h1>
+          {/* The two icon buttons sit as a pair, all but touching — their own
+              padding is most of what separates them, so the boxes overlap to
+              bring the glyphs together. The gap is kept for what divides the
+              pair from the status beside it. */}
           <div className="flex items-center gap-3">
             <SyncDot />
-            <ExportButton dogs={dogs} events={events} />
-            <ThemeToggle />
+            <div className="flex items-center -space-x-2">
+              <ExportButton dogs={dogs} events={events} />
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </header>
