@@ -267,6 +267,26 @@ width the eye took — its eight circles are sized to fill the row rather than t
 fraction of the tile above. Tapping the lit place again takes it back, which is
 the only way to undo a mis-tap now that nothing commits on its own.
 
+## Export
+
+The download button between the sync dot and the theme toggle writes every live
+event as CSV. It is built from what is already on the device — the timeline holds
+the whole history — so it needs no signal and asks the server for nothing.
+
+One row per event, oldest first. `date`, `time`, `weekday` and `hour` are local
+rather than UTC, because the question the file answers is *when do accidents
+happen* and 11pm Saturday is the answer, not the instant it maps to elsewhere.
+`accident` is a column because it is derived from the location rather than
+stored, and blank rather than false for anything but a potty — a bark indoors is
+not an accident.
+
+The web view cannot download: there is no Downloads folder at
+`capacitor://localhost`, and an `<a download>` there does nothing at all. The
+phone gets the share sheet instead, which is what puts the file in Files or a
+mail draft. On the web, the object URL is revoked on a later tick — the click
+only queues the download, and revoking before the browser has read the blob
+cancels it.
+
 ## Backups
 
 `backups/pupluv.json` is a full dump of both tables, committed to the repo. A
