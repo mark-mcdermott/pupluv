@@ -126,8 +126,9 @@ export function Timeline({ dogs, events, editing = null, onEdit }: Props) {
       entry.events.some((event) => event.type === 'potty' || isMark(event.type)),
     ),
   )
-  // A note needs room to sit in, and the same rule applies: reserve it only when
-  // something on screen has one.
+  // A note needs a column to sit in, and the same rule applies: reserve it on
+  // every row as soon as anything on screen has one, and on none when nothing
+  // does — otherwise the marks centre against a different right edge per row.
   const anyNote = days.some((day) =>
     day.entries.some((entry) => entry.events.some((event) => event.note)),
   )
@@ -254,8 +255,13 @@ export function Timeline({ dogs, events, editing = null, onEdit }: Props) {
                       {!place ? (
                         <span className="truncate">{describe(lead)}</span>
                       ) : null}
-                      {lead.note ? (
-                        <span className="truncate pl-3 pr-1 text-xs text-ink-muted">
+                      {/* A column, not a trailing label: rendered on every row
+                          once anything on screen has a note, empty or not.
+                          Collapsing it where there is no note left the marks
+                          centring against the row's edge on those rows and
+                          against the note on the others, 84px apart. */}
+                      {anyNote ? (
+                        <span className="w-24 shrink-0 truncate pl-3 text-xs text-ink-muted">
                           {lead.note}
                         </span>
                       ) : null}
