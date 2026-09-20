@@ -1,0 +1,7 @@
+# The CLI uploads the working directory; the Git integration does not. Without
+# this, `vercel --prod` sends 1.5GB of things the build never opens — Vercel
+# installs its own dependencies, and `astro build` touches neither native shell.
+node_modules
+.git
+iphone
+desktop
