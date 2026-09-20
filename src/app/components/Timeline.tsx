@@ -261,7 +261,7 @@ export function Timeline({ dogs, events, editing = null, onEdit }: Props) {
                           centring against the row's edge on those rows and
                           against the note on the others, 84px apart. */}
                       {anyNote ? (
-                        <span className="w-24 shrink-0 truncate pl-3 text-xs text-ink-muted">
+                        <span className="w-18 shrink-0 truncate pl-3 text-xs text-ink-muted">
                           {lead.note}
                         </span>
                       ) : null}
