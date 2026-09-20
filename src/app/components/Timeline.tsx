@@ -240,8 +240,15 @@ export function Timeline({ dogs, events, editing = null, onEdit }: Props) {
                         anyGlyph || anyNote ? 'flex-1' : ''
                       }`}
                     >
-                      {place ? <PlaceGlyph location={place} /> : null}
-                      {marks ? <Glyph text={marks} label={marksLabel} /> : null}
+                      {/* A column of its own, wide enough for the common row and
+                          centred in it — left-aligned, a lone tree sat hard
+                          against a fence's left edge two rows down and the
+                          column read as ragged. Grows rather than clips on the
+                          rare row carrying every mark at once. */}
+                      <span className="flex min-w-24 items-center justify-center gap-1.5">
+                        {place ? <PlaceGlyph location={place} /> : null}
+                        {marks ? <Glyph text={marks} label={marksLabel} /> : null}
+                      </span>
                       {!place ? (
                         <span className="truncate">{describe(lead)}</span>
                       ) : null}
