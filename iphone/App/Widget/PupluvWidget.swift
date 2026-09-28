@@ -82,6 +82,12 @@ struct PlaceEntry: TimelineEntry {
     let ate: Bool
     let slept: Bool
     let pending: String?
+    /// Whether send would write anything at all, so it can say so before it is
+    /// tapped rather than resetting in silence afterwards.
+    let canSubmit: Bool
+    /// Taps the server has not taken yet. The app delivers these on its next
+    /// sync; showing the count is what keeps them from looking lost.
+    let queued: Int
 }
 
 struct PlaceProvider: TimelineProvider {
@@ -96,7 +102,9 @@ struct PlaceProvider: TimelineProvider {
             barked: false,
             ate: false,
             slept: false,
-            pending: nil
+            pending: nil,
+            canSubmit: true,
+            queued: 0
         )
     }
 
@@ -121,8 +129,22 @@ struct PlaceProvider: TimelineProvider {
             barked: PupluvShared.barked,
             ate: PupluvShared.ate,
             slept: PupluvShared.slept,
-            pending: PupluvShared.pendingPlace
+            pending: PupluvShared.pendingPlace,
+            canSubmit: submittable,
+            queued: PupluvShared.outbox.count
         )
+    }
+
+    /// The same question SubmitIntent answers, asked before the tap: some dog
+    /// taken, and either a mark picked or a place that would actually move one.
+    private var submittable: Bool {
+        let targets = PupluvShared.takenDogs
+        guard !targets.isEmpty else { return false }
+        if PupluvShared.pottyKind != nil { return true }
+        if PupluvShared.barked || PupluvShared.ate || PupluvShared.slept { return true }
+        guard let pending = PupluvShared.pendingPlace else { return false }
+        let placements = PupluvShared.placements
+        return targets.contains { placements[$0.id] != pending }
     }
 }
 
@@ -352,9 +374,27 @@ private struct DetailRow: View {
                     on: false,
                     fill: tileFill
                 )
+                // Dimmed when it would write nothing — a place they are already
+                // in, or every dog left out. It used to reset in silence, which
+                // is indistinguishable from being broken.
+                .opacity(entry.canSubmit ? 1 : 0.35)
+                .overlay(alignment: .topTrailing) {
+                    if entry.queued > 0 {
+                        Text("\(entry.queued)")
+                            .font(.system(size: small * 0.3, weight: .bold))
+                            .foregroundStyle(.white)
+                            .frame(width: small * 0.46, height: small * 0.46)
+                            .background(Circle().fill(Color(red: 0.85, green: 0.47, blue: 0.37)))
+                            .offset(x: small * 0.1, y: -small * 0.1)
+                    }
+                }
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Log it")
+            .accessibilityLabel(
+                entry.queued > 0
+                    ? "Log it — \(entry.queued) waiting to send"
+                    : (entry.canSubmit ? "Log it" : "Nothing to log")
+            )
         }
     }
 }
