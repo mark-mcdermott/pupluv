@@ -162,7 +162,14 @@ sides meet in the App Group `group.com.pupluv.app`:
   every sync (`src/app/lib/native.ts` → `SharedStorePlugin.swift`). The widget is
   a reader; it never owns the session.
 - **The widget queues** a tap it could not deliver, and the app adopts that queue
-  on its next sync. Only one outbox ever retries, and it is the app's.
+  on its next sync. Only one outbox ever retries, and it is the app's. A 401 is
+  queued rather than dropped — the batch is fine, the session is not, and the app
+  can mint a new token. Every other 4xx is dropped, because keeping something the
+  server will never take wedges the queue behind it.
+- **The widget says when it cannot act.** Send is dimmed whenever it would write
+  nothing — a place they are already in, or every dog left out — and carries a
+  count of taps still waiting. Both exist because a tap that did nothing used to
+  reset the row in silence, which is indistinguishable from being broken.
 - `iphone/App/Shared/*.swift` compiles into **both** targets. Keep it free of
   Capacitor imports or the widget will not build.
 

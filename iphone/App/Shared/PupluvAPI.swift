@@ -3,7 +3,11 @@ import Foundation
 public enum PostOutcome {
     case accepted
     /// The server will never take it — a malformed event, or an unknown dog.
+    /// Keeping one of these would wedge the queue behind it forever.
     case rejected
+    /// The token is no longer good. Only the app can mint another, so the tap is
+    /// worth keeping for it to deliver rather than throwing away.
+    case unauthorized
     /// Worth keeping and trying again: offline, or the server is unwell.
     case transient
 }
@@ -30,7 +34,10 @@ public enum PupluvAPI {
             let (_, response) = try await URLSession.shared.data(for: request)
             guard let http = response as? HTTPURLResponse else { return .transient }
             if (200 ..< 300).contains(http.statusCode) { return .accepted }
-            // 401 included: the token has expired and only the app can renew it.
+            // 401 apart from the rest of the 4xx: the batch is fine, the session
+            // is not, and the app can fix that. Anything else in that range is
+            // the server saying it will never take this, whatever we do.
+            if http.statusCode == 401 || http.statusCode == 403 { return .unauthorized }
             return (400 ..< 500).contains(http.statusCode) ? .rejected : .transient
         } catch {
             return .transient
@@ -38,11 +45,11 @@ public enum PupluvAPI {
     }
 
     /// Sends a batch, queueing it in the App Group if it could not be delivered.
-    /// A tap on the home screen must survive a dead zone.
+    /// A tap on the home screen must survive a dead zone, and a stale session.
     @discardableResult
     public static func send(_ events: [PupluvShared.PendingEvent]) async -> PostOutcome {
         let outcome = await post(events)
-        if outcome == .transient { PupluvShared.enqueue(events) }
+        if outcome == .transient || outcome == .unauthorized { PupluvShared.enqueue(events) }
         return outcome
     }
 }
