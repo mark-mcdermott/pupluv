@@ -257,18 +257,43 @@ private struct Tile: View {
     }
 }
 
+/// Where a place stands in the row. Filled is a fact and ringed is an intention,
+/// and they have to look different: nothing is written until send, so a tap that
+/// only staged a place used to look exactly like the dogs having moved.
+enum PlaceState {
+    case idle
+    /// Where they are, as far as the last sync knows.
+    case current
+    /// What send would write. Drawn as an outline rather than a fill.
+    case staged
+}
+
 private struct PlaceButton: View {
     let place: Place
     let side: CGFloat
-    let selected: Bool
+    let state: PlaceState
     let fill: AnyShapeStyle
 
     var body: some View {
         Button(intent: LogPlaceIntent(place: place.id)) {
-            Tile(mark: .glyph(place.glyph), side: side, radius: side / 4, on: selected, fill: fill)
+            Tile(
+                mark: .glyph(place.glyph),
+                side: side,
+                radius: side / 4,
+                on: state == .current,
+                fill: fill
+            )
+            .overlay {
+                if state == .staged {
+                    RoundedRectangle(cornerRadius: side / 4, style: .continuous)
+                        .strokeBorder(fill, lineWidth: side * 0.06)
+                }
+            }
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(place.label)
+        .accessibilityLabel(
+            state == .staged ? "\(place.label) — tap send to log it" : place.label
+        )
     }
 }
 
@@ -407,9 +432,13 @@ struct PupluvWidgetView: View {
     /// wraps there instead, and the row of marks only fits where it does not.
     private var fitsOneRow: Bool { family != .systemSmall }
 
-    /// The place about to be written, falling back to where they are. Nothing is
-    /// written by a tap any more, so this is always a statement of intent.
-    private var lit: String? { entry.pending ?? entry.current }
+    /// A staged place that matches where they already are is not an intention to
+    /// do anything — send is dimmed for it — so it keeps reading as current.
+    private func state(of place: Place) -> PlaceState {
+        if place.id == entry.pending && entry.pending != entry.current { return .staged }
+        if place.id == entry.current { return .current }
+        return .idle
+    }
 
     var body: some View {
         if entry.signedIn {
@@ -453,7 +482,7 @@ struct PupluvWidgetView: View {
         PlaceButton(
             place: place,
             side: side,
-            selected: place.id == lit,
+            state: state(of: place),
             fill: blend(entry.dogs)
         )
     }
