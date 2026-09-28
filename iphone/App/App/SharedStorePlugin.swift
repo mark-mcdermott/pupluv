@@ -48,6 +48,11 @@ public class SharedStorePlugin: CAPPlugin, CAPBridgedPlugin {
     @objc func takeOutbox(_ call: CAPPluginCall) {
         let queued = PupluvShared.outbox
         PupluvShared.clearOutbox()
+        // The queue is what the widget badges, and it just emptied. `publish`
+        // reloads too, but only at the end of a sync that goes all the way
+        // through — a pull that fails after this would leave a count on screen
+        // for taps already handed over.
+        if !queued.isEmpty { WidgetRefresh.reload() }
         let payload = queued.compactMap { event -> [String: Any]? in
             guard let data = try? JSONEncoder().encode(event),
                   let dict = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
