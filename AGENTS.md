@@ -166,6 +166,11 @@ sides meet in the App Group `group.com.pupluv.app`:
   queued rather than dropped — the batch is fine, the session is not, and the app
   can mint a new token. Every other 4xx is dropped, because keeping something the
   server will never take wedges the queue behind it.
+- **A staged place is an outline; where they are is a fill.** Nothing is written
+  until send, so the two cannot look alike — a tap that only staged a place used
+  to be indistinguishable from the dogs having moved, which is exactly how the
+  widget came to look broken. Staging a place they are already in keeps the fill,
+  because it is not an intention to do anything and send is dimmed for it.
 - **The widget says when it cannot act.** Send is dimmed whenever it would write
   nothing — a place they are already in, or every dog left out — and carries a
   count of taps still waiting. Both exist because a tap that did nothing used to
