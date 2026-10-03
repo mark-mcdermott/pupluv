@@ -312,10 +312,14 @@ cancels it.
 
 ## Backups
 
-`backups/pupluv.json` is a full dump of both tables, committed to the repo. A
-scheduled workflow refreshes it every six hours and commits only when the data
-actually changed, so the git history *is* the backup history — each commit is a
-restorable point, and a diff shows exactly what moved.
+A scheduled workflow dumps both tables every six hours into the separate private
+repository `mark-mcdermott/pupluv-daily-backups`, keeping `latest.json`, the last 14
+dated snapshots and the first of each of the last 6 months.
+
+Snapshots are **not** committed here. They were until 2026-10-03, which meant this
+repository published its own database every six hours and could not be made public.
+`backups/` is gitignored; a local `pnpm db:backup` still writes there and is simply
+never committed.
 
 ```bash
 pnpm db:backup                    # dump now, before anything risky

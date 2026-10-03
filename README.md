@@ -62,20 +62,28 @@ pnpm db:backup    # dump now — do this before anything risky
 pnpm db:restore   # put it back
 ```
 
-`backups/pupluv.json` is a full dump of both tables, committed to the repo. A
-scheduled workflow refreshes it **every six hours** and commits only when the
-data actually changed, so **the git history is the backup history**: every commit
-is a restorable point, and its diff shows exactly what moved. It can also be run
-by hand from the Actions tab before a risky change.
+A scheduled workflow dumps both tables **every six hours** into
+[`pupluv-daily-backups`](https://github.com/mark-mcdermott/pupluv-daily-backups), a
+separate private repository. It can also be run by hand from the Actions tab before
+a risky change.
+
+It keeps a window rather than a pile: `latest.json`, the last 14 dated snapshots, and
+the first snapshot of each of the last 6 months, pushed as one fresh commit so a
+dropped snapshot leaves history as well as the tree.
+
+**Snapshots are not committed here.** They were until 2026-10-03 - 32 commits of
+`backups/pupluv.json` - which meant this repository published its own database on a
+schedule and so could never be made public. `backups/` is now gitignored; a local
+`pnpm db:backup` still writes there, it is simply never committed.
 
 Four copies, no two sharing a failure mode:
 
 | copy | survives |
 |---|---|
 | the live Neon database | — |
-| `backups/pupluv.json` on GitHub | losing Neon |
-| the same file in every clone, including this Mac | losing Neon *and* GitHub |
-| a 90-day workflow artifact, held apart from the repo | the repo history being rewritten |
+| `pupluv-daily-backups` on GitHub | losing Neon |
+| a local `pnpm db:backup`, including on this Mac | losing Neon *and* GitHub |
+| a 90-day workflow artifact, held apart from both repos | either repo's history being rewritten |
 
 Neon's own retention covers recent mistakes on top of those.
 
@@ -168,7 +176,8 @@ dev server only if one is not already up.
   - `brand/`: the logo the icons are generated from. `pnpm icons` takes the
     largest `logo*.png` in here, so a re-export at new dimensions needs no code
     change — pass a path to override
-  - `backups/`: database dumps, committed
+  - `backups/`: local database dumps, gitignored - the scheduled ones go to
+    `pupluv-daily-backups`
   - `scripts/`: backup, restore, icons, iphone install, mac build, Xcode project
     edits
   - `docs/`: the roadmap
