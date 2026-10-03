@@ -1,21 +1,40 @@
 name: backup
 
+# Snapshots go to a separate private repository, not into this one.
+#
+# Until 2026-10-03 this committed backups/pupluv.json here every six hours - 32
+# commits of it. The data is innocuous (two dogs, potty events, and `location` is
+# an enum of bed/crate/inside/outside/pen, never coordinates), but a repository
+# that publishes its own database on a schedule cannot be made public without
+# publishing that too. Same shape as frunk's db-backup.yml, which already does this.
+#
+# A window, not a pile: the backup repo keeps latest.json, the last 14 dated
+# snapshots and the first of each of the last 6 months, pushed as one fresh commit
+# so a dropped snapshot leaves history as well as the tree.
+
 on:
   schedule:
     # Every six hours, so a bad afternoon can never cost more than that.
     - cron: '17 */6 * * *'
   workflow_dispatch: # run by hand before anything risky
 
+# No longer needs write access to this repository - it writes to the other one.
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: backup
   cancel-in-progress: false
 
+env:
+  BACKUP_REPO: mark-mcdermott/pupluv-daily-backups
+  KEEP_DAILY: 14
+  KEEP_MONTHLY: 6
+
 jobs:
   backup:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -26,29 +45,59 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # Not pnpm db:backup — that wrapper loads .env.local, which is local only.
+      # Not pnpm db:backup - that wrapper loads .env.local, which is local only.
+      # Written to the runner, never into the working tree.
       - name: Dump the database
-        run: pnpm exec tsx scripts/backup-db.ts
+        run: pnpm exec tsx scripts/backup-db.ts "$RUNNER_TEMP/pupluv.json"
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-      # A second home, held by GitHub separately from the repository itself.
-      - name: Keep a copy outside the repository
+      # Fail here rather than push a truncated or empty snapshot over a good one.
+      - name: Check the dump before keeping it
+        run: |
+          f="$RUNNER_TEMP/pupluv.json"
+          jq -e 'has("dogs") and has("events")' "$f" > /dev/null
+          dogs=$(jq '.dogs | length' "$f")
+          events=$(jq '.events | length' "$f")
+          echo "dumped: $dogs dogs, $events events, $(wc -c < "$f") bytes"
+          [ "$dogs" -gt 0 ] || { echo "::error::dump has no dogs"; exit 1; }
+          [ "$events" -gt 0 ] || { echo "::error::dump has no events"; exit 1; }
+
+      # A second home, held by GitHub separately from either repository.
+      - name: Keep a copy outside both repositories
         uses: actions/upload-artifact@v4
         with:
           name: pupluv-backup-${{ github.run_id }}
-          path: backups/pupluv.json
+          path: ${{ runner.temp }}/pupluv.json
           retention-days: 90
 
-      - name: Commit it when the data changed
+      - name: Push the window to the backup repo
         run: |
-          if git diff --quiet -- backups/; then
-            echo "no change since the last backup"
-            exit 0
-          fi
+          git clone --quiet \
+            "https://x-access-token:${{ secrets.PUPLUV_BACKUP_REPO_TOKEN }}@github.com/${BACKUP_REPO}.git" \
+            backup-repo
+          cd backup-repo
+          today=$(date -u +%Y-%m-%d)
+          cp "$RUNNER_TEMP/pupluv.json" "pupluv-$today.json"
+          cp "$RUNNER_TEMP/pupluv.json" latest.json
+
+          # ISO dates sort as text, so plain sort is chronological.
+          ls pupluv-*.json 2>/dev/null | sort > all || : > all
+          tail -n "$KEEP_DAILY" all > keep
+          for back in $(seq 0 $((KEEP_MONTHLY - 1))); do
+            month=$(date -u -d "$today -$back month" +%Y-%m)
+            grep "^pupluv-$month-" all | head -n 1 >> keep || true
+          done
+          sort -u keep -o keep
+          for snap in pupluv-*.json; do
+            grep -qx "$snap" keep || rm "$snap"
+          done
+          rm all keep
+          echo "keeping $(ls pupluv-*.json | wc -l) dated snapshots plus latest.json"
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add backups/
-          # [skip ci] so a backup does not re-run verify or redeploy the app.
-          git commit -m "chore: database backup [skip ci]"
-          git push
+          git checkout --quiet --orphan window
+          git add -A
+          git commit -q -m "backup $(date -u +%Y-%m-%d-%H%M)"
+          git push --force --quiet origin window:main

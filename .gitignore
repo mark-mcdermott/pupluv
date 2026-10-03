@@ -32,3 +32,6 @@ pnpm-debug.log*
 iphone/App/App/public/
 iphone/App/Pods/
 .vercel
+
+# Database snapshots live in mark-mcdermott/pupluv-daily-backups, not here.
+backups/
