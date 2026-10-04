@@ -9,7 +9,7 @@
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import sharp from 'sharp'
-import { BARK_GLYPH, LOCATION_GLYPHS, MEAL_GLYPH, POTTY_GLYPHS, SLEEP_GLYPH } from '../src/lib/domain'
+import { BARK_GLYPH, DOG_EMOJI, LOCATION_GLYPHS, MEAL_GLYPH, POTTY_GLYPHS, SLEEP_GLYPH } from '../src/lib/domain'
 import { glyphName, glyphParts } from '../src/app/lib/glyphs'
 
 const SOURCE = 'node_modules/@twemoji/svg'
@@ -39,6 +39,8 @@ const used = [
   BARK_GLYPH,
   MEAL_GLYPH,
   SLEEP_GLYPH,
+  // Every emoji a dog can be chosen as, not just the ones in use today.
+  ...DOG_EMOJI,
   ...dogGlyphs(),
 ].flatMap(glyphParts)
 

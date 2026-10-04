@@ -22,6 +22,7 @@ describe('the API origin allowlist', () => {
     ['the phone', 'capacitor://localhost'],
     ['the older phone scheme', 'ionic://localhost'],
     ['the Mac app', 'tauri://localhost'],
+    ['the Mac app on Windows-style hosts', 'http://tauri.localhost'],
     ['a dev server', 'http://localhost:4321'],
     ['a dev server by address', 'http://127.0.0.1:4321'],
   ])('answers %s', async (_who, origin) => {

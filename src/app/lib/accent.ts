@@ -1,8 +1,12 @@
-const ACCENTS: Record<string, string> = {
-  amber: 'var(--color-amber)',
+import { type Accent } from '@/lib/domain'
+
+const COLOURS: Record<Accent, string> = {
   teal: 'var(--color-teal)',
+  amber: 'var(--color-amber)',
+  clay: 'var(--color-clay)',
+  moss: 'var(--color-moss)',
 }
 
 export function accentColor(accent: string): string {
-  return ACCENTS[accent] ?? 'var(--color-ink)'
+  return COLOURS[accent as Accent] ?? 'var(--color-ink)'
 }

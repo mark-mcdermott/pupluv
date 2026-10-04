@@ -26,7 +26,6 @@ const dogs = payload.dogs.map((dog: Record<string, string>) => ({
 const events = payload.events.map((event: Record<string, string | null>) => ({
   ...event,
   occurredAt: date(event.occurredAt as string)!,
-  endedAt: date(event.endedAt as string | null),
   deletedAt: date(event.deletedAt as string | null),
   createdAt: date(event.createdAt as string)!,
   updatedAt: date(event.updatedAt as string)!,
@@ -37,6 +36,9 @@ if (dogs.length) {
   await db
     .insert(schema.dogs)
     .values(dogs)
+    // `user_id` is deliberately not among these: a restore brings back what a
+    // dog is, never who it belongs to. Re-running an old dump should not hand
+    // somebody's dogs back to whoever owned them at the time.
     .onConflictDoUpdate({
       target: schema.dogs.id,
       set: {

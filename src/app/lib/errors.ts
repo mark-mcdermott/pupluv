@@ -1,8 +1,8 @@
 /**
- * Why a sign-in failed. Kept in its own module so a component — or a test — can
- * name the reason without pulling in the whole sync engine.
+ * Why a sign-in or sign-up failed. Kept in its own module so a component — or a
+ * test — can name the reason without pulling in the whole sync engine.
  */
-export type SignInReason = 'pin' | 'offline' | 'server'
+export type SignInReason = 'credentials' | 'taken' | 'weak' | 'offline' | 'server'
 
 export class SignInFailed extends Error {
   constructor(readonly reason: SignInReason) {

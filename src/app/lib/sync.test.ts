@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { eventSchema, type PupEvent } from '@/lib/domain'
-import { apiBase, sync } from './sync'
+import { apiBase } from './api'
+import { sync } from './sync'
 import { $events } from './state'
 import { getOutbox, setOutbox, setToken } from './session'
 

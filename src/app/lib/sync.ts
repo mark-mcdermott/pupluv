@@ -6,7 +6,9 @@ import {
   type Location,
   type PupEvent,
 } from '@/lib/domain'
-import { SignInFailed } from './errors'
+import { API_BASE } from './api'
+import { authClient } from './auth-client'
+import { SignInFailed, type SignInReason } from './errors'
 import { publishToWidget, takeWidgetEvents } from './native'
 import { $authed, $dogs, $events, $ready, $sync } from './state'
 import { loadEvents, saveEvents } from './store'
@@ -20,19 +22,6 @@ import {
   setToken,
 } from './session'
 
-/**
- * A trailing slash on the configured origin would produce `//api/auth`, which
- * Vercel answers with a 308. A cross-origin POST does not survive that redirect
- * — it carries no CORS headers — so the app would report itself unreachable
- * because of one character in an env var. Normalise instead of trusting it.
- */
-export function apiBase(configured: string | undefined): string {
-  return (configured ?? '').trim().replace(/\/+$/, '')
-}
-
-// Same-origin on the web. The bundled iOS build is served from
-// capacitor://localhost, so it is given the deployed origin at build time.
-const API_BASE = apiBase(import.meta.env.PUBLIC_API_URL)
 
 class AuthError extends Error {}
 
@@ -63,34 +52,72 @@ async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   return response.json() as Promise<T>
 }
 
-export async function signIn(pin: string): Promise<void> {
-  let response: Response
+/**
+ * Better Auth reports a refused attempt as an `error` object but throws when the
+ * request never got an answer at all, and a thrown promise from a form action
+ * unmounts the React tree. Both become a SignInFailed the form can read.
+ */
+async function attempt(
+  call: () => Promise<{ error?: { status?: number; code?: string } | null }>,
+  refused: SignInReason,
+): Promise<void> {
+  let error: { status?: number; code?: string } | null | undefined
   try {
-    response = await fetch(`${API_BASE}/api/auth`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ pin }),
-    })
+    ;({ error } = await call())
   } catch {
-    // Never reached the server at all — a dead origin, no signal, or CORS.
     throw new SignInFailed('offline')
   }
+  if (!error) return
+  if (error.code === 'USER_ALREADY_EXISTS') throw new SignInFailed('taken')
+  if (error.code === 'PASSWORD_TOO_SHORT') throw new SignInFailed('weak')
+  throw new SignInFailed(error.status && error.status >= 500 ? 'server' : refused)
+}
 
-  if (response.status === 400 || response.status === 401) throw new SignInFailed('pin')
-  if (!response.ok) throw new SignInFailed('server')
-
-  const { token } = (await response.json()) as { token: string }
-  setToken(token)
+async function started(): Promise<void> {
   $authed.set(true)
   await sync()
 }
 
-export function signOut(): void {
+export async function signIn(email: string, password: string): Promise<void> {
+  await attempt(() => authClient.signIn.email({ email, password }), 'credentials')
+  await started()
+}
+
+export async function signUp(email: string, password: string, name: string): Promise<void> {
+  await attempt(() => authClient.signUp.email({ email, password, name }), 'credentials')
+  await started()
+}
+
+export async function signOut(): Promise<void> {
+  // Server first, so the session row goes with it; the local clear happens
+  // either way, because a session we cannot reach is still one we are done with.
+  try {
+    await authClient.signOut()
+  } catch {
+    /* offline — the token expires on its own */
+  }
   clearSession()
   $authed.set(false)
   $events.set([])
+  $dogs.set([])
   // The widget must stop offering to log for an account we no longer hold.
   void publishToWidget({ token: null, apiBase: API_BASE, dogs: [], placements: {} })
+}
+
+/**
+ * A dog is the one thing written straight to the server rather than through the
+ * outbox: every event references one, so a dog that exists only on this device
+ * would have its entries rejected as an unknown dog by the very check that keeps
+ * accounts apart.
+ */
+export async function addDog(dog: Omit<Dog, 'id'>): Promise<Dog> {
+  const { dog: created } = await api<{ dog: Dog }>('/api/dogs', {
+    method: 'POST',
+    body: JSON.stringify(dog),
+  })
+  $dogs.set([...$dogs.get(), created])
+  void sync()
+  return created
 }
 
 /** Local write first, network later — the tap must never wait on a round trip. */

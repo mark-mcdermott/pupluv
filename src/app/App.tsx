@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useStore } from '@nanostores/react'
 import { Toaster } from '@/components/ui/sonner'
+import { AddDog } from './components/AddDog'
 import { Shell } from './components/Shell'
 import { SignIn } from './components/SignIn'
 import { $authed, $dogs, $events, $ready } from './lib/state'
@@ -38,6 +39,17 @@ export default function App() {
     return (
       <>
         <SignIn />
+        <Toaster />
+      </>
+    )
+  }
+
+  // A fresh account has nobody to track, and every screen below assumes at
+  // least one. Asking is the only useful thing left to do.
+  if (!dogs.length) {
+    return (
+      <>
+        <AddDog dogs={dogs} />
         <Toaster />
       </>
     )
