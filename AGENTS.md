@@ -1,7 +1,7 @@
 # pupluv
 
-Tracks where two dogs are and how house-training is going. Personal app, one
-user, phone-first.
+Tracks where dogs are and how house-training is going. Accounts, a dog or more
+per account, phone-first.
 
 ## Stack — ZENCATS
 
@@ -16,8 +16,7 @@ one deploy target. `fullstackwolfpack` is the reference implementation.
 pnpm dev            # single dev server: pages, island, and /api/* together
 pnpm verify         # check + lint + test + build — the loop that must stay green
 pnpm db:push        # apply schema.ts to Neon
-pnpm db:seed [a] [b]  # create the two dogs (idempotent)
-pnpm pin:hash <pin> # print a PIN_HASH for .env.local and Vercel
+pnpm db:claim <email> # hand the pre-account dogs to an account
 pnpm cap:sync       # build and copy into the iOS shell (needs PUBLIC_API_URL)
 pnpm cap:ios        # open Xcode
 pnpm ios:device     # build, sign and install on a connected iPhone
@@ -84,7 +83,7 @@ widget derives the same proportions from its own tile width.
 
 - `src/lib/domain.ts` — the Zod discriminated union, shared by client and server.
   The CHECK constraints in `schema.ts` mirror it; change both together.
-- `src/server/` — db client (lazy, never a Proxy), PIN auth, row mappers.
+- `src/server/` — db client (lazy, never a Proxy), Better Auth, row mappers.
 - `src/pages/api/` — `prerender = false`. Everything else prerenders so the whole
   UI can be bundled into the iOS webview.
 - `src/app/` — the React island. `lib/sync.ts` is the local-first engine.
@@ -112,17 +111,33 @@ the other devices. An event is immutable once logged apart from `deleted_at`:
 editing an entry tombstones it and writes a new one, which is the only way to
 change which dogs a row covers or when it happened.
 
-### Auth
+### Auth and ownership
 
-One shared PIN, scrypt-hashed in `PIN_HASH`, exchanged for a 90-day JWT held as a
-**bearer token, not a cookie** — the bundled apps run on `capacitor://localhost`
-and `tauri://localhost` and call the API cross-origin, where cookies are a fight.
+Better Auth, email and password, with the **`bearer` plugin** — the bundled apps
+run on `capacitor://localhost` and `tauri://localhost` and call the API
+cross-origin, where cookies are a fight. `set-auth-token` comes back on sign-in
+and sign-up and `Authorization: Bearer` resolves it after, and the token is kept
+on every surface rather than only the native ones, so there is one code path
+instead of two.
 
-Every bundled scheme has to be listed twice: in `src/middleware.ts`, which sets
-the CORS headers production sends, and in `astro.config.mjs` under
-`security.allowedDomains`, which is the dev server's own cross-site guard. Miss
-either and the browser keeps working while the shipped app cannot sign in.
-`src/middleware.test.ts` holds the list.
+`NATIVE_ORIGINS` lives in `src/server/auth.ts` and `src/middleware.ts` imports
+it. Better Auth has to *trust* an origin to sign in from it and the middleware
+has to answer that origin's *preflight*; two copies of the list would drift, and
+the half that broke would be the one only a bundled build exercises. The dev
+server keeps its own guard in `astro.config.mjs` under `security.allowedDomains`
+— a third place, because it is a different program. `src/middleware.test.ts`
+holds the list.
+
+**A dog belongs to a user; an event belongs to a dog.** There is no owner column
+on `events` — the pull joins through `dogs`, and the push reuses the
+does-this-dog-exist check that was already there, narrowed to this user. Somebody
+else's dog id is simply not among the rows it returns, so it reads as unknown and
+gets the 400 that was already the answer for a dog that was never there. There is
+no separate authorisation step to forget.
+
+`dogs.user_id` is nullable only because rows predating accounts had to be adopted
+rather than dropped: sign up, then `pnpm db:claim <email>`. Everything written
+since belongs to somebody.
 
 ## Running it on a phone
 

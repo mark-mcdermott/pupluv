@@ -152,10 +152,29 @@ export type LocationEvent = Extract<PupEvent, { type: 'location' }>
 
 export const eventBatchSchema = z.array(eventSchema).min(1).max(200)
 
+/**
+ * The colours a dog can be told apart by, which are the palette's four accents.
+ * A closed set rather than free text: it is what the deck gradients and the
+ * widget's tints are built from, and an unknown value there draws as ink.
+ */
+/**
+ * What a dog can be drawn as. A closed set rather than a free emoji field, so
+ * `pnpm glyphs` can vendor artwork for every one of them — an emoji nobody
+ * vendored falls back to the system font, which is the thing the artwork exists
+ * to avoid.
+ */
+export const DOG_EMOJI = [
+  '🐶', '🐕', '🐩', '🐾', '🦴', '🍪',
+  '🍜', '🍩', '🧀', '🫐', '🌰', '⭐',
+] as const
+
+export const ACCENTS = ['teal', 'amber', 'clay', 'moss'] as const
+export type Accent = (typeof ACCENTS)[number]
+
 export const dogSchema = z.object({
   id: z.uuid(),
   name: z.string().trim().min(1).max(40),
-  accent: z.string().trim().min(1).max(20),
+  accent: z.enum(ACCENTS),
   emoji: z.string().trim().min(1).max(8),
 })
 
