@@ -15,13 +15,13 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Reads `packageManager` from package.json, so CI cannot drift onto a
       # different pnpm than the one this project is pinned to.
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24 # matches the Vercel runtime, not the local 25
           cache: pnpm
