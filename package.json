@@ -41,7 +41,7 @@
     "@nanostores/react": "^2.0.1",
     "@neondatabase/serverless": "^1.1.0",
     "@vercel/analytics": "^2.0.1",
-    "astro": "^7.3.2",
+    "astro": "^7.4.7",
     "better-auth": "1.7.6",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
