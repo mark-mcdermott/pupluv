@@ -93,6 +93,10 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild"
-    ]
+    ],
+    "overrides": {
+      "path-to-regexp@6": "^6.3.0",
+      "@esbuild-kit/core-utils>esbuild": "^0.25.0"
+    }
   }
 }
